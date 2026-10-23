@@ -1,0 +1,2 @@
+# Development-only dependencies (installed in .venv, never needed at runtime)
+pytest
