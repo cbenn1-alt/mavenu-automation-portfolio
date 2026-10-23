@@ -43,7 +43,11 @@ def run_migrations(conn: sqlite3.Connection, migrations_dir: str = MIGRATIONS_DI
     """Apply pending *.sql migrations in filename order. Returns names applied."""
     _ensure_migrations_table(conn)
     done = applied_migrations(conn)
-    files = sorted(f for f in os.listdir(migrations_dir) if f.endswith(".sql"))
+    files = sorted(
+        f
+        for f in os.listdir(migrations_dir)
+        if f.endswith(".sql") and not f.endswith(".down.sql")
+    )
     applied: list[str] = []
     for fname in files:
         if fname in done:
@@ -58,3 +62,31 @@ def run_migrations(conn: sqlite3.Connection, migrations_dir: str = MIGRATIONS_DI
         conn.commit()
         applied.append(fname)
     return applied
+
+
+def rollback_migration(
+    conn: sqlite3.Connection, name: str, migrations_dir: str = MIGRATIONS_DIR
+) -> bool:
+    """Roll back one applied migration using its ``<name>.down.sql`` file.
+
+    ``name`` is the migration file name as recorded in ``schema_migrations``
+    (e.g. ``"002_approvals.sql"``). The matching down-step script is executed,
+    then the migration record is removed so a later ``run_migrations`` can
+    re-apply it. Returns True when a down-step was applied, False when the
+    migration was not recorded as applied. Raises FileNotFoundError when no
+    down-step file exists for an applied migration.
+    """
+    _ensure_migrations_table(conn)
+    if name not in applied_migrations(conn):
+        return False
+    down_file = name[:-4] + ".down.sql" if name.endswith(".sql") else name + ".down.sql"
+    path = os.path.join(migrations_dir, down_file)
+    if not os.path.exists(path):
+        raise FileNotFoundError(
+            f"No down-step file for migration {name!r}: expected {down_file}"
+        )
+    with open(path, encoding="utf-8") as fh:
+        conn.executescript(fh.read())
+    conn.execute("DELETE FROM schema_migrations WHERE name = ?", (name,))
+    conn.commit()
+    return True

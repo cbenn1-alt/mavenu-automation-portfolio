@@ -38,6 +38,8 @@ class Settings:
     idempotency_ttl_hours: int
     review_confidence_threshold: float
     log_level: str
+    finance_threshold_cents: int
+    approval_sla_hours: int
 
 
 def load_settings() -> Settings:
@@ -50,4 +52,6 @@ def load_settings() -> Settings:
         idempotency_ttl_hours=_get_int("MAVENU_IDEMPOTENCY_TTL_HOURS", 72),
         review_confidence_threshold=_get_float("MAVENU_REVIEW_CONFIDENCE_THRESHOLD", 0.65),
         log_level=os.environ.get("MAVENU_LOG_LEVEL", "INFO"),
+        finance_threshold_cents=_get_int("MAVENU_FINANCE_THRESHOLD_CENTS", 100_000),
+        approval_sla_hours=_get_int("MAVENU_APPROVAL_SLA_HOURS", 48),
     )

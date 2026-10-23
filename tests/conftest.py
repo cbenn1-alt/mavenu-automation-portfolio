@@ -53,6 +53,8 @@ def settings(tmp_path):
         idempotency_ttl_hours=72,
         review_confidence_threshold=0.65,
         log_level="INFO",
+        finance_threshold_cents=100_000,
+        approval_sla_hours=48,
     )
 
 
