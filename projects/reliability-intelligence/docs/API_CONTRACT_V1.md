@@ -1,4 +1,4 @@
-# Reliability Intelligence API v1 — V4 technical contract
+# Reliability Intelligence API v1 — V5 additive fixture contract
 
 **Contract ID:** reliability-intelligence.api.v1
 **Approval:** Technical candidate for local evaluation only. Customer data and external deployment prohibited.
@@ -6,7 +6,7 @@
 ## Separation of concerns
 
 1. product_charter.json and charter.py define and fail-closed validate V2 problem and safety boundaries.
-2. services.py exposes pure read-only functions: status, scope and cases; no network calls, database, machine inference or file writes.
+2. services.py provides read-only status, scope and cases; V5 reads only pinned, fabricated local JSON; no network calls, databases, inference or writes.
 3. api_v1.py composes versioned envelopes and the machine-readable required-field manifest without knowing HTTP.
 4. web.py implements local WSGI GET/HEAD routing, no CORS grant, no mutation and structured errors.
 5. tests/test_api_contract.py proves contract shapes and negative cases; earlier V2/V3 tests still run.
@@ -17,7 +17,7 @@ The word status means prototype software readiness, not physical equipment condi
 
 - API namespace: /api/v1. Other versions return 404, not a silent alias.
 - Media type: application/json; charset=utf-8.
-- Success envelope: api_version (v1), schema_version (1.0.0), resource, data.
+- Success envelope: api_version (v1), schema_version (1.1.0), resource, data.
 - API routes: /api/v1/status, /api/v1/scope, /api/v1/cases, /api/v1/contract.
 - Methods: GET and HEAD; HEAD has no entity body, preserves GET representation length.
 - Required data fields are exposed at /api/v1/contract and validated by automated tests.
@@ -48,7 +48,7 @@ The word status means prototype software readiness, not physical equipment condi
 }
 ~~~~
 
-Actual JSON is compact with sorted keys. Scope identifies only unconfirmed personas and an unmeasured proposed benefit. The cases response has an empty array and population_status=not_implemented. Zero loaded cases must never be interpreted as zero actual equipment failures.
+Actual JSON is compact with sorted keys. Scope identifies only unconfirmed personas and an unmeasured proposed benefit. V5 cases contain 12 fabricated records and population_status=synthetic_fixtures_loaded. They are not actual machine failures. Separately authored reference labels are never returned in the API.
 
 ## Negative paths
 
@@ -64,3 +64,12 @@ The error envelope contains api_version and error.code/error.message. It never i
 ## Readiness and change control
 
 V4 is a local transport/service contract, not operational software. Live customer access, per-tenant authorization, logging, provenance, secure secrets, isolation, rate limiting, data correctness, safety case and pilot evaluation belong to later independently approved increments. Never expose V4 publicly. A signed technical release decision remains necessary after CI and reviewer smoke evidence.
+
+
+## V5 additive contract revision — schema 1.1.0
+
+The API route list and GET/HEAD methods remain unchanged. The versioned cases collection now contains twelve records with SYN- identifiers, synthetic=true and review_state=fixture_only. The top-level cases response fields remain the same. Consumers must not treat a nonempty synthetic collection as actual customer failures.
+
+Status adds synthetic_fixtures_available=true while retaining operational_data_loaded=false, model_present=false and production_ready=false. The v1 contract limits set case_fixtures_loaded=true. Fixture integrity errors return 503 with error.code=fixture_invalid and a non-sensitive message. This is an additive v1 schema update, not a new endpoint or authorization to ingest production data.
+
+The reference_labels.json file is never loaded into user-facing service methods and is not exposed in HTTP responses or the workbench. See fixtures/README.md for file fields, limitations and provenance. No autonomous decision or work-order mutation exists.

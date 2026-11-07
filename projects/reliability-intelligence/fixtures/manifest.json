@@ -1,0 +1,22 @@
+{
+  "fixture_set_id": "SYN-RI-V5-20261107-A",
+  "manifest_schema_version": "1.0.0",
+  "authored_date": "2026-11-07",
+  "authorship": "Mavenu synthetic prototype fixtures (manually authored)",
+  "derivation": "Invented hypothetical industrial-maintenance scenarios; no customer, vendor, personnel, or machine data.",
+  "purpose": "V5 deterministic fixture loading, schema validation, read-only navigation; V6 workflow preparation",
+  "generation_method": "Hand-authored 12 cases and 6 fabricated assets; serialized as controlled JSON with stable IDs",
+  "source_systems": [],
+  "customer_data_used": false,
+  "synthetic_only": true,
+  "production_authorized": false,
+  "independent_domain_validation": false,
+  "case_file": "cases.json",
+  "case_git_blob_sha1": "8aceaf06796079a460e268ea30975a79cbaf7355",
+  "reference_labels_file": "reference_labels.json",
+  "reference_labels_git_blob_sha1": "8772525bb447db0974b7e75e8997dcedfd984b95",
+  "assets_count": 6,
+  "cases_count": 12,
+  "reference_label_usage": "For internal synthetic-test assertions only; never expose seeded labels via demonstration API.",
+  "limitations": "Not a random sample, predictive model, operational risk assessment, downtime baseline, or proof of customer savings."
+}

@@ -44,7 +44,7 @@ class V4APIContractTests(unittest.TestCase):
                 self.assertEqual(int(headers["Content-Length"]), len(body))
                 doc = json.loads(body)
                 self.assertEqual(doc["api_version"], "v1")
-                self.assertEqual(doc["schema_version"], "1.0.0")
+                self.assertEqual(doc["schema_version"], "1.1.0")
                 self.assertEqual(doc["resource"], resource)
                 self.assertIsInstance(doc["data"], dict)
 
@@ -63,7 +63,8 @@ class V4APIContractTests(unittest.TestCase):
     def test_service_status_explicitly_not_operational(self):
         _, _, body = request("/api/v1/status")
         data = json.loads(body)["data"]
-        self.assertEqual(data["increment"], "V4")
+        self.assertEqual(data["increment"], "V5")
+        self.assertIs(data["synthetic_fixtures_available"], True)
         self.assertEqual(data["business_approval"], "pending")
         self.assertFalse(data["validated_customer_problem"])
         for key in ("production_ready", "operational_data_loaded", "model_present",
@@ -80,14 +81,17 @@ class V4APIContractTests(unittest.TestCase):
         self.assertEqual(data["boundary"]["data_mode"], "synthetic_only")
         self.assertEqual(data["boundary"]["work_order_writes"], "disabled")
 
-    def test_case_collection_not_implemented_not_no_failures(self):
+    def test_cases_are_synthetic_fixtures_not_customer_failures(self):
         _, _, body = request("/api/v1/cases")
         data = json.loads(body)["data"]
-        self.assertEqual(data["items"], [])
-        self.assertEqual(data["count"], 0)
-        self.assertEqual(data["source"], "none")
-        self.assertEqual(data["population_status"], "not_implemented")
-        self.assertIn("not evidence of zero failures", data["explanation"])
+        self.assertEqual(data["count"], 12)
+        self.assertEqual(len(data["items"]), 12)
+        self.assertTrue(all(row["synthetic"] is True for row in data["items"]))
+        self.assertTrue(all(row["review_state"] == "fixture_only" for row in data["items"]))
+        self.assertEqual(data["source"], "versioned_local_synthetic_fixture")
+        self.assertEqual(data["population_status"], "synthetic_fixtures_loaded")
+        self.assertIn("not real failures", data["explanation"])
+        self.assertNotIn("expected_review_label", body.decode())
 
     def test_separate_pure_services_match_wire_contract(self):
         for path, builder in [
@@ -105,6 +109,7 @@ class V4APIContractTests(unittest.TestCase):
         self.assertEqual(set(data["routes"]), set(api_v1.ROUTE_DESCRIPTIONS))
         self.assertEqual(data["allowed_methods"], ["GET", "HEAD"])
         self.assertFalse(data["limits"]["write_endpoints"])
+        self.assertTrue(data["limits"]["case_fixtures_loaded"])
         for route in data["routes"].values():
             self.assertEqual(route["methods"], ["GET", "HEAD"])
             self.assertTrue(route["read_only"])

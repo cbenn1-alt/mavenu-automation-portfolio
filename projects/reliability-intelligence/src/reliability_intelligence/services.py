@@ -1,27 +1,30 @@
-"""V4 pure read-only service boundary.
+"""V5 read-only service boundary with verified local synthetic fixtures.
 
-No customer connectors, data access, inference, external calls, mutations, or
-operational decisions are implemented. This module consumes a validated V2
-candidate charter and emits only synthetic-prototype metadata.
+No customer connectors, operational data, inference, network calls, mutations,
+or operational decisions. Fixed repository fixtures are validated on read.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-SERVICE_VERSION = "0.4.0"
+from .fixtures import load_fixture_set
+
+SERVICE_VERSION = "0.5.0"
 
 
 def status(charter: dict[str, Any]) -> dict[str, Any]:
     """Return non-sensitive, declarative capabilities, not plant health."""
+    load_fixture_set()  # Fail closed if synthetic fixture integrity is invalid.
     return {
         "product": charter["product"],
-        "increment": "V4",
+        "increment": "V5",
         "business_approval": "pending",
         "validated_customer_problem": False,
         "mode": "synthetic_only",
         "production_ready": False,
         "operational_data_loaded": False,
+        "synthetic_fixtures_available": True,
         "model_present": False,
         "external_integrations_enabled": False,
         "ot_or_cmms_writes_enabled": False,
@@ -57,17 +60,16 @@ def scope(charter: dict[str, Any]) -> dict[str, Any]:
 
 
 def cases(charter: dict[str, Any]) -> dict[str, Any]:
-    """An explicitly *unpopulated* case collection, not a no-failures claim.
-
-    V5 will add representative synthetic fixtures. No repository data is
-    accessed here, and the function never emits real or fake work orders.
-    """
-    _ = charter
+    """Expose only version-checked synthetic case records. Not decisions."""
+    if charter["data_and_safety"]["data_mode"] != "SYNTHETIC_ONLY":
+        raise ValueError("Synthetic-only charter required")
+    dataset = load_fixture_set()
+    records = [dict(row) for row in dataset["records"]]
     return {
-        "items": [],
-        "count": 0,
-        "population_status": "not_implemented",
-        "explanation": "Synthetic case fixtures are planned for V5; zero items is not evidence of zero failures.",
-        "source": "none",
+        "items": records,
+        "count": len(records),
+        "population_status": "synthetic_fixtures_loaded",
+        "explanation": "Illustrative fabricated cases only; not real failures, measurements, predictions, or operator decisions.",
+        "source": "versioned_local_synthetic_fixture",
         "human_review_enabled": False,
     }

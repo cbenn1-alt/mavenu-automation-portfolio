@@ -1,0 +1,212 @@
+{
+  "fixture_set_id": "SYN-RI-V5-20261107-A",
+  "synthetic_only": true,
+  "source_system": "NONE",
+  "data_kind": "artificial_illustrative_maintenance_records",
+  "assets": [
+    {
+      "asset_id": "SYN-ASSET-001",
+      "asset_class": "bearing_drive",
+      "cohort": "Assembly Test Line",
+      "synthetic": true
+    },
+    {
+      "asset_id": "SYN-ASSET-002",
+      "asset_class": "belt_conveyor",
+      "cohort": "Assembly Test Line",
+      "synthetic": true
+    },
+    {
+      "asset_id": "SYN-ASSET-003",
+      "asset_class": "transfer_pump",
+      "cohort": "Utility Test Zone",
+      "synthetic": true
+    },
+    {
+      "asset_id": "SYN-ASSET-004",
+      "asset_class": "sensor_module",
+      "cohort": "Utility Test Zone",
+      "synthetic": true
+    },
+    {
+      "asset_id": "SYN-ASSET-005",
+      "asset_class": "electric_motor",
+      "cohort": "Mock Workshop",
+      "synthetic": true
+    },
+    {
+      "asset_id": "SYN-ASSET-006",
+      "asset_class": "control_valve",
+      "cohort": "Mock Workshop",
+      "synthetic": true
+    }
+  ],
+  "records": [
+    {
+      "case_id": "SYN-CASE-001",
+      "asset_id": "SYN-ASSET-001",
+      "work_order_ref": "SYN-WO-001",
+      "occurred_at_utc": "2026-01-05T10:00:00Z",
+      "failure_code": "bearing_wear",
+      "downtime_hours": 2.5,
+      "repair_cost_usd": 860,
+      "evidence_refs": [
+        "SYN-EV-001"
+      ],
+      "synthetic": true,
+      "review_state": "fixture_only"
+    },
+    {
+      "case_id": "SYN-CASE-002",
+      "asset_id": "SYN-ASSET-002",
+      "work_order_ref": "SYN-WO-002",
+      "occurred_at_utc": "2026-01-06T11:30:00Z",
+      "failure_code": "belt_slip",
+      "downtime_hours": 1,
+      "repair_cost_usd": 430,
+      "evidence_refs": [
+        "SYN-EV-002"
+      ],
+      "synthetic": true,
+      "review_state": "fixture_only"
+    },
+    {
+      "case_id": "SYN-CASE-003",
+      "asset_id": "SYN-ASSET-003",
+      "work_order_ref": "SYN-WO-003",
+      "occurred_at_utc": "2026-01-07T15:15:00Z",
+      "failure_code": "seal_leak",
+      "downtime_hours": 4,
+      "repair_cost_usd": 1200,
+      "evidence_refs": [
+        "SYN-EV-003"
+      ],
+      "synthetic": true,
+      "review_state": "fixture_only"
+    },
+    {
+      "case_id": "SYN-CASE-004",
+      "asset_id": "SYN-ASSET-003",
+      "work_order_ref": "SYN-WO-004",
+      "occurred_at_utc": "2026-01-15T09:20:00Z",
+      "failure_code": "seal_leak",
+      "downtime_hours": 6,
+      "repair_cost_usd": 1750,
+      "evidence_refs": [
+        "SYN-EV-004"
+      ],
+      "synthetic": true,
+      "review_state": "fixture_only"
+    },
+    {
+      "case_id": "SYN-CASE-005",
+      "asset_id": "SYN-ASSET-004",
+      "work_order_ref": "SYN-WO-005",
+      "occurred_at_utc": "2026-01-16T08:10:00Z",
+      "failure_code": "sensor_fault",
+      "downtime_hours": 0.5,
+      "repair_cost_usd": 115,
+      "evidence_refs": [
+        "SYN-EV-005"
+      ],
+      "synthetic": true,
+      "review_state": "fixture_only"
+    },
+    {
+      "case_id": "SYN-CASE-006",
+      "asset_id": "SYN-ASSET-005",
+      "work_order_ref": "SYN-WO-006",
+      "occurred_at_utc": "2026-01-18T16:45:00Z",
+      "failure_code": "motor_trip",
+      "downtime_hours": 8,
+      "repair_cost_usd": 2500,
+      "evidence_refs": [
+        "SYN-EV-006"
+      ],
+      "synthetic": true,
+      "review_state": "fixture_only"
+    },
+    {
+      "case_id": "SYN-CASE-007",
+      "asset_id": "SYN-ASSET-001",
+      "work_order_ref": "SYN-WO-007",
+      "occurred_at_utc": "2026-01-20T14:30:00Z",
+      "failure_code": "bearing_wear",
+      "downtime_hours": 3.5,
+      "repair_cost_usd": 960,
+      "evidence_refs": [
+        "SYN-EV-007"
+      ],
+      "synthetic": true,
+      "review_state": "fixture_only"
+    },
+    {
+      "case_id": "SYN-CASE-008",
+      "asset_id": "SYN-ASSET-002",
+      "work_order_ref": "SYN-WO-008",
+      "occurred_at_utc": "2026-01-22T07:50:00Z",
+      "failure_code": "belt_slip",
+      "downtime_hours": 4,
+      "repair_cost_usd": 780,
+      "evidence_refs": [
+        "SYN-EV-008"
+      ],
+      "synthetic": true,
+      "review_state": "fixture_only"
+    },
+    {
+      "case_id": "SYN-CASE-009",
+      "asset_id": "SYN-ASSET-006",
+      "work_order_ref": "SYN-WO-009",
+      "occurred_at_utc": "2026-01-23T12:05:00Z",
+      "failure_code": "valve_stick",
+      "downtime_hours": 2,
+      "repair_cost_usd": 370,
+      "evidence_refs": [],
+      "synthetic": true,
+      "review_state": "fixture_only"
+    },
+    {
+      "case_id": "SYN-CASE-010",
+      "asset_id": "SYN-ASSET-005",
+      "work_order_ref": "SYN-WO-010",
+      "occurred_at_utc": "2026-01-27T20:15:00Z",
+      "failure_code": "motor_trip",
+      "downtime_hours": 10,
+      "repair_cost_usd": 3100,
+      "evidence_refs": [
+        "SYN-EV-010"
+      ],
+      "synthetic": true,
+      "review_state": "fixture_only"
+    },
+    {
+      "case_id": "SYN-CASE-011",
+      "asset_id": "SYN-ASSET-004",
+      "work_order_ref": "SYN-WO-011",
+      "occurred_at_utc": "2026-02-03T06:40:00Z",
+      "failure_code": "sensor_fault",
+      "downtime_hours": 1.5,
+      "repair_cost_usd": 250,
+      "evidence_refs": [
+        "SYN-EV-011"
+      ],
+      "synthetic": true,
+      "review_state": "fixture_only"
+    },
+    {
+      "case_id": "SYN-CASE-012",
+      "asset_id": "SYN-ASSET-006",
+      "work_order_ref": "SYN-WO-012",
+      "occurred_at_utc": "2026-02-04T17:55:00Z",
+      "failure_code": "valve_stick",
+      "downtime_hours": 2.5,
+      "repair_cost_usd": 420,
+      "evidence_refs": [
+        "SYN-EV-012"
+      ],
+      "synthetic": true,
+      "review_state": "fixture_only"
+    }
+  ]
+}

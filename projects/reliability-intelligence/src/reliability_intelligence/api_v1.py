@@ -1,4 +1,4 @@
-"""V4 HTTP-independent v1 API contract and response composition.
+"""V5 HTTP-independent v1 API contract and response composition.
 
 The transport is owned by web.py; services.py is pure business-facing metadata.
 Any non-v1 path must be rejected rather than silently accepting it.
@@ -12,20 +12,21 @@ from typing import Any
 from . import services
 
 API_VERSION = "v1"
-API_SCHEMA_VERSION = "1.0.0"
+API_SCHEMA_VERSION = "1.1.0"
 API_MEDIA_TYPE = "application/json; charset=utf-8"
 
 ROUTE_DESCRIPTIONS = {
     "/api/v1/status": "Prototype readiness disclosure, not plant uptime.",
     "/api/v1/scope": "Proposed, unapproved maintenance-review scope and evaluation.",
-    "/api/v1/cases": "Unpopulated read-only case collection; V5 fixtures pending.",
+    "/api/v1/cases": "Validated local synthetic cases only; no real equipment records.",
     "/api/v1/contract": "Machine-readable v1 endpoint and field contract.",
 }
 
 REQUIRED_FIELDS = {
     "status": (
         "product", "increment", "business_approval", "validated_customer_problem",
-        "mode", "production_ready", "operational_data_loaded", "model_present",
+        "mode", "production_ready", "operational_data_loaded",
+        "synthetic_fixtures_available", "model_present",
         "external_integrations_enabled", "ot_or_cmms_writes_enabled",
         "measured_effectiveness",
     ),
@@ -47,7 +48,7 @@ RESOURCES = {
 
 
 def contract() -> dict[str, Any]:
-    """Describe only endpoints and fields actually implemented at V4."""
+    """Describe implemented endpoints and the additive V5 fixture population."""
     return {
         "api_version": API_VERSION,
         "schema_version": API_SCHEMA_VERSION,
@@ -71,7 +72,7 @@ def contract() -> dict[str, Any]:
         "limits": {
             "customer_data_supported": False,
             "write_endpoints": False,
-            "case_fixtures_loaded": False,
+            "case_fixtures_loaded": True,
             "public_network_hosting": False,
         },
     }

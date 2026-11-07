@@ -1,0 +1,68 @@
+{
+  "fixture_set_id": "SYN-RI-V5-20261107-A",
+  "synthetic_only": true,
+  "labels_authored_for_demonstration": true,
+  "independently_validated": false,
+  "records": [
+    {
+      "case_id": "SYN-CASE-001",
+      "expected_review_label": "single_event",
+      "synthetic": true
+    },
+    {
+      "case_id": "SYN-CASE-002",
+      "expected_review_label": "single_event",
+      "synthetic": true
+    },
+    {
+      "case_id": "SYN-CASE-003",
+      "expected_review_label": "repeat_history_candidate",
+      "synthetic": true
+    },
+    {
+      "case_id": "SYN-CASE-004",
+      "expected_review_label": "repeat_history_candidate",
+      "synthetic": true
+    },
+    {
+      "case_id": "SYN-CASE-005",
+      "expected_review_label": "single_event",
+      "synthetic": true
+    },
+    {
+      "case_id": "SYN-CASE-006",
+      "expected_review_label": "repeat_history_candidate",
+      "synthetic": true
+    },
+    {
+      "case_id": "SYN-CASE-007",
+      "expected_review_label": "repeat_history_candidate",
+      "synthetic": true
+    },
+    {
+      "case_id": "SYN-CASE-008",
+      "expected_review_label": "repeat_history_candidate",
+      "synthetic": true
+    },
+    {
+      "case_id": "SYN-CASE-009",
+      "expected_review_label": "missing_evidence",
+      "synthetic": true
+    },
+    {
+      "case_id": "SYN-CASE-010",
+      "expected_review_label": "repeat_history_candidate",
+      "synthetic": true
+    },
+    {
+      "case_id": "SYN-CASE-011",
+      "expected_review_label": "repeat_history_candidate",
+      "synthetic": true
+    },
+    {
+      "case_id": "SYN-CASE-012",
+      "expected_review_label": "repeat_history_candidate",
+      "synthetic": true
+    }
+  ]
+}

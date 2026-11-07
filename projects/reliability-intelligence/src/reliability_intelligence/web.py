@@ -1,4 +1,4 @@
-"""V4 local-only read-only UI and versioned API transport."""
+"""V5 local-only read-only UI and versioned API transport."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ from wsgiref.simple_server import make_server
 
 from .charter import InvalidCharter, load_charter
 from . import api_v1
+from .fixtures import InvalidFixture, load_fixture_set
 
 ROUTES = (
     ("/", "Overview"),
@@ -49,7 +50,7 @@ def _page_content(path: str, charter: dict) -> str:
     goal = escape(str(charter["primary_metric"]["proposed_relative_improvement_pct"]))
     if path == "/":
         return f"""<section class="hero">
-          <p class="eyebrow">V3 / Prototype foundation</p>
+          <p class="eyebrow">V5 / Prototype foundation</p>
           <h1>Maintenance intelligence that keeps people in control.</h1>
           <p class="lead">A proposed, source-traceable review workspace for industrial maintenance teams. This shell contains no customer records, predictions, or production connections.</p>
           <a class="text-link" href="/workbench">Open empty case workspace</a>
@@ -63,14 +64,24 @@ def _page_content(path: str, charter: dict) -> str:
           </div>
         </section>"""
     if path == "/workbench":
-        return """<section class="section">
-          <p class="eyebrow">01 / Human review workspace</p>
-          <h1>Maintenance cases</h1>
-          <p class="lead">The navigation and review shell are available. Representative synthetic case fixtures are planned for V5, and end-to-end workflow logic for V6.</p>
-          <div class="panel">
-            <div class="table-head"><span>Asset / case</span><span>Evidence</span><span>Review</span></div>
-            <div class="empty-state" role="status"><h2>No cases loaded</h2><p>There is no live maintenance queue. No work orders are created or modified.</p></div>
-          </div>
+        fixture_set = load_fixture_set()
+        rows = "\n".join(
+            f'<tr><td>{escape(record["case_id"])}</td>'
+            f'<td>{escape(record["asset_id"])}</td>'
+            f'<td>{escape(record["failure_code"].replace("_", " "))}</td>'
+            f'<td>{escape(record["occurred_at_utc"])}</td>'
+            f'<td>Synthetic fixture</td></tr>'
+            for record in fixture_set["records"]
+        )
+        return f"""<section class="section">
+          <p class="eyebrow">01 / Read-only synthetic case preview</p>
+          <h1>Illustrative maintenance records</h1>
+          <p class="lead">All {len(fixture_set["records"])} records below were fabricated for software testing. They are not real equipment incidents, maintenance recommendations or verified operating data.</p>
+          <div class="panel"><div class="table-scroll"><table class="data-table">
+            <caption>V5 fictional example records, not customer work orders</caption>
+            <thead><tr><th scope="col">Case ID</th><th scope="col">Asset</th><th scope="col">Example failure code</th><th scope="col">Example time (UTC)</th><th scope="col">Source</th></tr></thead>
+            <tbody>{rows}</tbody></table></div></div>
+          <p class="note">No automated classification or approval workflow exists. Seeded reference labels are excluded from this page and API. V6 will develop the end-to-end synthetic review workflow.</p>
         </section>"""
     if path == "/evaluation":
         return f"""<section class="section">
@@ -117,7 +128,7 @@ def render_page(path: str, charter: dict) -> bytes:
   <div class="app-layout">
     <nav class="sidebar" aria-label="Primary navigation"><p class="nav-label">Workspace</p>{_navigation(path)}</nav>
     <main id="main-content" tabindex="-1">{main}
-      <footer><p>V3 navigation shell. No live integrations, operational recommendations, measured savings, or Minn-Dak endorsement.</p></footer>
+      <footer><p>V5 synthetic fixture preview. No live integrations, operational recommendations, measured savings, or Minn-Dak endorsement.</p></footer>
     </main>
   </div>
 </body>
@@ -145,6 +156,10 @@ def app(environ, start_response):
                              method)
         try:
             payload = api_v1.data_for_path(path, charter)
+        except InvalidFixture:
+            return _response(start_response, "503 Service Unavailable", api_v1.API_MEDIA_TYPE,
+                             api_v1.serialize(api_v1.error("fixture_invalid", "Synthetic fixture unavailable.")),
+                             method)
         except (KeyError, ValueError, TypeError):
             return _response(start_response, "503 Service Unavailable", api_v1.API_MEDIA_TYPE,
                              api_v1.serialize(api_v1.error("contract_failure", "Versioned response unavailable.")),
@@ -168,8 +183,13 @@ def app(environ, start_response):
     except InvalidCharter:
         return _response(start_response, "503 Service Unavailable", "text/plain; charset=utf-8",
                          b"Requirements contract invalid. Interface unavailable.\n", method)
+    try:
+        body = render_page(path, charter)
+    except InvalidFixture:
+        return _response(start_response, "503 Service Unavailable", "text/plain; charset=utf-8",
+                         b"Synthetic fixture unavailable.\n", method)
     return _response(start_response, "200 OK", "text/html; charset=utf-8",
-                     render_page(path, charter), method)
+                     body, method)
 
 
 def serve_local(port: int = 8765):
