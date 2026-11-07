@@ -1,62 +1,60 @@
-# Mavenu Reliability Intelligence — V3 (GitHub development)
+# Mavenu Reliability Intelligence — V4
 
-**State:** implemented local UI/navigation prototype; **not business-approved, not a deployed customer application and not an AI predictive-maintenance system**. The V2 requirements contract remains a candidate pending human sign-off. This branch adds an auditable V3 interface shell **on top of V2**.
+**Engineering state:** Read-only, synthetic-only versioned API and local UI implemented. The user/problem charter is not approved. No Minn-Dak authorization, operational data, AI model or production deployment is claimed.
 
-## Architecture ledger
+## Increment register (Development Architecture V4, page 42)
 
-- **V2:** Define user, pain point and measurable outcome. Proof: approved narrow problem statement (**formal approval pending**).
-- **V3:** Implement minimal user interface and navigation. Proof: usable shell smoke test (**automated tests in this PR**).
-- **V4–V6:** Service/API boundaries, representative synthetic fixtures, and first end-to-end workflow (**not yet implemented**).
-- **V30 / G1**, **V60 / G2** and later readiness gates are **not passed**.
+| Increment | Requirement | Evidence | Approval |
+|---|---|---|---|
+| V1 | Repository, CI and environment | Original separate local package | V1 history not yet imported to GitHub |
+| V2 | User, problem, measurable outcome | Candidate charter and tests | Business sign-off pending |
+| V3 | Minimal UI and navigation | Four-page local shell, smoke tests | Human sign-off pending |
+| **V4** | **Versioned API/service boundaries** | **Contract smoke suite and GitHub CI** | Human sign-off pending |
+| V5 | Synthetic fixtures | Future work | Not started |
+| V6 | End-to-end workflow | Future work | Not started |
 
-Source: Mavenu AI SaaS Platform Development Architecture V4, page 42.
+Readiness gates G1/V30 and G2/V60 have not been passed.
 
-## Launch the local interface
+## Start locally (Python 3.11+, zero runtime dependencies)
 
-Requires Python 3.11+; application dependencies: **Python standard library only**.
-
-~~~bash
+~~~~bash
 cd projects/reliability-intelligence
 PYTHONPATH=src python -m reliability_intelligence serve --port 8765
-~~~
+~~~~
 
-Open **http://127.0.0.1:8765/** from the same computer. The server **always binds to loopback**; do not expose the prototype publicly.
+Open http://127.0.0.1:8765/ on the same computer. The server only binds to 127.0.0.1. Do not host publicly.
 
-Available navigation:
+V3 UI pages: Overview (/), Case workspace (/workbench), Evaluation (/evaluation), Boundaries (/governance).
 
-| Path | Page | State |
-| --- | --- | --- |
-| / | Overview | Proposed user, buyer and outcome |
-| /workbench | Case workspace | Empty-state navigation; no records |
-| /evaluation | Evaluation | Proposed matched-review metric; no measured results |
-| /governance | Boundaries | Allowed / disallowed scope |
+V4 API endpoints (GET and HEAD only):
 
-Static assets load from the repository at /assets/style.css. No external script, API key, hosting account, analytics beacon or JavaScript runtime is required. The UI is keyboard accessible, includes a skip link, visible focus styles, responsive layout, and reduced-motion CSS.
+| Path | Contract |
+|---|---|
+| /api/v1/status | Non-production capabilities and pending authorization |
+| /api/v1/scope | Candidate problem, buyer/user hypotheses and unmeasured KPI |
+| /api/v1/cases | Unpopulated collection; no synthetic fixtures until V5 |
+| /api/v1/contract | Machine-readable API version, methods and required fields |
 
-## Test and inspect
+All successful API responses contain api_version, schema_version, resource, data. Unknown versions return 404. POST, PUT, PATCH and DELETE return 405. No write endpoints exist.
 
-~~~bash
-PYTHONPATH=src python -m reliability_intelligence status --json
+## Review and test
+
+~~~~bash
 PYTHONPATH=src python -m reliability_intelligence validate --json
+PYTHONPATH=src python -m reliability_intelligence status --json
 PYTHONPATH=src python -m unittest discover -s tests -v
-~~~
+curl -i http://127.0.0.1:8765/api/v1/status
+curl -i http://127.0.0.1:8765/api/v1/contract
+~~~~
 
-The first PR's V2 contract tests remain active. V3 adds WSGI route, navigation, empty-state, HTML-escaping, CSP, HTTP method, HEAD, invalid-charter and loopback-binding smoke/negative-path tests. **Automated test passes do not establish customer value or industrial safety certification.**
+Read docs/API_CONTRACT_V1.md, docs/DEMO_V4.md and docs/releases/V4.md. Green tests prove only bounded, deterministic API contracts and UI smoke checks—not physical equipment reliability, cybersecurity certification, operational savings or predictive accuracy.
 
-See docs/DEMO_V3.md for reproduction, docs/releases/V3.md for release evidence, and docs/PROBLEM_STATEMENT.md for the unapproved hypothesis.
+## Non-negotiable boundaries
 
-## Hard boundaries
+- Local read-only metadata and no customer records, external connections, databases or production credentials.
+- No Dynamics 365, Levridge, CMMS, ERP, Power BI, historian, PLC/SCADA or other OT integrations.
+- No work-order mutation, equipment control, autonomous maintenance ranking, model, actual fault data, savings or ROI assertion.
+- Existing-vendor configure/buy/no-build path must remain available.
+- The original local V1 Git repository has not been imported; GitHub implements the separate V2–V4 development chain.
 
-- **SYNTHETIC_ONLY.** No Minn-Dak or third-party records and no authorization implied.
-- No Dynamics 365, Levridge, Power BI, CMMS/ERP, historian, PLC/SCADA, or other OT system connections.
-- No synthetic case fixtures yet (scheduled V5), no operations workflow (scheduled V6), no ML, no autonomous prioritization, no write-back.
-- No savings claims, validated failure detection, or signed customer partnership.
-- Browser UI is read-only and limited to GET/HEAD. Reverse proxies and internet hosting are **out of scope**.
-
-## Repository strategy
-
-The V3 feature branch is based on feature/reliability-intelligence-v2. Its PR targets that branch, so V2 need not be merged prematurely. **The separate local V1 source package/history is still not imported into the portfolio repository.** Before presenting a consolidated V1–V3 baseline, reconcile that history and record a reproducible setup result. Do not merge a draft increment as an approved release.
-
-## Next V4
-
-Define versioned **API/service boundaries** with contract smoke tests, keeping all integrations synthetic, local and read-only until later formal approval gates.
+**Next:** V5 representative synthetic fixtures, separately labeled and provenance documented. No live data without written authorization and later gating.
