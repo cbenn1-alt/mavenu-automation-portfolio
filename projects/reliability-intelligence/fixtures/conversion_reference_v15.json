@@ -1,0 +1,453 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V15",
+  "objective": "Normalize timestamps, units and locales",
+  "required_proof": "Conversion reference tests",
+  "fixture_status": "SYNTHETIC_REFERENCE_UNAPPROVED",
+  "source_fixture_set_id": "SYN-RI-V5-20261107-A",
+  "source_baseline_commit": "704123eca45628bf504594af39a66036cc0451c5",
+  "canonical_fields": {
+    "occurred_at_utc": "YYYY-MM-DDTHH:MM:SSZ",
+    "downtime_hours": "decimal ASCII hours max 6 fractional places",
+    "repair_cost_usd": "decimal ASCII USD with exactly 2 fraction digits"
+  },
+  "supported_locales": [
+    "en-US",
+    "en-GB",
+    "de-DE",
+    "fr-FR"
+  ],
+  "supported_duration_units": [
+    "hours",
+    "minutes",
+    "seconds"
+  ],
+  "money_currency": "USD",
+  "conversion_policy": {
+    "timezone": "explicit numeric UTC offset required; ISO Z acceptable; no named-zone DST inference",
+    "rounding": "no silent precision loss for durations or money",
+    "locale": "explicit locale required for human-formatted dates and numbers",
+    "source_mutation": "never",
+    "money": "USD only; no FX conversion or exchange rate inference",
+    "duration_range_hours": [
+      0,
+      240
+    ],
+    "usd_range": [
+      0,
+      1000000
+    ]
+  },
+  "approval": {
+    "formal_phase_02_authorized": false,
+    "source_dictionary_approved": false,
+    "customer_data_authorized": false,
+    "owner_signoff": false,
+    "production_authorized": false,
+    "reviewer": null,
+    "signature": null
+  },
+  "expected_accepted_count": 27,
+  "expected_rejected_count": 24,
+  "accepted_reference_cases": [
+    {
+      "id": "T-ISO-Z",
+      "kind": "timestamp",
+      "value": "2026-01-05T10:00:00Z",
+      "locale": "en-US",
+      "expected": "2026-01-05T10:00:00Z"
+    },
+    {
+      "id": "T-ISO-EST",
+      "kind": "timestamp",
+      "value": "2026-01-05T05:00:00-05:00",
+      "locale": "en-US",
+      "expected": "2026-01-05T10:00:00Z"
+    },
+    {
+      "id": "T-ISO-EAST",
+      "kind": "timestamp",
+      "value": "2026-01-05T12:00:00+02:00",
+      "locale": "en-GB",
+      "expected": "2026-01-05T10:00:00Z"
+    },
+    {
+      "id": "T-ISO-CST-FIXED",
+      "kind": "timestamp",
+      "value": "2026-01-05T04:00:00-06:00",
+      "locale": "en-US",
+      "expected": "2026-01-05T10:00:00Z"
+    },
+    {
+      "id": "T-YEAR-ROLLOVER",
+      "kind": "timestamp",
+      "value": "2028-02-29T23:30:00-05:00",
+      "locale": "en-US",
+      "expected": "2028-03-01T04:30:00Z"
+    },
+    {
+      "id": "T-US-DATE",
+      "kind": "timestamp",
+      "value": "01/05/2026 05:00:00",
+      "locale": "en-US",
+      "utc_offset": "-05:00",
+      "expected": "2026-01-05T10:00:00Z"
+    },
+    {
+      "id": "T-UK-DATE",
+      "kind": "timestamp",
+      "value": "05/01/2026 05:00:00",
+      "locale": "en-GB",
+      "utc_offset": "-05:00",
+      "expected": "2026-01-05T10:00:00Z"
+    },
+    {
+      "id": "T-DE-DATE",
+      "kind": "timestamp",
+      "value": "05.01.2026 05:00:00",
+      "locale": "de-DE",
+      "utc_offset": "-05:00",
+      "expected": "2026-01-05T10:00:00Z"
+    },
+    {
+      "id": "T-FR-DATE",
+      "kind": "timestamp",
+      "value": "05/01/2026 05:00:00",
+      "locale": "fr-FR",
+      "utc_offset": "-05:00",
+      "expected": "2026-01-05T10:00:00Z"
+    },
+    {
+      "id": "T-ISO-UTC-OFFSET",
+      "kind": "timestamp",
+      "value": "2026-01-05T10:00:00+00:00",
+      "locale": "en-US",
+      "expected": "2026-01-05T10:00:00Z"
+    },
+    {
+      "id": "D-150MIN",
+      "kind": "duration",
+      "value": "150",
+      "unit": "minutes",
+      "locale": "en-US",
+      "expected": "2.5"
+    },
+    {
+      "id": "D-9000SEC",
+      "kind": "duration",
+      "value": "9000",
+      "unit": "seconds",
+      "locale": "en-US",
+      "expected": "2.5"
+    },
+    {
+      "id": "D-2-5H",
+      "kind": "duration",
+      "value": "2.5",
+      "unit": "hours",
+      "locale": "en-US",
+      "expected": "2.5"
+    },
+    {
+      "id": "D-90MIN",
+      "kind": "duration",
+      "value": "90",
+      "unit": "minutes",
+      "locale": "en-US",
+      "expected": "1.5"
+    },
+    {
+      "id": "D-ZERO",
+      "kind": "duration",
+      "value": "0",
+      "unit": "hours",
+      "locale": "en-US",
+      "expected": "0"
+    },
+    {
+      "id": "D-MAX",
+      "kind": "duration",
+      "value": "240",
+      "unit": "hours",
+      "locale": "en-US",
+      "expected": "240"
+    },
+    {
+      "id": "D-DE-DECIMAL",
+      "kind": "duration",
+      "value": "1,5",
+      "unit": "hours",
+      "locale": "de-DE",
+      "expected": "1.5"
+    },
+    {
+      "id": "D-FR-DECIMAL",
+      "kind": "duration",
+      "value": "1,5",
+      "unit": "hours",
+      "locale": "fr-FR",
+      "expected": "1.5"
+    },
+    {
+      "id": "D-3600SEC",
+      "kind": "duration",
+      "value": "3600",
+      "unit": "seconds",
+      "locale": "en-GB",
+      "expected": "1"
+    },
+    {
+      "id": "M-US-GROUP",
+      "kind": "money",
+      "value": "1,234.50",
+      "currency": "USD",
+      "locale": "en-US",
+      "expected": "1234.50"
+    },
+    {
+      "id": "M-DE-GROUP",
+      "kind": "money",
+      "value": "1.234,50",
+      "currency": "USD",
+      "locale": "de-DE",
+      "expected": "1234.50"
+    },
+    {
+      "id": "M-FR-GROUP",
+      "kind": "money",
+      "value": "1 234,50",
+      "currency": "USD",
+      "locale": "fr-FR",
+      "expected": "1234.50"
+    },
+    {
+      "id": "M-FR-NBSP",
+      "kind": "money",
+      "value": "1 234,50",
+      "currency": "USD",
+      "locale": "fr-FR",
+      "expected": "1234.50"
+    },
+    {
+      "id": "M-ZERO",
+      "kind": "money",
+      "value": "0.00",
+      "currency": "USD",
+      "locale": "en-US",
+      "expected": "0.00"
+    },
+    {
+      "id": "M-MAX",
+      "kind": "money",
+      "value": "1,000,000.00",
+      "currency": "USD",
+      "locale": "en-US",
+      "expected": "1000000.00"
+    },
+    {
+      "id": "M-INTEGER",
+      "kind": "money",
+      "value": "250",
+      "currency": "USD",
+      "locale": "en-US",
+      "expected": "250.00"
+    },
+    {
+      "id": "M-UK-GROUP",
+      "kind": "money",
+      "value": "1,234.50",
+      "currency": "USD",
+      "locale": "en-GB",
+      "expected": "1234.50"
+    }
+  ],
+  "rejected_reference_cases": [
+    {
+      "id": "E-T-NAIVE",
+      "kind": "timestamp",
+      "value": "2026-01-05T10:00:00",
+      "locale": "en-US",
+      "error": "missing_timezone_offset"
+    },
+    {
+      "id": "E-T-AMBIGUOUS",
+      "kind": "timestamp",
+      "value": "01/05/2026 05:00:00",
+      "locale": "en-US",
+      "error": "missing_timezone_offset"
+    },
+    {
+      "id": "E-T-INVALID-DAY",
+      "kind": "timestamp",
+      "value": "02/30/2026 05:00:00",
+      "locale": "en-US",
+      "utc_offset": "-05:00",
+      "error": "invalid_timestamp"
+    },
+    {
+      "id": "E-T-INVALID-OFFSET",
+      "kind": "timestamp",
+      "value": "2026-01-05T05:00:00-15:00",
+      "locale": "en-US",
+      "error": "invalid_timezone_offset"
+    },
+    {
+      "id": "E-T-UNSUPPORTED-LOCALE",
+      "kind": "timestamp",
+      "value": "05/01/2026 05:00:00",
+      "locale": "xx-XX",
+      "utc_offset": "-05:00",
+      "error": "unsupported_locale"
+    },
+    {
+      "id": "E-T-LEAP-SEC",
+      "kind": "timestamp",
+      "value": "2026-01-05T05:00:60-05:00",
+      "locale": "en-US",
+      "error": "invalid_timestamp"
+    },
+    {
+      "id": "E-T-ZONE-NAME",
+      "kind": "timestamp",
+      "value": "2026-01-05 05:00:00 CST",
+      "locale": "en-US",
+      "error": "missing_timezone_offset"
+    },
+    {
+      "id": "E-T-MISMATCHED-LOCALE",
+      "kind": "timestamp",
+      "value": "05.01.2026 05:00:00",
+      "locale": "en-US",
+      "utc_offset": "-05:00",
+      "error": "invalid_timestamp"
+    },
+    {
+      "id": "E-D-NEGATIVE",
+      "kind": "duration",
+      "value": "-1",
+      "unit": "hours",
+      "locale": "en-US",
+      "error": "duration_out_of_range"
+    },
+    {
+      "id": "E-D-OVER-MAX",
+      "kind": "duration",
+      "value": "241",
+      "unit": "hours",
+      "locale": "en-US",
+      "error": "duration_out_of_range"
+    },
+    {
+      "id": "E-D-PRECISION",
+      "kind": "duration",
+      "value": "1",
+      "unit": "seconds",
+      "locale": "en-US",
+      "error": "duration_precision_loss"
+    },
+    {
+      "id": "E-D-UNIT",
+      "kind": "duration",
+      "value": "90",
+      "unit": "fortnights",
+      "locale": "en-US",
+      "error": "unsupported_unit"
+    },
+    {
+      "id": "E-D-LOCALE",
+      "kind": "duration",
+      "value": "1,5",
+      "unit": "hours",
+      "locale": "xx-XX",
+      "error": "unsupported_locale"
+    },
+    {
+      "id": "E-D-AMBIG-NUMBER",
+      "kind": "duration",
+      "value": "1,234",
+      "unit": "hours",
+      "locale": "en-US",
+      "error": "duration_out_of_range"
+    },
+    {
+      "id": "E-D-NONFINITE",
+      "kind": "duration",
+      "value": "NaN",
+      "unit": "hours",
+      "locale": "en-US",
+      "error": "invalid_numeric_format"
+    },
+    {
+      "id": "E-M-CURRENCY",
+      "kind": "money",
+      "value": "1,234.50",
+      "currency": "EUR",
+      "locale": "en-US",
+      "error": "unsupported_currency"
+    },
+    {
+      "id": "E-M-NEGATIVE",
+      "kind": "money",
+      "value": "-0.01",
+      "currency": "USD",
+      "locale": "en-US",
+      "error": "money_out_of_range"
+    },
+    {
+      "id": "E-M-OVER-MAX",
+      "kind": "money",
+      "value": "1,000,000.01",
+      "currency": "USD",
+      "locale": "en-US",
+      "error": "money_out_of_range"
+    },
+    {
+      "id": "E-M-FRACTION",
+      "kind": "money",
+      "value": "0.001",
+      "currency": "USD",
+      "locale": "en-US",
+      "error": "money_precision_loss"
+    },
+    {
+      "id": "E-M-BAD-GROUP",
+      "kind": "money",
+      "value": "12,34.50",
+      "currency": "USD",
+      "locale": "en-US",
+      "error": "invalid_numeric_format"
+    },
+    {
+      "id": "E-M-WRONG-LOCALE",
+      "kind": "money",
+      "value": "1.234,50",
+      "currency": "USD",
+      "locale": "en-US",
+      "error": "invalid_numeric_format"
+    },
+    {
+      "id": "E-M-UNKNOWN-LOCALE",
+      "kind": "money",
+      "value": "123.00",
+      "currency": "USD",
+      "locale": "xx-XX",
+      "error": "unsupported_locale"
+    },
+    {
+      "id": "E-M-EXPONENT",
+      "kind": "money",
+      "value": "1e3",
+      "currency": "USD",
+      "locale": "en-US",
+      "error": "invalid_numeric_format"
+    },
+    {
+      "id": "E-M-SYMBOL",
+      "kind": "money",
+      "value": "$1,000.00",
+      "currency": "USD",
+      "locale": "en-US",
+      "error": "invalid_numeric_format"
+    }
+  ]
+}

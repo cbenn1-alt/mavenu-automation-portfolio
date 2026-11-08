@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V14 (exploratory duplicate and idempotency controls)
+# Mavenu Reliability Intelligence — V15 (exploratory time/unit/locale normalization)
 
-**State:** V14 adds in-memory atomic synthetic ingestion, duplicate suppression and repeated-ingest comparison evidence. **Formal Phase 02 promotion remains BLOCKED/PENDING human sign-off**; V11/V12 customer-source approvals remain unsigned. No customer, plant or production integration is authorized.
+**State:** V15 adds pure synthetic timestamp/unit/locale normalization and conversion-reference tests, without modifying source fixtures. **V10 phase promotion remains BLOCKED/PENDING human sign-off** and V11/V12 source approvals remain unsigned. No customer/plant production integration is authorized.
 
-**Standard (Architecture V4, page 42):** V14 = Enforce duplicates and idempotency rules. Proof = Repeated-ingest comparison. The frozen V9 runtime remains 0.9.0; API v1/schema 1.3.0.
+**Standard (Architecture V4, page 42):** V15 = Normalize timestamps, units and locales. Proof = Conversion reference tests. The V9 runtime remains frozen at 0.9.0; API v1/schema 1.3.0.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -18,6 +18,7 @@ PYTHONPATH=src python scripts/verify_v11.py
 PYTHONPATH=src python scripts/verify_v12.py
 PYTHONPATH=src python scripts/verify_v13.py
 PYTHONPATH=src python scripts/verify_v14.py
+PYTHONPATH=src python scripts/verify_v15.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -127,3 +128,14 @@ V14's exact identity and duplicate policy is in docs/data/IDEMPOTENCY_CONTRACT_V
 tests/test_idempotency_v14.py adds **48 tests** to the historical 300, for **348 expected**; the actual CI output controls. The V8 84.5% source coverage floor and V9–V13 checks remain enforced. CI publishes the V8–V14 reports. No real customer identity, production idempotency key, persistent store, distributed exactly-once guarantee, credential, customer interface or operational write endpoint is present.
 
 Reviewer sources: docs/IDEMPOTENCY_V14.md, docs/DEMO_V14.md, docs/releases/V14.md. Passing tests are **engineering evidence only**, not owner sign-off or permission to cross the blocked V10 promotion gate.
+
+
+## V15 canonical conversions
+
+- fixtures/conversion_reference_v15.json: 27 accepted and 24 rejected synthetic references across UTC timestamp, hours/minutes/seconds and USD locale formatting.
+- scripts/normalize_v15.py: standard-library Decimal and timezone-offset conversion; no timezone guesses, silent rounding or FX conversions.
+- scripts/verify_v15.py: checks all references, canonical replay, 12 unchanged source cases, outputs evidence/V15/conversion_reference_report.json.
+- tests/test_conversion_v15.py: 81 added tests (51 per-reference and 30 controls), expected total 429 (verify CI).
+- docs/NORMALIZATION_V15.md, docs/DEMO_V15.md and docs/releases/V15.md: review and release packet.
+
+The 84.5% combined coverage floor and prior V8-V14 controls remain in force. Green CI does not authorize customer financial data, industrial systems, or formally approved Phase 02.
