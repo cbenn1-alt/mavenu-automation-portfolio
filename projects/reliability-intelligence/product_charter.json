@@ -1,0 +1,62 @@
+{
+  "charter_schema_version": "1.0",
+  "product": "Mavenu Reliability Intelligence",
+  "increment": "V2",
+  "phase": "Prototype foundation (V1-V10)",
+  "state": "CANDIDATE_NOT_APPROVED",
+  "basis": "Mavenu AI SaaS Platform Development Architecture V4, p. 42; Minn-Dak Board Briefing V3, pp. 2-6",
+  "target_customer": "Industrial processors; Minn-Dak is an uncommitted prospective design partner",
+  "buyer_role": "Plant operations / maintenance leadership (unverified)",
+  "primary_user_role": "Maintenance planner or reliability engineer (unverified)",
+  "technical_approver_role": "Customer IS&T / information security (unassigned)",
+  "domain_reviewer_role": "Qualified maintenance and safety SME (unassigned)",
+  "problem": {
+    "statement": "For one approved asset family, maintenance planners may have to manually combine work-order history, repeat-failure context, downtime evidence, and repair cost to prepare reviewable maintenance priorities.",
+    "customer_validation": "NOT_OBTAINED",
+    "incumbent_capability_check": "NOT_PERFORMED",
+    "baseline_observed": false,
+    "no_build_option": "Use or configure current CMMS/ERP/Power BI functionality if it already meets the need."
+  },
+  "proposed_workflow": "Read-only, synthetic work-order review: identify repeat events and present source-traceable candidate cases for a human to inspect; no autonomous ranking is authorized.",
+  "cohort": "One prospect-approved asset family or plant area; not yet selected",
+  "primary_metric": {
+    "name": "Median analyst review minutes per completed maintenance case",
+    "unit": "minutes per case",
+    "direction": "decrease",
+    "proposed_relative_improvement_pct": 20,
+    "baseline_minutes_per_case": null,
+    "evaluation_method": "Matched manual-only versus assisted review on pre-registered synthetic cases; balanced order and blinded seeded labels",
+    "measurement_status": "NOT_MEASURED"
+  },
+  "guardrail_metrics": {
+    "seeded_critical_case_recall_target_pct": 100,
+    "case_evidence_trace_target_pct": 100,
+    "unauthorized_data_reads_target": 0,
+    "external_system_writes_target": 0,
+    "unsafe_autonomous_actions_target": 0,
+    "false_flags_per_100_cases": "PROPOSED_THRESHOLD_NOT_SET"
+  },
+  "data_and_safety": {
+    "data_mode": "SYNTHETIC_ONLY",
+    "customer_data_authorized": false,
+    "external_integrations_enabled": false,
+    "plc_scada_ot_writes_enabled": false,
+    "maintenance_order_writes_enabled": false,
+    "production_deployment_allowed": false,
+    "ai_model_trained": false
+  },
+  "economics": {
+    "downtime_value_per_hour": null,
+    "labor_burdened_rate": null,
+    "cost_savings_claimed": false,
+    "note": "Review-time reductions release capacity; cash savings require validated expenditure changes."
+  },
+  "approval": {
+    "internal_product_owner": null,
+    "customer_sponsor": null,
+    "isnt_security_approver": null,
+    "approved_at_utc": null,
+    "status": "PENDING",
+    "release_gate_passed": false
+  }
+}
