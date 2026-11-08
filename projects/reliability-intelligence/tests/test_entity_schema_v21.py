@@ -170,6 +170,39 @@ class V21EntityTests(unittest.TestCase):
         self.assertEqual(sum(self.preview["counts"].values()), 120)
 
 
+
+    def test_29_cross_site_parent_is_not_shared(self):
+        self.db.execute("SAVEPOINT cross_site")
+        try:
+            self.db.execute("INSERT INTO site VALUES (?,?,?,?)",
+                            (model.TENANT, "SYN-SITE-002", "Second Fictional Site", 1))
+            with self.assertRaises(sqlite3.IntegrityError):
+                self.db.execute(
+                    "INSERT INTO maintenance_case VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                    (model.TENANT, "SYN-SITE-002", "SYN-CASE-900", "SYN-ASSET-001",
+                     "SYN-WO-900", "2026-01-01T00:00:00Z", "bearing_wear",
+                     3600, 100, "fixture_only", 1))
+        finally:
+            self.db.execute("ROLLBACK TO cross_site")
+            self.db.execute("RELEASE cross_site")
+
+    def test_30_cross_tenant_parent_is_not_shared(self):
+        self.db.execute("SAVEPOINT cross_tenant")
+        try:
+            self.db.execute("INSERT INTO tenant VALUES (?,?,?)",
+                            ("SYN-TENANT-002", "Second Invented Tenant", "synthetic_only"))
+            self.db.execute("INSERT INTO site VALUES (?,?,?,?)",
+                            ("SYN-TENANT-002", model.SITE, "Second Fictional Site", 1))
+            with self.assertRaises(sqlite3.IntegrityError):
+                self.db.execute(
+                    "INSERT INTO maintenance_case VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                    ("SYN-TENANT-002", model.SITE, "SYN-CASE-900",
+                     "SYN-ASSET-001", "SYN-WO-900", "2026-01-01T00:00:00Z",
+                     "bearing_wear", 3600, 100, "fixture_only", 1))
+        finally:
+            self.db.execute("ROLLBACK TO cross_tenant")
+            self.db.execute("RELEASE cross_tenant")
+
 def make_count(table):
     def run(self):
         self.assertEqual(self.preview["counts"][table], model.EXPECTED_COUNTS[table])

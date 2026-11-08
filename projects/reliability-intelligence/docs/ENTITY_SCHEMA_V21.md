@@ -8,7 +8,7 @@
 
 ## Relational design (10 entities, 9 foreign-key relationships)
 
-\`\`\`mermaid
+```mermaid
 erDiagram
     TENANT ||--o{ SITE : contains
     SITE ||--o{ ASSET : groups
@@ -19,7 +19,7 @@ erDiagram
     SITE ||--o{ SOURCE_DOCUMENT : synthetic_fixture
     SOURCE_DOCUMENT ||--o{ RECORD_ORIGIN : reconstructed
     RECORD_ORIGIN ||--o{ TRANSFORM_STEP : v15_normalization
-\`\`\`
+```
 
 | Entity | Composite identity / key | Meaning | Synthetic preview rows |
 |---|---|---|---:|
