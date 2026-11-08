@@ -25,7 +25,7 @@ jobs:
       - name: Install pinned test-only coverage tool
         working-directory: projects/reliability-intelligence
         run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
-      - name: Run V15 reference conversions and full V8-V14 regression in clean snapshot
+      - name: Run V16 record lineage and V8-V15 regression in clean snapshot
         shell: bash
         env:
           PYTHONDONTWRITEBYTECODE: '1'
@@ -44,6 +44,7 @@ jobs:
           PYTHONPATH=src python scripts/verify_v13.py
           PYTHONPATH=src python scripts/verify_v14.py
           PYTHONPATH=src python scripts/verify_v15.py
+          PYTHONPATH=src python scripts/verify_v16.py
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V8"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V9"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V10"
@@ -52,6 +53,7 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V13"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V14"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V15"
+          mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V16"
           cp evidence/V8/verification.json evidence/V8/coverage.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V8/"
           cp evidence/V9/replay.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V9/"
           cp evidence/V10/verification.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V10/"
@@ -60,11 +62,12 @@ jobs:
           cp evidence/V13/negative_case_report.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V13/"
           cp evidence/V14/repeated_ingest_comparison.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V14/"
           cp evidence/V15/conversion_reference_report.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V15/"
-      - name: Preserve V8-V15 regression and conversion reference evidence
+          cp evidence/V16/lineage_verification.json evidence/V16/record_level_trace_sample.json evidence/V16/synthetic_record_lineage.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V16/"
+      - name: Preserve V8-V16 regression and record-level source lineage evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: reliability-intelligence-v15-evidence
+          name: reliability-intelligence-v16-evidence
           path: |
             projects/reliability-intelligence/evidence/V8/
             projects/reliability-intelligence/evidence/V9/
@@ -74,5 +77,6 @@ jobs:
             projects/reliability-intelligence/evidence/V13/
             projects/reliability-intelligence/evidence/V14/
             projects/reliability-intelligence/evidence/V15/
+            projects/reliability-intelligence/evidence/V16/
           if-no-files-found: warn
           retention-days: 30
