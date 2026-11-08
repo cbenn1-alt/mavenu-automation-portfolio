@@ -1,0 +1,422 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V11",
+  "phase": "Data correctness (V11-V20) — exploratory, NOT formally promoted",
+  "objective": "Declare data types, meaning, and ownership",
+  "required_proof": "Approved source/field dictionary",
+  "dictionary_status": "DRAFT_TECHNICALLY_CHECKABLE_NOT_APPROVED",
+  "formal_phase_02_approval": false,
+  "customer_source_authorized": false,
+  "production_field_contract_approved": false,
+  "product_owner_approved": false,
+  "independent_domain_steward_approved": false,
+  "approved_at_utc": null,
+  "approval_record": {
+    "named_product_owner": null,
+    "named_customer_data_owner": null,
+    "named_domain_reviewer": null,
+    "approval_date_utc": null,
+    "signatures": [],
+    "approval_status": "PENDING"
+  },
+  "source_snapshot": {
+    "commit": "704123eca45628bf504594af39a66036cc0451c5",
+    "fixture_set_id": "SYN-RI-V5-20261107-A",
+    "v10_decision": "DRAFT_UNAPPROVED_RECOMMENDS_BLOCKED",
+    "git_repository": "cbenn1-alt/mavenu-automation-portfolio"
+  },
+  "systems_of_record": [],
+  "field_owner_assignments_complete": false,
+  "personnel_data_permitted": false,
+  "ot_or_cmms_writes_permitted": false,
+  "provenance": "Hand-authored dictionary derived exclusively from checked-in V5/V6 synthetic JSON structure. Proposed role owners and meanings have NOT been approved by a customer.",
+  "datasets": [
+    {
+      "id": "asset_records",
+      "source_file": "fixtures/cases.json",
+      "record_path": "assets",
+      "expected_row_count": 6,
+      "semantic_entity": "Synthetic example asset",
+      "proposed_dataset_owner": "Maintenance data steward",
+      "assigned_dataset_owner": null,
+      "customer_system_of_record": null,
+      "external_data_source": false,
+      "exposure": "developer_and_synthetic_ui_only",
+      "fields": [
+        {
+          "name": "asset_id",
+          "logical_type": "string",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Fabricated unique equipment reference, not a physical asset number or verified identifier.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Maintenance data steward",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "pattern": "^SYN-ASSET-[0-9]{3}$",
+          "key_type": "primary_key"
+        },
+        {
+          "name": "asset_class",
+          "logical_type": "string",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Author-created example equipment category; not a verified plant equipment taxonomy.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Maintenance engineering SME",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "allowed_values": [
+            "bearing_drive",
+            "belt_conveyor",
+            "transfer_pump",
+            "sensor_module",
+            "electric_motor",
+            "control_valve"
+          ]
+        },
+        {
+          "name": "cohort",
+          "logical_type": "string",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Fictional grouping for the synthetic asset examples; never a physical plant location.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Maintenance data steward",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "allowed_values": [
+            "Assembly Test Line",
+            "Utility Test Zone",
+            "Mock Workshop"
+          ]
+        },
+        {
+          "name": "synthetic",
+          "logical_type": "boolean",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Explicit provenance marker requiring the asset row to be fabricated.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Engineering data steward",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "allowed_values": [
+            true
+          ]
+        }
+      ]
+    },
+    {
+      "id": "case_records",
+      "source_file": "fixtures/cases.json",
+      "record_path": "records",
+      "expected_row_count": 12,
+      "semantic_entity": "Synthetic example maintenance case",
+      "proposed_dataset_owner": "Maintenance data steward",
+      "assigned_dataset_owner": null,
+      "customer_system_of_record": null,
+      "external_data_source": false,
+      "exposure": "local_read_only_demo_api",
+      "fields": [
+        {
+          "name": "case_id",
+          "logical_type": "string",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Fabricated unique example maintenance-case identifier, not a customer case or fault.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Maintenance data steward",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "pattern": "^SYN-CASE-[0-9]{3}$",
+          "key_type": "primary_key"
+        },
+        {
+          "name": "asset_id",
+          "logical_type": "string",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Foreign key to the invented assets table, not an approved CMMS asset identifier.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Maintenance data steward",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "pattern": "^SYN-ASSET-[0-9]{3}$",
+          "foreign_key": "asset_records.asset_id"
+        },
+        {
+          "name": "work_order_ref",
+          "logical_type": "string",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Fabricated work-order-like reference; never represents a transmitted or approved maintenance instruction.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "CMMS data steward",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "pattern": "^SYN-WO-[0-9]{3}$"
+        },
+        {
+          "name": "occurred_at_utc",
+          "logical_type": "utc_timestamp",
+          "unit": "UTC",
+          "nullable": false,
+          "meaning": "Invented event timestamp in canonical UTC Zulu format; not observed plant telemetry.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Maintenance data steward",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "timestamp_format": "YYYY-MM-DDTHH:MM:SSZ"
+        },
+        {
+          "name": "failure_code",
+          "logical_type": "string",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Illustrative categorical label for a scenario, not a validated fault diagnosis.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Reliability engineering SME",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "allowed_values": [
+            "bearing_wear",
+            "belt_slip",
+            "seal_leak",
+            "sensor_fault",
+            "motor_trip",
+            "valve_stick"
+          ]
+        },
+        {
+          "name": "downtime_hours",
+          "logical_type": "number",
+          "unit": "hours",
+          "nullable": false,
+          "meaning": "Artificial nonnegative duration for a fabricated event, not measured downtime or actual financial impact.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Reliability data steward",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "min_value": 0,
+          "max_value": 240,
+          "precision_policy": "binary_floating_point_fixture_only; production unit and precision unapproved"
+        },
+        {
+          "name": "repair_cost_usd",
+          "logical_type": "number",
+          "unit": "USD",
+          "nullable": false,
+          "meaning": "Invented illustration of repair expense in nominal USD, not a paid invoice, booked GL amount or audited savings.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Finance data steward",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "min_value": 0,
+          "max_value": 1000000,
+          "precision_policy": "current integer-valued JSON fixture; future monetary representation/rounding unapproved"
+        },
+        {
+          "name": "evidence_refs",
+          "logical_type": "array[string]",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Optional list of fabricated evidence-reference IDs only; nonempty does not establish supporting evidence documents.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Maintenance data steward",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "item_pattern": "^SYN-EV-[0-9]{3}$",
+          "max_items": 3,
+          "empty_array_meaning": "no_example_evidence_identifier"
+        },
+        {
+          "name": "synthetic",
+          "logical_type": "boolean",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Required true flag denoting fabricated rather than actual maintenance record.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Engineering data steward",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "allowed_values": [
+            true
+          ]
+        },
+        {
+          "name": "review_state",
+          "logical_type": "string",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Prototype-only literal state that prevents fictional records from being interpreted as reviewed work orders.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Maintenance process owner",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "allowed_values": [
+            "fixture_only"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scripted_review_entries",
+      "source_file": "fixtures/demo_review_script.json",
+      "record_path": "entries",
+      "expected_row_count": 4,
+      "semantic_entity": "Fictional scripted reviewer role input",
+      "proposed_dataset_owner": "Maintenance process owner",
+      "assigned_dataset_owner": null,
+      "customer_system_of_record": null,
+      "external_data_source": false,
+      "exposure": "internal_fixture_script_not_true_human_review",
+      "fields": [
+        {
+          "name": "case_id",
+          "logical_type": "string",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Reference to an invented maintenance case for a scripted demonstration action.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Maintenance data steward",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "pattern": "^SYN-CASE-[0-9]{3}$",
+          "foreign_key": "case_records.case_id"
+        },
+        {
+          "name": "reviewer_id",
+          "logical_type": "string",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Invented demonstration persona; not a real employee identity, signature or authenticated user.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Maintenance process owner",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "pattern": "^SYN-REVIEWER-[0-9]{3}$"
+        },
+        {
+          "name": "disposition",
+          "logical_type": "string",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Seeded fictional reviewer-role action, executed automatically without real human sign-off.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Maintenance process owner",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "allowed_values": [
+            "acknowledge",
+            "investigate_history",
+            "request_evidence",
+            "defer"
+          ]
+        },
+        {
+          "name": "reason_code",
+          "logical_type": "string",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Allowed example justification matching one fictional disposition; not a regulatory approval reason.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Maintenance process owner",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "allowed_values": [
+            "routine_synthetic_review",
+            "repeat_history_flag",
+            "missing_evidence_reference",
+            "further_demo_review"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seeded_reference_labels",
+      "source_file": "fixtures/reference_labels.json",
+      "record_path": "records",
+      "expected_row_count": 12,
+      "semantic_entity": "Authored unblinded testing annotation",
+      "proposed_dataset_owner": "Quality assurance test steward",
+      "assigned_dataset_owner": null,
+      "customer_system_of_record": null,
+      "external_data_source": false,
+      "exposure": "internal_tests_never_api_or_ui",
+      "fields": [
+        {
+          "name": "case_id",
+          "logical_type": "string",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Invented case key used to join authored demonstration annotations to fabricated cases.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Quality assurance test steward",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "pattern": "^SYN-CASE-[0-9]{3}$",
+          "foreign_key": "case_records.case_id"
+        },
+        {
+          "name": "expected_review_label",
+          "logical_type": "string",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "Author-seeded illustration for tests, not independently validated ground truth or blinded evaluation evidence.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Qualified domain reviewer (unassigned)",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "allowed_values": [
+            "single_event",
+            "repeat_history_candidate",
+            "missing_evidence"
+          ]
+        },
+        {
+          "name": "synthetic",
+          "logical_type": "boolean",
+          "unit": "none",
+          "nullable": false,
+          "meaning": "True indicates an authored example label rather than a customer adjudication.",
+          "source_authority": "invented_repository_fixture_not_customer_system",
+          "proposed_steward_role": "Quality assurance test steward",
+          "assigned_steward": null,
+          "data_classification": "fabricated_non_personal",
+          "allowed_values": [
+            true
+          ]
+        }
+      ]
+    }
+  ],
+  "definitions_and_constraints": {
+    "logical_types": [
+      "string",
+      "number",
+      "boolean",
+      "utc_timestamp",
+      "array[string]"
+    ],
+    "units": [
+      "none",
+      "UTC",
+      "hours",
+      "USD"
+    ],
+    "null_semantics": "All 21 existing row fields are non-nullable. Empty evidence_refs is an allowed array with explicit meaning, not SQL NULL.",
+    "key_uniqueness": "Synthetic asset_id and case_id are unique within their respective tables; work_order_ref unique within case_records.",
+    "joins": "case_records.asset_id -> asset_records.asset_id; scripted_review_entries.case_id -> case_records.case_id; seeded_reference_labels.case_id -> case_records.case_id.",
+    "money_semantics": "repair_cost_usd is invented JSON numeric example; actual source currency, decimal precision, rounding, tax and ledger classification UNVERIFIED.",
+    "temporal_semantics": "occurred_at_utc is fictional canonical UTC event occurrence; source clock/timezone, ingestion latency and daylight-saving effects UNVERIFIED.",
+    "status_warning": "Observed JSON types and authored meanings are not authorized customer-source definitions or independently verified data lineage."
+  },
+  "next_required_decisions": [
+    "Assign product owner and customer data steward(s) before any formal dictionary approval.",
+    "Review data-source-of-truth, case/event IDs, equipment hierarchy and field descriptions with industrial maintenance SME.",
+    "Confirm UTC semantics, downtime denominator, provenance and monetary representation before interpreting metrics.",
+    "Obtain customer data rights, integration security and OT separation approval before using any non-synthetic record.",
+    "Resolve V10 formal advancement BLOCKED recommendation and obtain separate data dictionary signature."
+  ]
+}
