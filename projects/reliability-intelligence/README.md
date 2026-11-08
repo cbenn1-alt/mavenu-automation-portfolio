@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V18 (synthetic adverse-input regression)
+# Mavenu Reliability Intelligence — V19 (independent synthetic metric reconciliation)
 
-**State:** V18 adds missing, stale, and malformed synthetic input rejection tests with a fixed illustrative clock. V10 Phase 02 formal promotion remains BLOCKED/PENDING human sign-off and V11/V12 source approvals unsigned. No actual customer input, deployed ingestion or industrial system action.
+**State:** V19 independently reconciles fabricated maintenance aggregates with SQLite and integer seconds/cents against precomputed V17 expected-output fixtures. This is NOT independent customer-domain validation. V10 Phase 02 promotion remains BLOCKED/PENDING human sign-off, V11/V12 source approvals unsigned, and no production integration authorized.
 
-**Standard (Architecture V4, page 42):** V18 = Test missing, stale and malformed inputs. Proof = Adverse-case regression suite. V9 application runtime remains frozen at 0.9.0, API v1/schema 1.3.0.
+**Standard (Architecture V4, page 42):** V19 = Reconcile aggregates and operational metrics. Proof = Independent computation results. Frozen V9 application runtime stays at 0.9.0 and the read-only API remains v1/schema 1.3.0.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -22,6 +22,7 @@ PYTHONPATH=src python scripts/verify_v15.py
 PYTHONPATH=src python scripts/verify_v16.py
 PYTHONPATH=src python scripts/verify_v17.py
 PYTHONPATH=src python scripts/verify_v18.py
+PYTHONPATH=src python scripts/verify_v19.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -167,3 +168,14 @@ Synthetic summary expectations: 12 cases, 6 example assets, 45.5 invented downti
 The synthetic fixture at fixtures/adverse_inputs_v18.json defines **44 deliberate invalid inputs** (16 missing, 7 stale/future, 21 malformed) and **5 valid boundary controls**. scripts/adverse_v18.py checks exact field inventory, strict JSON/UTF-8, an explicit fixed synthetic reference clock (2026-02-05T00:00:00Z, 45-day age / 24-hour future skew), and prevents source mutation. scripts/verify_v18.py generates evidence/V18/adverse_regression_report.json.
 
 The new tests/test_adverse_v18.py supplies **74 tests**, expected complete **677** including 603 historical, subject to hosted CI. See docs/ADVERSE_INPUTS_V18.md, docs/DEMO_V18.md and docs/releases/V18.md. All clock/age constraints are authored test values, NOT an approved Minn-Dak/plant data SLA. The product's V9 runtime is unchanged, and formal Phase 02 promotion remains blocked pending human owner approval.
+
+
+## V19 independent synthetic reconciliation
+
+- fixtures/reconciliation_v19.json: unsigned scope and **16 fixed discrepancy/invalid-source cases**. The existing V17 expected-output fixture remains unchanged.
+- scripts/reconcile_v19.py: a separate implementation directly from fabricated raw JSON, using in-memory SQLite and integer seconds/cents; reconciles 7 summary metrics, 6 asset aggregates and 12 case histories (**25 expected comparison units**).
+- scripts/verify_v19.py: validates upstream V10/V17/V18 evidence, exact matching to authored expectations, order invariance, 16 deliberately detected discrepancies and unchanged source hashes. Writes evidence/V19/independent_reconciliation_report.json and evidence/V19/independent_computation_results.json.
+- tests/test_reconciliation_v19.py: **77 added tests**, expected complete suite **754 tests** (677 inherited), subject to actual GitHub Actions.
+- docs/RECONCILIATION_V19.md, docs/DEMO_V19.md, docs/releases/V19.md: reproducibility, exclusions and pending human review.
+
+The code intentionally excludes real equipment uptime denominators, availability, MTBF, MTTR, OEE, savings, ROI, predictive risk and customer-system financial records. Independence refers to the computation code path, not to independent data collection or SME approval. V10 formal promotion and V11/V12 source contract sign-offs remain outstanding.

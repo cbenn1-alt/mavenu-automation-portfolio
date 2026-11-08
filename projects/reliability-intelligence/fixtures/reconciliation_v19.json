@@ -1,0 +1,158 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V19",
+  "architecture_source": "Mavenu AI SaaS Platform Development Architecture V4, page 42",
+  "objective": "Reconcile aggregates and operational metrics",
+  "required_proof": "Independent computation results",
+  "state": "INDEPENDENT_SYNTHETIC_ARITHMETIC_NOT_CUSTOMER_APPROVED",
+  "source_fixture_set_id": "SYN-RI-V5-20261107-A",
+  "source_commit": "704123eca45628bf504594af39a66036cc0451c5",
+  "source_file": "fixtures/cases.json",
+  "prior_expected_reference": "fixtures/expected_outputs_v17.json",
+  "compute_method": "independent_sqlite_in_memory_integer_seconds_and_usd_cents",
+  "no_v17_calculator_dependency": true,
+  "source_records_expected": 12,
+  "assets_expected": 6,
+  "rounding_policy": "exact integer seconds and cents, reject non-integral results",
+  "cohort_policy": "single invented maintenance example cohort; zero live operating-hour denominators",
+  "ordering_policy": "UTC timestamp ascending with case ID tie-break; JSON record order irrelevant",
+  "output_groups": [
+    "summary",
+    "asset_aggregates",
+    "case_history"
+  ],
+  "expected_summary_metrics": 7,
+  "expected_asset_aggregates": 6,
+  "expected_case_histories": 12,
+  "expected_reconciliation_values": 25,
+  "allowed_denominators": [
+    "synthetic case count",
+    "synthetic asset count"
+  ],
+  "excluded_business_metrics": [
+    "availability_percent",
+    "mtbf_hours",
+    "mttr_hours",
+    "oee_percent",
+    "predicted_failure_probability",
+    "roi_percent",
+    "saved_cost_usd"
+  ],
+  "expected_adverse_comparisons": 16,
+  "adverse_comparisons": [
+    {
+      "id": "DIFF-DOWNTIME",
+      "kind": "mismatch",
+      "mutation": "increase_duration",
+      "expected": "summary_mismatch"
+    },
+    {
+      "id": "DIFF-COST",
+      "kind": "mismatch",
+      "mutation": "increase_cost",
+      "expected": "summary_mismatch"
+    },
+    {
+      "id": "DIFF-EVIDENCE",
+      "kind": "mismatch",
+      "mutation": "remove_evidence",
+      "expected": "summary_mismatch"
+    },
+    {
+      "id": "DIFF-ASSIGNMENT",
+      "kind": "mismatch",
+      "mutation": "reassign_asset",
+      "expected": "asset_mismatch"
+    },
+    {
+      "id": "DIFF-HISTORY",
+      "kind": "mismatch",
+      "mutation": "swap_asset_event_time",
+      "expected": "case_history_mismatch"
+    },
+    {
+      "id": "DIFF-OFFSETTING-COST",
+      "kind": "mismatch",
+      "mutation": "offset_cost_across_assets",
+      "expected": "asset_mismatch"
+    },
+    {
+      "id": "DIFF-GOLDEN-SUMMARY",
+      "kind": "mismatch",
+      "mutation": "change_expected_total",
+      "expected": "summary_mismatch"
+    },
+    {
+      "id": "DIFF-GOLDEN-ASSET",
+      "kind": "mismatch",
+      "mutation": "change_expected_asset",
+      "expected": "asset_mismatch"
+    },
+    {
+      "id": "DIFF-GOLDEN-HISTORY",
+      "kind": "mismatch",
+      "mutation": "change_expected_history",
+      "expected": "case_history_mismatch"
+    },
+    {
+      "id": "INVALID-MISSING-CASE",
+      "kind": "invalid",
+      "mutation": "remove_case",
+      "expected": "case_inventory_invalid"
+    },
+    {
+      "id": "INVALID-DUPLICATE-CASE",
+      "kind": "invalid",
+      "mutation": "duplicate_case",
+      "expected": "duplicate_case_identifier"
+    },
+    {
+      "id": "INVALID-UNKNOWN-ASSET",
+      "kind": "invalid",
+      "mutation": "unknown_asset",
+      "expected": "unknown_asset_reference"
+    },
+    {
+      "id": "INVALID-FRACTION-CENT",
+      "kind": "invalid",
+      "mutation": "fractional_cent",
+      "expected": "invalid_money_precision"
+    },
+    {
+      "id": "INVALID-FRACTION-SECOND",
+      "kind": "invalid",
+      "mutation": "fractional_second",
+      "expected": "invalid_duration_precision"
+    },
+    {
+      "id": "INVALID-FALSE-CUSTOMER-ORIGIN",
+      "kind": "invalid",
+      "mutation": "customer_origin",
+      "expected": "unauthorized_source_origin"
+    },
+    {
+      "id": "INVALID-ROW-FIELD",
+      "kind": "invalid",
+      "mutation": "undeclared_source_field",
+      "expected": "invalid_row_fields"
+    }
+  ],
+  "approval": {
+    "v10_formal_promotion": false,
+    "v11_dictionary_approved": false,
+    "v12_schema_approved": false,
+    "v17_reference_domain_approved": false,
+    "v19_reconciliation_approved": false,
+    "customer_data_authorized": false,
+    "production_approved": false,
+    "ot_write_authorized": false,
+    "named_reviewer": null,
+    "approval_signature": null
+  },
+  "limitations": [
+    "Method independence means separate code path using SQLite/integer arithmetic, not an independent human data source.",
+    "V17 expected outputs are authored synthetic fixtures, not independent customer ground truth.",
+    "Timestamp and evidence presence are examples; no plant SLA or authenticated workorder documents.",
+    "No actual CMMS, SCADA, ERP, finance, operations, personnel, production sources, uptime denominator or observed savings."
+  ]
+}
