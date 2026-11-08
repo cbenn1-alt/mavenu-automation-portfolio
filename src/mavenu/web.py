@@ -31,6 +31,7 @@ from . import delivery as wh_delivery
 from . import reconcile as recon_service
 from . import matching as match_service
 from . import docintel as di_service
+from . import sqlops as so_service
 from . import entity_resolution as er_service
 from . import firewall as fw_service
 from . import netsec as ns_service
@@ -113,7 +114,8 @@ def _page(title: str, body: str) -> bytes:
 <a href="/project01/dashboard">P01 Dashboard</a><a href="/project02">Project 02</a>
 <a href="/project02/dashboard">P02 Dashboard</a><a href="/project03">P03</a>
 <a href="/project03/documents">P03 Documents</a><a href="/project03/exceptions">P03 Exceptions</a>
-<a href="/project03/reports">P03 Reports</a><a href="/project_q01">Q01</a>
+<a href="/project03/reports">P03 Reports</a><a href="/project04">P04</a>
+<a href="/project04/queries">P04 Queries</a><a href="/project04/runs">P04 Runs</a><a href="/project_q01">Q01</a>
 <a href="/project_q01/queue">Q01 Queue</a><a href="/project_q01/dashboard">Q01 Dashboard</a>
 <a href="/project_q02">Q02</a><a href="/project_q02/outbox">Q02 Outbox</a>
 <a href="/project_q02/reports">Q02 Reports</a><a href="/project_q03">Q03</a>
@@ -532,6 +534,66 @@ class App:
         mqe3t = re.fullmatch(r"/api/docintel/exceptions/([0-9]+)/transition", path or "")
         if mqe3t and method == "POST":
             return self.api_di_exception_transition(mqe3t.group(1), environ)
+        # ---- P04: SQL operations intelligence --------------------------------
+        if method == "GET" and path == "/project04":
+            return self.p04_page()
+        if method == "POST" and path == "/project04/seed":
+            return self.p04_seed_submit(environ)
+        if method == "POST" and path == "/project04/queries":
+            return self.p04_create_submit(environ)
+        if method == "GET" and path == "/project04/queries":
+            return self.p04_queries_page(environ)
+        mq4 = re.fullmatch(r"/project04/queries/([0-9]+)", path or "")
+        if mq4 and method == "GET":
+            return self.p04_query_detail(mq4.group(1), environ)
+        mq4r = re.fullmatch(r"/project04/queries/([0-9]+)/run", path or "")
+        if mq4r and method == "POST":
+            return self.p04_run_submit(mq4r.group(1), environ)
+        mq4s = re.fullmatch(r"/project04/queries/([0-9]+)/supersede", path or "")
+        if mq4s and method == "POST":
+            return self.p04_supersede_submit(mq4s.group(1), environ)
+        if method == "GET" and path == "/project04/runs":
+            return self.p04_runs_page(environ)
+        mr4 = re.fullmatch(r"/project04/runs/([0-9]+)", path or "")
+        if mr4 and method == "GET":
+            return self.p04_run_detail(mr4.group(1), environ)
+        mr4s = re.fullmatch(r"/project04/runs/([0-9]+)/snapshot", path or "")
+        if mr4s and method == "POST":
+            return self.p04_snapshot_submit(mr4s.group(1), environ)
+        if method == "GET" and path == "/project04/compare":
+            return self.p04_compare_page(environ)
+        if method == "POST" and path == "/api/sqlops/queries":
+            return self.api_so_create_query(environ)
+        if method == "GET" and path == "/api/sqlops/queries":
+            return self.api_so_list_queries(environ)
+        mq4a = re.fullmatch(r"/api/sqlops/queries/([0-9]+)", path or "")
+        if mq4a and method == "GET":
+            return self.api_so_get_query(mq4a.group(1))
+        mq4as = re.fullmatch(r"/api/sqlops/queries/([0-9]+)/supersede", path or "")
+        if mq4as and method == "POST":
+            return self.api_so_supersede_query(mq4as.group(1), environ)
+        mq4ar = re.fullmatch(r"/api/sqlops/queries/([0-9]+)/run", path or "")
+        if mq4ar and method == "POST":
+            return self.api_so_run_query(mq4ar.group(1), environ)
+        if method == "GET" and path == "/api/sqlops/runs":
+            return self.api_so_list_runs(environ)
+        mr4a = re.fullmatch(r"/api/sqlops/runs/([0-9]+)", path or "")
+        if mr4a and method == "GET":
+            return self.api_so_get_run(mr4a.group(1))
+        mr4d = re.fullmatch(r"/api/sqlops/runs/([0-9]+)/drilldown", path or "")
+        if mr4d and method == "POST":
+            return self.api_so_drilldown(mr4d.group(1), environ)
+        mr4sn = re.fullmatch(r"/api/sqlops/runs/([0-9]+)/snapshot", path or "")
+        if mr4sn and method == "POST":
+            return self.api_so_snapshot(mr4sn.group(1), environ)
+        ms4 = re.fullmatch(r"/api/sqlops/snapshots/([0-9]+)/status", path or "")
+        if ms4 and method == "GET":
+            return self.api_so_snapshot_status(ms4.group(1))
+        if method == "POST" and path == "/api/sqlops/compare":
+            return self.api_so_compare(environ)
+        mr4e = re.fullmatch(r"/api/sqlops/runs/([0-9]+)/export", path or "")
+        if mr4e and method == "GET":
+            return self.api_so_export(mr4e.group(1), environ)
         # ---- Q06: data quality & entity resolution ---------------------------
         if method == "GET" and path == "/project_q06":
             return self.q06_page()
@@ -2761,6 +2823,584 @@ accepted + proposed + rejected + missing == fields total
         finally:
             conn.close()
         return _json(200, {"exception": result})
+
+    # -- P04: SQL operations intelligence --------------------------------------
+    def _p04_error(self, exc: Exception) -> tuple[int, list, bytes]:
+        if isinstance(exc, so_service.SqlOpsError):
+            msg = str(exc)
+            if msg.startswith(("No query", "No run", "No snapshot")):
+                return _json(404, _error_envelope("not_found", msg))
+            return _json(422, _error_envelope("validation_failed", msg))
+        raise exc
+
+    @staticmethod
+    def _so_jsonable(value: Any) -> Any:
+        if isinstance(value, Decimal):
+            return str(value)
+        if isinstance(value, dict):
+            return {k: App._so_jsonable(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [App._so_jsonable(v) for v in value]
+        return value
+
+    @staticmethod
+    def _so_results_table(results: list) -> str:
+        if not results:
+            return "<p><em>No rows.</em></p>"
+        dim_keys: list[str] = []
+        metric_keys: list[str] = []
+        for r in results:
+            for k in r["dimensions"]:
+                if k not in dim_keys:
+                    dim_keys.append(k)
+            for k in r["metrics"]:
+                if k not in metric_keys:
+                    metric_keys.append(k)
+        head = "".join(f"<th>{html.escape(k)}</th>" for k in dim_keys + metric_keys)
+        rows = "".join(
+            "<tr>" + "".join(
+                f"<td>{html.escape(str(r['dimensions'].get(k)) if r['dimensions'].get(k) is not None else '—')}</td>"
+                for k in dim_keys) + "".join(
+                f"<td>{html.escape(str(r['metrics'].get(k)) if r['metrics'].get(k) is not None else '—')}</td>"
+                for k in metric_keys) + "</tr>"
+            for r in results)
+        return f"<table><tr>{head}</tr>{rows}</table>"
+
+    def _p04_form(self, environ: dict) -> dict:
+        return dict(parse_qsl(self._read_body(environ).decode("utf-8"),
+                              keep_blank_values=True))
+
+    def p04_page(self, errors: Optional[dict] = None):
+        conn = self._conn()
+        try:
+            queries = so_service.list_queries(conn)
+            runs = so_service.list_runs(conn)[:10]
+        finally:
+            conn.close()
+        err_html = ""
+        if errors:
+            items = "".join(f"<li><strong>{html.escape(k)}</strong>: {html.escape(str(v))}</li>"
+                            for k, v in errors.items())
+            err_html = f'<div class="error-list"><ul>{items}</ul></div>'
+        q_rows = "".join(
+            f"<tr><td><a href=\"/project04/queries/{q['id']}\">{html.escape(q['name'])}</a></td>"
+            f"<td>v{q['version']}</td><td>{html.escape(q['spec']['table'])}</td>"
+            f"<td>{html.escape(q['spec']['grain'])}</td></tr>" for q in queries
+        ) or "<tr><td colspan=\"4\"><em>No saved queries yet — create one below, or seed the demo data first.</em></td></tr>"
+        r_rows = "".join(
+            f"<tr><td><a href=\"/project04/runs/{r['id']}\">#{r['id']}</a></td>"
+            f"<td>{r['query_id']} (v{r['query_version']})</td>"
+            f"<td>{html.escape(r['period_start'])} → {html.escape(r['period_end'])}</td>"
+            f"<td>{r['status']}</td><td>{r['rows_returned']}</td>"
+            f"<td>{r['duration_ms']} ms</td></tr>" for r in runs
+        ) or "<tr><td colspan=\"6\"><em>No runs yet.</em></td></tr>"
+        body = f"""
+<div class="card"><h2>P04 — SQL Operations Intelligence</h2>
+<p><strong>Synthetic data only.</strong> Queries are structured specs —
+table, dimensions, metrics, filters, grain, period — stored as JSON and
+versioned. No user input ever reaches SQL text: every identifier is
+mapped through an allow-list and every value is bound as a parameter.
+Averages and rates are computed in Python from exact COUNT/SUM
+aggregates. Every figure drills down to its source rows.</p>
+<p><a href="/project04/queries">Queries →</a> · <a href="/project04/runs">Runs →</a> ·
+<a href="/project04/compare">Compare periods →</a></p>
+<form method="post" action="/project04/seed">
+<button type="submit">Seed demo data</button></form>
+<p>Seeds 8 leads, 6 missed calls, 6 estimates, 5 invoices, 4 payments,
+4 documents (Oct–Nov 2026). Idempotent — a second click inserts nothing.</p></div>
+{err_html}
+<div class="card"><h3>Saved queries</h3>
+<table><tr><th>Name</th><th>Version</th><th>Table</th><th>Grain</th></tr>{q_rows}</table>
+<h3>Create a query</h3>
+<form method="post" action="/project04/queries">
+<label>Name <input name="name" required></label>
+<label>Description <input name="description"></label>
+<label>Spec (JSON) <textarea name="spec" rows="6">{{"table": "estimates", "dimensions": ["service_type"], "metrics": [{{"kind": "count"}}, {{"kind": "sum", "column": "amount_cents"}}], "filters": [], "grain": "none"}}</textarea></label>
+<button type="submit">Save query (v1)</button></form>
+<h3>Recent runs</h3>
+<table><tr><th>Run</th><th>Query</th><th>Period</th><th>Status</th><th>Rows</th><th>Time</th></tr>{r_rows}</table></div>
+"""
+        return _html(200, "P04 — SQL Operations Intelligence", body)
+
+    def p04_seed_submit(self, environ: dict):
+        conn = self._conn()
+        try:
+            so_service.seed_demo_data(conn, actor="demo")
+        finally:
+            conn.close()
+        return 303, [("Location", "/project04")], b""
+
+    def p04_create_submit(self, environ: dict):
+        data = self._p04_form(environ)
+        try:
+            spec = json.loads(data.get("spec", ""))
+        except ValueError:
+            return self.p04_page({"spec": "Spec must be valid JSON."})
+        conn = self._conn()
+        try:
+            try:
+                q = so_service.create_query(
+                    conn, data.get("name", "").strip(), spec,
+                    description=data.get("description", "").strip(), actor="web")
+            except so_service.SqlOpsError as exc:
+                return self.p04_page({"query": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", f"/project04/queries/{q['id']}")], b""
+
+    def p04_queries_page(self, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            queries = so_service.list_queries(
+                conn, include_superseded=query.get("all") == "1")
+        finally:
+            conn.close()
+        rows = "".join(
+            f"<tr><td><a href=\"/project04/queries/{q['id']}\">{html.escape(q['name'])}</a></td>"
+            f"<td>v{q['version']}</td><td>{html.escape(q['status'])}</td>"
+            f"<td>{html.escape(q['spec']['table'])}</td>"
+            f"<td>{html.escape(', '.join(q['spec']['dimensions']) or '—')}</td>"
+            f"<td>{html.escape(q['spec']['grain'])}</td></tr>" for q in queries
+        ) or "<tr><td colspan=\"6\"><em>No queries yet.</em></td></tr>"
+        body = f"""
+<div class="card"><h2>P04 — Queries</h2>
+<p><a href="/project04/queries?all=1">Show superseded versions</a> ·
+<a href="/project04">← Back to P04</a></p>
+<table><tr><th>Name</th><th>Version</th><th>Status</th><th>Table</th>
+<th>Dimensions</th><th>Grain</th></tr>{rows}</table></div>
+"""
+        return _html(200, "P04 — Queries", body)
+
+    def p04_query_detail(self, query_id: str, environ: dict,
+                         errors: Optional[dict] = None):
+        qid = int(query_id)
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            try:
+                q = so_service.get_query_by_id(conn, qid)
+            except so_service.SqlOpsError as exc:
+                return _html(404, "P04 — Not found",
+                             f"<p>{html.escape(str(exc))}</p>")
+            runs = so_service.list_runs(conn, query_id=qid)[:10]
+            versions = [v for v in so_service.list_queries(conn, include_superseded=True)
+                        if v["name"] == q["name"]]
+        finally:
+            conn.close()
+        err_html = ""
+        if errors:
+            items = "".join(f"<li><strong>{html.escape(k)}</strong>: {html.escape(str(v))}</li>"
+                            for k, v in errors.items())
+            err_html = f'<div class="error-list"><ul>{items}</ul></div>'
+        run_rows = "".join(
+            f"<tr><td><a href=\"/project04/runs/{r['id']}\">#{r['id']}</a></td>"
+            f"<td>{html.escape(r['period_start'])} → {html.escape(r['period_end'])}</td>"
+            f"<td>{r['status']}</td><td>{r['rows_returned']}</td></tr>" for r in runs
+        ) or "<tr><td colspan=\"4\"><em>No runs yet.</em></td></tr>"
+        ver_rows = "".join(
+            f"<tr><td>v{v['version']}</td><td>{html.escape(v['status'])}</td>"
+            f"<td>{html.escape(v['created_at'])}</td></tr>" for v in versions)
+        body = f"""
+<div class="card"><h2>P04 — Query: {html.escape(q['name'])}</h2>
+<p>Version {q['version']} ({html.escape(q['status'])}). {html.escape(q['description'] or '')}</p>
+<pre>{html.escape(json.dumps(q['spec'], indent=2, sort_keys=True))}</pre>
+{err_html}
+<h3>Run this query</h3>
+<form method="post" action="/project04/queries/{qid}/run">
+<label>Period start (YYYY-MM-DD) <input name="period_start" value="2026-10-01" required></label>
+<label>Period end (YYYY-MM-DD) <input name="period_end" value="2026-11-08" required></label>
+<button type="submit">Run</button></form>
+<h3>Supersede (new version — the old spec is never edited)</h3>
+<form method="post" action="/project04/queries/{qid}/supersede">
+<label>New spec (JSON) <textarea name="spec" rows="6">{html.escape(json.dumps(q['spec'], indent=2, sort_keys=True))}</textarea></label>
+<button type="submit">Save as v{q['version'] + 1}</button></form>
+<h3>Versions</h3>
+<table><tr><th>Version</th><th>Status</th><th>Created</th></tr>{ver_rows}</table>
+<h3>Recent runs</h3>
+<table><tr><th>Run</th><th>Period</th><th>Status</th><th>Rows</th></tr>{run_rows}</table>
+<p><a href="/project04/queries">← All queries</a></p></div>
+"""
+        return _html(200, f"P04 — Query {html.escape(q['name'])}", body)
+
+    def p04_run_submit(self, query_id: str, environ: dict):
+        data = self._p04_form(environ)
+        conn = self._conn()
+        try:
+            try:
+                run = so_service.run_query(
+                    conn, int(query_id), data.get("period_start", "").strip(),
+                    data.get("period_end", "").strip(), actor="web")
+            except so_service.SqlOpsError as exc:
+                return self.p04_query_detail(query_id, environ, {"run": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", f"/project04/runs/{run['id']}")], b""
+
+    def p04_supersede_submit(self, query_id: str, environ: dict):
+        data = self._p04_form(environ)
+        try:
+            spec = json.loads(data.get("spec", ""))
+        except ValueError:
+            return self.p04_query_detail(query_id, environ, {"spec": "Spec must be valid JSON."})
+        conn = self._conn()
+        try:
+            try:
+                q = so_service.get_query_by_id(conn, int(query_id))
+                new_q = so_service.supersede_query(conn, q["name"], spec, actor="web")
+            except so_service.SqlOpsError as exc:
+                return self.p04_query_detail(query_id, environ, {"supersede": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", f"/project04/queries/{new_q['id']}")], b""
+
+    def p04_runs_page(self, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            qid = int(query["query_id"]) if query.get("query_id") else None
+            runs = so_service.list_runs(conn, query_id=qid)
+        finally:
+            conn.close()
+        rows = "".join(
+            f"<tr><td><a href=\"/project04/runs/{r['id']}\">#{r['id']}</a></td>"
+            f"<td>{r['query_id']} (v{r['query_version']})</td>"
+            f"<td>{html.escape(r['period_start'])} → {html.escape(r['period_end'])}</td>"
+            f"<td>{r['status']}</td><td>{r['rows_returned']}</td>"
+            f"<td>{r['duration_ms']} ms</td><td>{html.escape(r['actor'])}</td></tr>" for r in runs
+        ) or "<tr><td colspan=\"7\"><em>No runs yet.</em></td></tr>"
+        body = f"""
+<div class="card"><h2>P04 — Run history</h2>
+<p>Every execution is recorded — including failed ones, so the history
+is a truthful record of what was attempted.</p>
+<table><tr><th>Run</th><th>Query</th><th>Period</th><th>Status</th>
+<th>Rows</th><th>Time</th><th>Actor</th></tr>{rows}</table>
+<p><a href="/project04">← Back to P04</a></p></div>
+"""
+        return _html(200, "P04 — Runs", body)
+
+    def p04_run_detail(self, run_id: str, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            try:
+                run = so_service.get_run(conn, int(run_id))
+            except so_service.SqlOpsError as exc:
+                return _html(404, "P04 — Not found",
+                             f"<p>{html.escape(str(exc))}</p>")
+            drill = None
+            if query.get("drill_dimension"):
+                try:
+                    drill = so_service.drill_down(
+                        conn, int(run_id), query["drill_dimension"],
+                        query.get("drill_value") or None, actor="web")
+                except so_service.SqlOpsError as exc:
+                    drill = {"error": str(exc)}
+            snaps = [s for s in conn.execute(
+                "SELECT id FROM sqlops_snapshots WHERE run_id = ? ORDER BY id",
+                (int(run_id),))]
+        finally:
+            conn.close()
+        if run["status"] == "error":
+            body = f"""
+<div class="card"><h2>P04 — Run #{run['id']} (failed)</h2>
+<p>Query {run['query_id']} (v{run['query_version']}),
+{html.escape(run['period_start'])} → {html.escape(run['period_end'])}.</p>
+<p class="errors">Error: {html.escape(run['error_text'] or '')}</p>
+<p><a href="/project04/runs">← All runs</a></p></div>
+"""
+            return _html(200, f"P04 — Run #{run['id']}", body)
+        drill_html = ""
+        if drill is not None:
+            if "error" in drill:
+                drill_html = f"<p class='errors'>Drill-down error: {html.escape(drill['error'])}</p>"
+            else:
+                drows = "".join(
+                    "<tr>" + "".join(
+                        f"<td>{html.escape(str(v)) if v is not None else '—'}</td>"
+                        for v in r.values()) + "</tr>" for r in drill["rows"])
+                dhead = "".join(
+                    f"<th>{html.escape(k)}</th>"
+                    for k in (drill["rows"][0].keys() if drill["rows"] else []))
+                drill_html = f"""
+<h3>Drill-down: {html.escape(drill['dimension'])} = {html.escape(str(drill['value']))}</h3>
+<p>{drill['row_count']} source rows{' (truncated)' if drill['truncated'] else ''} — lineage from figure to rows.</p>
+<table><tr>{dhead}</tr>{drows}</table>"""
+        dims = list(run["spec"]["dimensions"])
+        if run["spec"]["grain"] != "none":
+            dims = ["period"] + dims
+        dim_options = "".join(
+            f"<option value=\"{html.escape(d)}\">{html.escape(d)}</option>" for d in dims)
+        snap_links = "".join(
+            f"<li>Snapshot #{s['id']} — <a href=\"/api/sqlops/snapshots/{s['id']}/status\">check status</a></li>"
+            for s in snaps)
+        body = f"""
+<div class="card"><h2>P04 — Run #{run['id']}</h2>
+<p>Query {run['query_id']} (v{run['query_version']}),
+{html.escape(run['period_start'])} → {html.escape(run['period_end'])},
+{run['rows_returned']} rows in {run['duration_ms']} ms, by {html.escape(run['actor'])}.</p>
+<pre>{html.escape(json.dumps(run['spec'], indent=2, sort_keys=True))}</pre>
+{self._so_results_table(run['results'])}
+<h3>Drill down to source rows</h3>
+<form method="get" action="/project04/runs/{run['id']}">
+<label>Dimension <select name="drill_dimension">{dim_options}</select></label>
+<label>Value <input name="drill_value" required></label>
+<button type="submit">Drill down</button></form>
+{drill_html}
+<h3>Export</h3>
+<p><a href="/api/sqlops/runs/{run['id']}/export?format=csv">CSV</a> ·
+<a href="/api/sqlops/runs/{run['id']}/export?format=json">JSON</a></p>
+<h3>Snapshot</h3>
+<form method="post" action="/project04/runs/{run['id']}/snapshot">
+<button type="submit">Snapshot this result</button></form>
+<ul>{snap_links or '<li>No snapshots yet.</li>'}</ul>
+<p><a href="/project04/runs">← All runs</a></p></div>
+"""
+        return _html(200, f"P04 — Run #{run['id']}", body)
+
+    def p04_snapshot_submit(self, run_id: str, environ: dict):
+        conn = self._conn()
+        try:
+            try:
+                so_service.snapshot_run(conn, int(run_id), actor="web")
+            except so_service.SqlOpsError as exc:
+                return _html(422, "P04 — Snapshot failed",
+                             f"<p>{html.escape(str(exc))}</p>"
+                             f"<p><a href=\"/project04/runs/{run_id}\">Back</a></p>")
+        finally:
+            conn.close()
+        return 303, [("Location", f"/project04/runs/{run_id}")], b""
+
+    def p04_compare_page(self, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            queries = so_service.list_queries(conn)
+        finally:
+            conn.close()
+        options = "".join(
+            f"<option value=\"{q['id']}\">{html.escape(q['name'])} (v{q['version']})</option>"
+            for q in queries)
+        cmp_html = ""
+        if query.get("query_id"):
+            conn = self._conn()
+            try:
+                try:
+                    cmp = so_service.compare_periods(
+                        conn, int(query["query_id"]),
+                        (query.get("a_start", ""), query.get("a_end", "")),
+                        (query.get("b_start", ""), query.get("b_end", "")),
+                        actor="web")
+                except so_service.SqlOpsError as exc:
+                    cmp_html = f"<p class='errors'>Error: {html.escape(str(exc))}</p>"
+                    cmp = None
+            finally:
+                conn.close()
+            if cmp is not None:
+                rows = ""
+                for r in cmp["rows"]:
+                    cells = "".join(
+                        f"<td>{html.escape(str(m['a'])) if m['a'] is not None else '—'} → "
+                        f"{html.escape(str(m['b'])) if m['b'] is not None else '—'} "
+                        f"(Δ {html.escape(str(m['delta'])) if m['delta'] is not None else '—'}"
+                        f"{', ' + html.escape(str(m['pct'])) + '%' if m['pct'] is not None else ''})</td>"
+                        for m in r["metrics"].values())
+                    dims = ", ".join(
+                        f"{k}={v}" for k, v in r["dimensions"].items())
+                    rows += f"<tr><td>{html.escape(dims)}</td>{cells}</tr>"
+                mheads = "".join(
+                    f"<th>{html.escape(k)}</th>"
+                    for k in (cmp["rows"][0]["metrics"] if cmp["rows"] else []))
+                cmp_html = f"""
+<h3>Comparison (A → B)</h3>
+<p>Runs #{cmp['period_a']['run_id']} → #{cmp['period_b']['run_id']}.</p>
+<table><tr><th>Group</th>{mheads}</tr>{rows}</table>"""
+        body = f"""
+<div class="card"><h2>P04 — Compare periods</h2>
+<p>Run one saved query over two periods and see per-group deltas.
+Percent change is blank when the first period is 0 or missing —
+division by zero is never invented.</p>
+<form method="get" action="/project04/compare">
+<label>Query <select name="query_id">{options}</select></label>
+<label>Period A start <input name="a_start" value="2026-10-01" required></label>
+<label>Period A end <input name="a_end" value="2026-10-31" required></label>
+<label>Period B start <input name="b_start" value="2026-11-01" required></label>
+<label>Period B end <input name="b_end" value="2026-11-08" required></label>
+<button type="submit">Compare</button></form>
+{cmp_html}
+<p><a href="/project04">← Back to P04</a></p></div>
+"""
+        return _html(200, "P04 — Compare periods", body)
+
+    # -- P04: JSON API -----------------------------------------------------------
+    def api_so_create_query(self, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                q = so_service.create_query(
+                    conn, str(data.get("name", "")).strip(), data.get("spec"),
+                    description=str(data.get("description", "")).strip(),
+                    actor=str(data.get("actor", "api")).strip() or "api")
+            except so_service.SqlOpsError as exc:
+                return self._p04_error(exc)
+        finally:
+            conn.close()
+        return _json(201, {"query": self._so_jsonable(q)})
+
+    def api_so_list_queries(self, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            queries = so_service.list_queries(
+                conn, include_superseded=query.get("all") == "1")
+        finally:
+            conn.close()
+        return _json(200, {"queries": self._so_jsonable(queries)})
+
+    def api_so_get_query(self, query_id: str):
+        conn = self._conn()
+        try:
+            try:
+                q = so_service.get_query_by_id(conn, int(query_id))
+            except so_service.SqlOpsError as exc:
+                return self._p04_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"query": self._so_jsonable(q)})
+
+    def api_so_supersede_query(self, query_id: str, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                q = so_service.get_query_by_id(conn, int(query_id))
+                new_q = so_service.supersede_query(
+                    conn, q["name"], data.get("spec"),
+                    actor=str(data.get("actor", "api")).strip() or "api")
+            except so_service.SqlOpsError as exc:
+                return self._p04_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"query": self._so_jsonable(new_q)})
+
+    def api_so_run_query(self, query_id: str, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                run = so_service.run_query(
+                    conn, int(query_id), str(data.get("period_start", "")),
+                    str(data.get("period_end", "")),
+                    actor=str(data.get("actor", "api")).strip() or "api")
+            except so_service.SqlOpsError as exc:
+                runs = so_service.list_runs(conn, query_id=int(query_id))
+                payload = {"error": {"code": "validation_failed", "message": str(exc)}}
+                if runs:
+                    payload["run_id"] = runs[0]["id"]
+                return _json(422, payload)
+        finally:
+            conn.close()
+        return _json(200, {"run": self._so_jsonable(run)})
+
+    def api_so_list_runs(self, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            qid = int(query["query_id"]) if query.get("query_id") else None
+            runs = so_service.list_runs(conn, query_id=qid)
+        finally:
+            conn.close()
+        return _json(200, {"runs": self._so_jsonable(runs)})
+
+    def api_so_get_run(self, run_id: str):
+        conn = self._conn()
+        try:
+            try:
+                run = so_service.get_run(conn, int(run_id))
+            except so_service.SqlOpsError as exc:
+                return self._p04_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"run": self._so_jsonable(run)})
+
+    def api_so_drilldown(self, run_id: str, environ: dict):
+        data = self._read_json(environ)
+        value = data.get("value")
+        conn = self._conn()
+        try:
+            try:
+                dd = so_service.drill_down(
+                    conn, int(run_id), str(data.get("dimension", "")),
+                    value if value != "" else None,
+                    actor=str(data.get("actor", "api")).strip() or "api")
+            except so_service.SqlOpsError as exc:
+                return self._p04_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"drilldown": self._so_jsonable(dd)})
+
+    def api_so_snapshot(self, run_id: str, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                snap = so_service.snapshot_run(
+                    conn, int(run_id),
+                    actor=str(data.get("actor", "api")).strip() or "api")
+            except so_service.SqlOpsError as exc:
+                return self._p04_error(exc)
+        finally:
+            conn.close()
+        return _json(201, {"snapshot": self._so_jsonable(snap)})
+
+    def api_so_snapshot_status(self, snapshot_id: str):
+        conn = self._conn()
+        try:
+            try:
+                status = so_service.snapshot_status(conn, int(snapshot_id))
+            except so_service.SqlOpsError as exc:
+                return self._p04_error(exc)
+        finally:
+            conn.close()
+        return _json(200, self._so_jsonable(status))
+
+    def api_so_compare(self, environ: dict):
+        data = self._read_json(environ)
+        try:
+            period_a = (str(data["period_a"][0]), str(data["period_a"][1]))
+            period_b = (str(data["period_b"][0]), str(data["period_b"][1]))
+            query_id = int(data["query_id"])
+        except (KeyError, TypeError, ValueError, IndexError):
+            return _json(422, _error_envelope(
+                "validation_failed",
+                "compare needs query_id, period_a [start, end], period_b [start, end]"))
+        conn = self._conn()
+        try:
+            try:
+                cmp = so_service.compare_periods(
+                    conn, query_id, period_a, period_b,
+                    actor=str(data.get("actor", "api")).strip() or "api")
+            except so_service.SqlOpsError as exc:
+                return self._p04_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"comparison": self._so_jsonable(cmp)})
+
+    def api_so_export(self, run_id: str, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        fmt = query.get("format", "csv")
+        conn = self._conn()
+        try:
+            try:
+                text = so_service.export_run(conn, int(run_id), fmt)
+            except so_service.SqlOpsError as exc:
+                return self._p04_error(exc)
+        finally:
+            conn.close()
+        if fmt == "csv":
+            return 200, [("Content-Type", "text/csv")], text.encode()
+        return 200, [("Content-Type", "application/json")], text.encode()
 
     # ---- Q06: data quality & entity resolution ------------------------------
     def _q06_error(self, exc: Exception) -> tuple[int, list, bytes]:
@@ -6976,7 +7616,16 @@ with a suggested next action, and every total reconciles to source rows.</p>
 <p><a href="/project03">Open the project</a> · <a href="/project03/documents">Documents</a> ·
 <a href="/project03/exceptions">Exception queue</a> · <a href="/project03/reports">Reports</a></p></div>
 <div class="card"><h2>Project 04 — SQL Operations Intelligence</h2>
-<p><strong>Status:</strong> planned</p></div>
+<p><strong>Status:</strong> implemented + tested (Gate D)</p>
+<p>A SQL analytics layer over the portfolio's synthetic operational
+data. Queries are structured specs (table, dimensions, metrics,
+filters, grain, period) stored as JSON and versioned — never raw SQL
+from a caller. The compiler maps every identifier through an
+allow-list and binds every value as a parameter, so no user input ever
+reaches SQL text. Every figure drills down to its source rows, every
+execution is recorded, and snapshots report current vs. stale.</p>
+<p><a href="/project04">Open the project</a> · <a href="/project04/queries">Queries</a> ·
+<a href="/project04/runs">Runs</a> · <a href="/project04/compare">Compare periods</a></p></div>
 <div class="card"><h2>Project 05 — Automation Reliability &amp; Governance Center</h2>
 <p><strong>Status:</strong> planned</p></div>
 <div class="card"><h2>Q01 — AI Missed-Call Recovery Engine</h2>
