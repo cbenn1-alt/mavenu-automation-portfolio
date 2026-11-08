@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V10 (prototype baseline freeze)
+# Mavenu Reliability Intelligence — V11 (exploratory synthetic data correctness)
 
-**State:** V10 pins the unchanged V9 synthetic application source and opens a governed 11-item risk register and unsigned prototype decision. Automated technical verification is separate from human approval. **Formal phase promotion is recommended BLOCKED and remains PENDING human sign-off.** No customer, production or industrial authorization is implied.
+**State:** V11 introduces a drafted, machine-checked 21-field dictionary for fabricated data. **Formal Phase 02 promotion is still BLOCKED/PENDING human decision** at V10; the required V11 approved source/field dictionary does not yet have actual owner signatures. No customer/plant authorization or production capability is implied.
 
-**Standard (Architecture V4, page 42):** V10 = Freeze prototype baseline and open risk list. Proof = Prototype decision record. The frozen V9 runtime remains 0.9.0; its API contract remains v1/schema 1.3.0. V8 source coverage and V9 automated replay continue in CI.
+**Standard (Architecture V4, page 42):** V11 = Declare data types, meaning, and ownership. Proof = Approved source/field dictionary. V11 implements a candidate technical dictionary only; sign-off remains outstanding. The frozen V9 runtime remains 0.9.0 with API contract v1/schema 1.3.0.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -14,6 +14,7 @@ python -m pip install -r requirements-dev.txt
 PYTHONPATH=src python scripts/verify_v8.py
 PYTHONPATH=src python scripts/replay_v9.py
 PYTHONPATH=src python scripts/verify_v10.py
+PYTHONPATH=src python scripts/verify_v11.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -82,3 +83,18 @@ GitHub Actions executes the inherited V8 regression, V9 local-socket replay and 
 **Technical source freeze:** machine-verifiable after CI. **Human approval:** not established. Earlier V2 requirements approval, V3–V8 releases and V9 independent reviewer acceptance remain open. The separately held V1 Git history has not been imported. Formal V10-to-V11 phase promotion remains blocked, while **exploratory synthetic-only V11 data correctness work** can be drafted as explicitly non-promoted R&D.
 
 No customer/Minn-Dak data, real maintenance orders, OT/PLC/SCADA controls, models, measured ROI, tenant security or production pilot is available or authorized.
+
+
+## V11 synthetic source and field dictionary
+
+- docs/data/SOURCE_FIELD_DICTIONARY_V11.json — exactly four fixture datasets, 21 fields, documented logical types, meaning, units, nullability, keys, enums, synthetic provenance and proposed owner roles.
+- docs/data/SOURCE_FIELD_DICTIONARY_V11.md — readable schema/ownership tables and the specific external business/data/maintenance/financial approval requirements.
+- scripts/verify_v11.py — checks the 18-file V10 source freeze and blocked phase decision, then validates exact fields, types, numeric bounds, canonical UTC, uniqueness, foreign keys and non-disclosure of customer data.
+- tests/test_dictionary_v11.py — 34 negative/governance regression tests using in-memory copies only.
+- docs/DEMO_V11.md, docs/releases/V11.md and docs/CHANGELOG_V11.md — reviewer replay and evidence packet.
+
+No client data, genuine system of record, employee ID, authenticated reviewer, equipment diagnosis, financial benefit or industrial control connection exists in this prototype. Data roles are proposed but not assigned. The V10 blocked promotion decision is carried forward unchanged; exploratory V11 work is not a formally accepted Phase 02 release.
+
+Expected test count: **210** (176 from V10 plus 34 V11); verify exact GitHub Actions output and existing 84.5% combined coverage floor. The CI workflow uploads V8–V11 evidence for 30 days.
+
+**V12 next:** Identify source priorities, quality concerns and authoritative ownership with a human-reviewed source inventory; until authorized, use hypothetical/synthetic-only references and do not infer customer system access.
