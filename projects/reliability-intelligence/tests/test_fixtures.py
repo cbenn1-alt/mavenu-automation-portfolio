@@ -189,7 +189,7 @@ class V5FixtureTests(unittest.TestCase):
         self.assertFalse(data["operational_data_loaded"])
         self.assertFalse(data["production_ready"])
         self.assertFalse(data["model_present"])
-        self.assertEqual(data["increment"], "V8")
+        self.assertEqual(data["increment"], "V9")
 
     def test_synthetic_case_service_is_deterministic(self):
         charter = load_charter()
