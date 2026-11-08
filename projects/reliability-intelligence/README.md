@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V12 (exploratory synthetic schema validation)
+# Mavenu Reliability Intelligence — V13 (exploratory negative-case fixtures)
 
-**State:** V12 validates required fields and allowed values on V11's **unsigned** synthetic source dictionary. Formal V10 promotion remains BLOCKED/PENDING human decision; there is no customer-approved source contract or production authorization.
+**State:** V13 adds controlled impossible/null/out-of-range negative cases and positive boundary controls for fabricated maintenance fixtures. **V10 formal promotion remains BLOCKED/PENDING human sign-off** and V11/V12 data-source approvals remain unsigned. No customer or production authorization is implied.
 
-**Standard (Architecture V4, page 42):** V12 = Validate required fields and allowed values. Proof = Schema validation test report. The pinned V9 runtime remains 0.9.0 and API v1/schema 1.3.0.
+**Standard (Architecture V4, page 42):** V13 = Reject impossible, null, and out-of-range values. Proof = Negative-case fixtures. The pinned V9 runtime remains 0.9.0 and API v1/schema 1.3.0.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -16,6 +16,7 @@ PYTHONPATH=src python scripts/replay_v9.py
 PYTHONPATH=src python scripts/verify_v10.py
 PYTHONPATH=src python scripts/verify_v11.py
 PYTHONPATH=src python scripts/verify_v12.py
+PYTHONPATH=src python scripts/verify_v13.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -98,7 +99,7 @@ No client data, genuine system of record, employee ID, authenticated reviewer, e
 
 V11 has **210** inherited tests. V12 adds **34** regression tests (expected full suite **244**), with the same 84.5% coverage floor. GitHub Actions uploads V8–V12 evidence for 30 days. Verify actual hosted output before claiming success.
 
-**V13 next:** Reject impossible, null and out-of-range values using dedicated negative-case fixtures. No customer or plant data is authorized.
+**V14 next:** Continue data correctness with explicit provenance, time semantics and review evidence according to the controlled development standard. No customer/plant data is authorized.
 
 
 ## V12 strict source schema and test report
@@ -106,3 +107,13 @@ V11 has **210** inherited tests. V12 adds **34** regression tests (expected full
 The JSON contract at docs/data/SCHEMA_CONTRACT_V12.json mirrors V11's four fabricated datasets and 21 fields, requiring exact field presence, types, enumerations, SYN-only identifier shapes and evidence-reference formats. scripts/verify_v12.py checks every row and produces 16 non-destructive negative-case failures in evidence/V12/schema_validation_report.json. The 34 new tests are in tests/test_schema_v12.py. Reviewer instructions and security scope are in docs/data/SCHEMA_CONTRACT_V12.md, docs/DEMO_V12.md and docs/releases/V12.md.
 
 The required artifact is a **schema validation test report**. It does not approve the V11 source dictionary, supersede the blocked V10 decision, or authorize real customer records, integrations, industrial control writes, predictive claims or measured ROI.
+
+
+## V13 controlled negative cases
+
+- fixtures/negative_cases_v13.json: **29 invalid fictional mutations** (null 8, out of range 5, nonfinite 3, impossible/referential 13) and **seven valid edge controls**.
+- scripts/verify_v13.py: checks the unchanged V10 18-file snapshot and V11/V12 contracts, then executes each adverse or boundary control in memory and writes evidence/V13/negative_case_report.json.
+- tests/test_negative_cases_v13.py: **56 additional tests**, one for each of 29 rejection scenarios and seven permitted edge values, plus corpus integrity and governance checks.
+- docs/NEGATIVE_CASES_V13.md, docs/DEMO_V13.md, docs/releases/V13.md: reviewer protocol and six-part evidence packet.
+
+Expected full regression suite: **300** tests (244 historical + 56 V13), subject to the actual hosted CI results. The 84.5% V8 combined coverage floor and historical module checks remain enforced. The product itself gains no customer API, industrial connector, real data source, maintenance decision or financial benefit. The V10 recommendation remains BLOCKED, not overwritten by a green CI run.
