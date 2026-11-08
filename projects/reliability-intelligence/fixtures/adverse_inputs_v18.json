@@ -1,0 +1,628 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V18",
+  "objective": "Test missing, stale and malformed inputs",
+  "required_proof": "Adverse-case regression suite",
+  "corpus_status": "SYNTHETIC_ADVERSARIAL_FIXTURES_NOT_CUSTOMER_APPROVED",
+  "fixture_set_id": "SYN-RI-V5-20261107-A",
+  "source_baseline_commit": "704123eca45628bf504594af39a66036cc0451c5",
+  "allowed_sources": [
+    "fixtures/cases.json",
+    "fixtures/demo_review_script.json",
+    "fixtures/reference_labels.json"
+  ],
+  "freshness_policy": {
+    "reference_clock_utc": "2026-02-05T00:00:00Z",
+    "max_age_days": 45,
+    "max_future_skew_hours": 24,
+    "exact_timestamp_format": "YYYY-MM-DDTHH:MM:SSZ",
+    "rule": "Inclusive freshness bounds: timestamps on either boundary are accepted; older/further future are rejected.",
+    "source": "Artificial test policy, NOT a verified customer/plant data freshness SLA.",
+    "actual_current_time_used": false,
+    "customer_approved": false
+  },
+  "expected_adverse_case_count": 44,
+  "expected_positive_control_count": 5,
+  "expected_category_counts": {
+    "missing": 16,
+    "stale": 7,
+    "malformed": 21
+  },
+  "adverse_cases": [
+    {
+      "id": "MISS-CASE-CASE-ID",
+      "category": "missing",
+      "operation": "delete_field",
+      "expected_error": "missing_required_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "case_id"
+      }
+    },
+    {
+      "id": "MISS-CASE-ASSET-ID",
+      "category": "missing",
+      "operation": "delete_field",
+      "expected_error": "missing_required_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "asset_id"
+      }
+    },
+    {
+      "id": "MISS-CASE-WORK-ORDER-REF",
+      "category": "missing",
+      "operation": "delete_field",
+      "expected_error": "missing_required_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "work_order_ref"
+      }
+    },
+    {
+      "id": "MISS-CASE-OCCURRED-AT-UTC",
+      "category": "missing",
+      "operation": "delete_field",
+      "expected_error": "missing_required_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      }
+    },
+    {
+      "id": "MISS-CASE-FAILURE-CODE",
+      "category": "missing",
+      "operation": "delete_field",
+      "expected_error": "missing_required_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "failure_code"
+      }
+    },
+    {
+      "id": "MISS-CASE-DOWNTIME-HOURS",
+      "category": "missing",
+      "operation": "delete_field",
+      "expected_error": "missing_required_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "downtime_hours"
+      }
+    },
+    {
+      "id": "MISS-CASE-REPAIR-COST-USD",
+      "category": "missing",
+      "operation": "delete_field",
+      "expected_error": "missing_required_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "repair_cost_usd"
+      }
+    },
+    {
+      "id": "MISS-CASE-EVIDENCE-REFS",
+      "category": "missing",
+      "operation": "delete_field",
+      "expected_error": "missing_required_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "evidence_refs"
+      }
+    },
+    {
+      "id": "MISS-CASE-SYNTHETIC",
+      "category": "missing",
+      "operation": "delete_field",
+      "expected_error": "missing_required_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "synthetic"
+      }
+    },
+    {
+      "id": "MISS-CASE-REVIEW-STATE",
+      "category": "missing",
+      "operation": "delete_field",
+      "expected_error": "missing_required_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "review_state"
+      }
+    },
+    {
+      "id": "MISS-CASES-DOCUMENT",
+      "category": "missing",
+      "operation": "drop_document",
+      "expected_error": "missing_source_document",
+      "target": {
+        "document": "fixtures/cases.json"
+      }
+    },
+    {
+      "id": "MISS-REVIEW-DOCUMENT",
+      "category": "missing",
+      "operation": "drop_document",
+      "expected_error": "missing_source_document",
+      "target": {
+        "document": "fixtures/demo_review_script.json"
+      }
+    },
+    {
+      "id": "MISS-CASES-COLLECTION",
+      "category": "missing",
+      "operation": "drop_collection",
+      "expected_error": "missing_required_collection",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records"
+      }
+    },
+    {
+      "id": "MISS-ASSETS-COLLECTION",
+      "category": "missing",
+      "operation": "drop_collection",
+      "expected_error": "missing_required_collection",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "assets"
+      }
+    },
+    {
+      "id": "MISS-REVIEW-DISPOSITION",
+      "category": "missing",
+      "operation": "delete_field",
+      "expected_error": "missing_required_field",
+      "target": {
+        "document": "fixtures/demo_review_script.json",
+        "collection": "entries",
+        "row_index": 0,
+        "field": "disposition"
+      }
+    },
+    {
+      "id": "MISS-REFERENCE-LABEL",
+      "category": "missing",
+      "operation": "delete_field",
+      "expected_error": "missing_required_field",
+      "target": {
+        "document": "fixtures/reference_labels.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "expected_review_label"
+      }
+    },
+    {
+      "id": "STALE-BEFORE-WINDOW",
+      "category": "stale",
+      "operation": "set_field",
+      "expected_error": "stale_record",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "value": "2025-12-21T23:59:59Z"
+    },
+    {
+      "id": "STALE-OLD-DECEMBER",
+      "category": "stale",
+      "operation": "set_field",
+      "expected_error": "stale_record",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "value": "2025-12-01T10:00:00Z"
+    },
+    {
+      "id": "STALE-LAST-YEAR",
+      "category": "stale",
+      "operation": "set_field",
+      "expected_error": "stale_record",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "value": "2025-01-05T10:00:00Z"
+    },
+    {
+      "id": "STALE-EXTREMELY-OLD",
+      "category": "stale",
+      "operation": "set_field",
+      "expected_error": "stale_record",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "value": "2000-01-01T00:00:00Z"
+    },
+    {
+      "id": "STALE-SECOND-CASE",
+      "category": "stale",
+      "operation": "set_field",
+      "expected_error": "stale_record",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 1,
+        "field": "occurred_at_utc"
+      },
+      "value": "2025-11-03T00:00:00Z"
+    },
+    {
+      "id": "STALE-FUTURE-SECOND",
+      "category": "stale",
+      "operation": "set_field",
+      "expected_error": "future_record",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "value": "2026-02-06T00:00:01Z"
+    },
+    {
+      "id": "STALE-FUTURE-YEAR",
+      "category": "stale",
+      "operation": "set_field",
+      "expected_error": "future_record",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "value": "2027-02-05T00:00:00Z"
+    },
+    {
+      "id": "MAL-UTC-MONTH",
+      "category": "malformed",
+      "operation": "set_field",
+      "expected_error": "malformed_timestamp",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "value": "2026-13-05T10:00:00Z"
+    },
+    {
+      "id": "MAL-UTC-NAIVE",
+      "category": "malformed",
+      "operation": "set_field",
+      "expected_error": "malformed_timestamp",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "value": "2026-01-05T10:00:00"
+    },
+    {
+      "id": "MAL-NULL-UTC",
+      "category": "malformed",
+      "operation": "set_field",
+      "expected_error": "null_required_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "value": null
+    },
+    {
+      "id": "MAL-BOOL-DURATION",
+      "category": "malformed",
+      "operation": "set_field",
+      "expected_error": "malformed_required_value",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "downtime_hours"
+      },
+      "value": true
+    },
+    {
+      "id": "MAL-COST-TEXT",
+      "category": "malformed",
+      "operation": "set_field",
+      "expected_error": "malformed_required_value",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "repair_cost_usd"
+      },
+      "value": "860 dollars"
+    },
+    {
+      "id": "MAL-EVIDENCE-TEXT",
+      "category": "malformed",
+      "operation": "set_field",
+      "expected_error": "malformed_required_value",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "evidence_refs"
+      },
+      "value": "SYN-EV-001"
+    },
+    {
+      "id": "MAL-INVALID-FAILURE",
+      "category": "malformed",
+      "operation": "set_field",
+      "expected_error": "malformed_required_value",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "failure_code"
+      },
+      "value": "real_machine_fault"
+    },
+    {
+      "id": "MAL-CASE-ARRAY",
+      "category": "malformed",
+      "operation": "replace_row",
+      "expected_error": "malformed_source_record",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0
+      },
+      "value": [
+        "not_an_object"
+      ]
+    },
+    {
+      "id": "MAL-DOCUMENT-ARRAY",
+      "category": "malformed",
+      "operation": "replace_document",
+      "expected_error": "malformed_source_document",
+      "target": {
+        "document": "fixtures/cases.json"
+      },
+      "value": []
+    },
+    {
+      "id": "MAL-CLAIM-REAL",
+      "category": "malformed",
+      "operation": "set_metadata",
+      "expected_error": "invalid_synthetic_origin",
+      "target": {
+        "document": "fixtures/cases.json",
+        "field": "source_system"
+      },
+      "value": "REAL_CMMS"
+    },
+    {
+      "id": "MAL-FALSE-SYNTHETIC",
+      "category": "malformed",
+      "operation": "set_metadata",
+      "expected_error": "invalid_synthetic_origin",
+      "target": {
+        "document": "fixtures/cases.json",
+        "field": "synthetic_only"
+      },
+      "value": false
+    },
+    {
+      "id": "MAL-SCRIPT-HUMAN",
+      "category": "malformed",
+      "operation": "set_metadata",
+      "expected_error": "invalid_synthetic_origin",
+      "target": {
+        "document": "fixtures/demo_review_script.json",
+        "field": "human_execution"
+      },
+      "value": true
+    },
+    {
+      "id": "MAL-WRONG-FIXTURE",
+      "category": "malformed",
+      "operation": "set_metadata",
+      "expected_error": "invalid_synthetic_origin",
+      "target": {
+        "document": "fixtures/cases.json",
+        "field": "fixture_set_id"
+      },
+      "value": "UNKNOWN"
+    },
+    {
+      "id": "MAL-UNDECLARED-FIELD",
+      "category": "malformed",
+      "operation": "add_field",
+      "expected_error": "unknown_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "operator_email"
+      },
+      "value": "not-an-employee@example.invalid"
+    },
+    {
+      "id": "MAL-EXTRA-DOCUMENT",
+      "category": "malformed",
+      "operation": "add_document",
+      "expected_error": "unapproved_source_document",
+      "target": {
+        "document": "fixtures/customer_export.json"
+      },
+      "value": {
+        "fake": true
+      }
+    },
+    {
+      "id": "MAL-INFINITE-COST",
+      "category": "malformed",
+      "operation": "special_numeric",
+      "expected_error": "nonfinite_numeric",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "repair_cost_usd"
+      },
+      "value": "positive_infinity"
+    },
+    {
+      "id": "MAL-NAN-DURATION",
+      "category": "malformed",
+      "operation": "special_numeric",
+      "expected_error": "nonfinite_numeric",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "downtime_hours"
+      },
+      "value": "nan"
+    },
+    {
+      "id": "MAL-INVALID-UTF8",
+      "category": "malformed",
+      "operation": "raw_marker",
+      "expected_error": "invalid_utf8_source",
+      "target": {
+        "document": "fixtures/cases.json"
+      },
+      "value": "invalid_utf8"
+    },
+    {
+      "id": "MAL-DUPLICATE-JSON-KEY",
+      "category": "malformed",
+      "operation": "raw_marker",
+      "expected_error": "duplicate_json_member",
+      "target": {
+        "document": "fixtures/cases.json"
+      },
+      "value": "duplicate_member"
+    },
+    {
+      "id": "MAL-TRAILING-COMMA",
+      "category": "malformed",
+      "operation": "raw_marker",
+      "expected_error": "malformed_json_source",
+      "target": {
+        "document": "fixtures/cases.json"
+      },
+      "value": "trailing_comma"
+    },
+    {
+      "id": "MAL-NONFINITE-JSON",
+      "category": "malformed",
+      "operation": "raw_marker",
+      "expected_error": "invalid_nonfinite_json",
+      "target": {
+        "document": "fixtures/cases.json"
+      },
+      "value": "nonfinite_json"
+    }
+  ],
+  "positive_controls": [
+    {
+      "id": "OK-BASELINE",
+      "operation": "baseline",
+      "expected": "accepted"
+    },
+    {
+      "id": "OK-EXACT-STALE-BOUNDARY",
+      "operation": "set_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "value": "2025-12-22T00:00:00Z",
+      "expected": "accepted"
+    },
+    {
+      "id": "OK-INSIDE-STALE-BOUNDARY",
+      "operation": "set_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "value": "2025-12-22T00:00:01Z",
+      "expected": "accepted"
+    },
+    {
+      "id": "OK-EXACT-FUTURE-SKEW",
+      "operation": "set_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "value": "2026-02-06T00:00:00Z",
+      "expected": "accepted"
+    },
+    {
+      "id": "OK-EXACT-AS-OF",
+      "operation": "set_field",
+      "target": {
+        "document": "fixtures/cases.json",
+        "collection": "records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "value": "2026-02-05T00:00:00Z",
+      "expected": "accepted"
+    }
+  ],
+  "approval": {
+    "formal_phase_02_authorized": false,
+    "v10_formal_decision": "PENDING_HUMAN_SIGNOFF",
+    "v10_recommendation": "BLOCKED",
+    "v11_dictionary_approved": false,
+    "v12_schema_approved": false,
+    "v18_domain_owner_approved": false,
+    "customer_data_authorized": false,
+    "ot_or_cmms_write_permitted": false,
+    "named_owner": null,
+    "signature": null
+  },
+  "limits": [
+    "No production customer data, no actual sensor freshness policy, no measured latency or uptime.",
+    "No changes to V9 runtime or V10 pinned synthetic source.",
+    "This suite tests source-error detection, not operational data quality approval."
+  ]
+}
