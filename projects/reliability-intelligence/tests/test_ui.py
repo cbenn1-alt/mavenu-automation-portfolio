@@ -59,15 +59,20 @@ class V3InterfaceTests(unittest.TestCase):
         html = body.decode()
         self.assertIn('href="#main-content"', html)
         self.assertIn('id="main-content"', html)
-        self.assertIn('role="status"', html)
+        self.assertIn("<caption>V5 fictional example records", html)
+        self.assertIn('scope="col"', html)
         self.assertIn('<html lang="en">', html)
 
-    def test_workspace_is_empty_not_fake_live_data(self):
-        _, _, body = invoke("/workbench")
+    def test_workspace_shows_only_labeled_synthetic_fixtures(self):
+        status, _, body = invoke("/workbench")
         html = body.decode()
-        self.assertIn("No cases loaded", html)
-        self.assertIn("Representative synthetic case fixtures are planned for V5", html)
-        self.assertIn("No work orders are created or modified", html)
+        self.assertEqual(status, "200 OK")
+        self.assertIn("Illustrative maintenance records", html)
+        self.assertIn("All 12 records", html)
+        self.assertIn("SYN-CASE-001", html)
+        self.assertIn("V5 fictional example records", html)
+        self.assertNotIn("expected_review_label", html)
+        self.assertNotIn("repeat_history_candidate", html)
 
     def test_evaluation_does_not_claim_results(self):
         _, _, body = invoke("/evaluation")
@@ -148,7 +153,8 @@ class V3InterfaceTests(unittest.TestCase):
             code = main(["status", "--json"])
         self.assertEqual(code, 0)
         payload = json.loads(out.getvalue())
-        self.assertEqual(payload["increment"], "V4")
+        self.assertEqual(payload["increment"], "V5")
+        self.assertEqual(payload["api_schema_version"], "1.1.0")
         self.assertEqual(payload["api_version"], "v1")
         self.assertEqual(payload["charter_increment"], "V2")
         self.assertEqual(payload["ui_mode"], "loopback_only")

@@ -1,4 +1,4 @@
-"""Local V4 charter/status CLI, UI shell and versioned API."""
+"""Local V5 synthetic fixtures, UI shell and read-only API."""
 
 import argparse
 import json
@@ -29,7 +29,7 @@ def main(argv=None) -> int:
         payload = charter
     else:
         payload = {
-            "product": charter["product"], "version": __version__, "increment": "V4",
+            "product": charter["product"], "version": __version__, "increment": "V5",
             "charter_increment": charter["increment"], "state": charter["state"],
             "business_approved": False, "production_ready": False,
             "customer_data_authorized": False,
@@ -38,12 +38,14 @@ def main(argv=None) -> int:
             "ui_routes": ["/", "/workbench", "/evaluation", "/governance"],
             "ui_mode": "loopback_only",
             "api_version": "v1",
+            "api_schema_version": "1.1.0",
+            "fixtures_mode": "versioned_local_synthetic_only",
             "api_routes": ["/api/v1/status", "/api/v1/scope", "/api/v1/cases", "/api/v1/contract"],
         }
     if args.json or args.command == "charter":
         print(json.dumps(payload, indent=2, sort_keys=True))
     else:
-        print(f"{charter['product']} / V4 / {charter['state']}")
+        print(f"{charter['product']} / V5 / {charter['state']}")
         print("Local synthetic-only navigation shell; NOT customer-approved.")
         print("No OT writes, customer data, AI model, deployment, or ROI proof.")
     return 0
