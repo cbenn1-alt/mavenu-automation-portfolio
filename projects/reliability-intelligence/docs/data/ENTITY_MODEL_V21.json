@@ -1,0 +1,306 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V21",
+  "architecture_source": "Mavenu AI SaaS Platform Development Architecture V4, Appendix V21-V40",
+  "phase": "V21-V30 Storage data model; internal synthetic design only",
+  "objective": "Design canonical entities and relationships",
+  "required_proof": "Reviewed entity schema",
+  "review_status": "CANDIDATE_TECHNICALLY_CHECKABLE_HUMAN_REVIEW_PENDING",
+  "source_fixture_set_id": "SYN-RI-V5-20261107-A",
+  "v9_frozen_source_commit": "704123eca45628bf504594af39a66036cc0451c5",
+  "ddl_path": "docs/data/SCHEMA_DESIGN_V21.sql",
+  "fixture_source_paths": [
+    "fixtures/cases.json",
+    "fixtures/demo_review_script.json",
+    "fixtures/reference_labels.json"
+  ],
+  "synthetic_namespace": {
+    "tenant_id": "SYN-TENANT-001",
+    "site_id": "SYN-SITE-001",
+    "site_label": "Fictional Research Site",
+    "allow_multiple_tenants_in_schema": true,
+    "tenant_authorization_implemented": false
+  },
+  "design_rules": {
+    "engine": "SQLite in-memory for schema-review test only",
+    "schema_dialect": "SQLite DDL draft; no production migration",
+    "foreign_keys_enforced_in_test": true,
+    "composite_fk_tenant_fencing": true,
+    "source_of_truth": "committed fabricated fixtures only",
+    "storage_persistence_enabled": false,
+    "fixture_data_written_to_disk": false,
+    "customer_data_authorized": false,
+    "real_record_origin_observed": false,
+    "reviewer_signoff_obtained": false,
+    "automatic_v22_or_v23_promotion": false
+  },
+  "entities": [
+    {
+      "name": "tenant",
+      "primary_key": [
+        "tenant_id"
+      ],
+      "foreign_keys": [],
+      "expected_fixture_rows": 1,
+      "semantic": "synthetic isolation namespace"
+    },
+    {
+      "name": "site",
+      "primary_key": [
+        "tenant_id",
+        "site_id"
+      ],
+      "foreign_keys": [
+        {
+          "from": [
+            "tenant_id"
+          ],
+          "table": "tenant",
+          "to": [
+            "tenant_id"
+          ]
+        }
+      ],
+      "expected_fixture_rows": 1,
+      "semantic": "fabricated site grouping"
+    },
+    {
+      "name": "asset",
+      "primary_key": [
+        "tenant_id",
+        "site_id",
+        "asset_id"
+      ],
+      "foreign_keys": [
+        {
+          "from": [
+            "tenant_id",
+            "site_id"
+          ],
+          "table": "site",
+          "to": [
+            "tenant_id",
+            "site_id"
+          ]
+        }
+      ],
+      "expected_fixture_rows": 6,
+      "semantic": "fabricated asset examples"
+    },
+    {
+      "name": "maintenance_case",
+      "primary_key": [
+        "tenant_id",
+        "site_id",
+        "case_id"
+      ],
+      "foreign_keys": [
+        {
+          "from": [
+            "tenant_id",
+            "site_id",
+            "asset_id"
+          ],
+          "table": "asset",
+          "to": [
+            "tenant_id",
+            "site_id",
+            "asset_id"
+          ]
+        }
+      ],
+      "expected_fixture_rows": 12,
+      "semantic": "artificial work-order-style case"
+    },
+    {
+      "name": "evidence_reference",
+      "primary_key": [
+        "tenant_id",
+        "site_id",
+        "case_id",
+        "evidence_ref"
+      ],
+      "foreign_keys": [
+        {
+          "from": [
+            "tenant_id",
+            "site_id",
+            "case_id"
+          ],
+          "table": "maintenance_case",
+          "to": [
+            "tenant_id",
+            "site_id",
+            "case_id"
+          ]
+        }
+      ],
+      "expected_fixture_rows": 11,
+      "semantic": "fictional evidence IDs only"
+    },
+    {
+      "name": "scripted_review",
+      "primary_key": [
+        "tenant_id",
+        "site_id",
+        "case_id",
+        "reviewer_id"
+      ],
+      "foreign_keys": [
+        {
+          "from": [
+            "tenant_id",
+            "site_id",
+            "case_id"
+          ],
+          "table": "maintenance_case",
+          "to": [
+            "tenant_id",
+            "site_id",
+            "case_id"
+          ]
+        }
+      ],
+      "expected_fixture_rows": 4,
+      "semantic": "unexecuted example disposition"
+    },
+    {
+      "name": "reference_label",
+      "primary_key": [
+        "tenant_id",
+        "site_id",
+        "case_id"
+      ],
+      "foreign_keys": [
+        {
+          "from": [
+            "tenant_id",
+            "site_id",
+            "case_id"
+          ],
+          "table": "maintenance_case",
+          "to": [
+            "tenant_id",
+            "site_id",
+            "case_id"
+          ]
+        }
+      ],
+      "expected_fixture_rows": 12,
+      "semantic": "authored unvalidated reference label"
+    },
+    {
+      "name": "source_document",
+      "primary_key": [
+        "tenant_id",
+        "site_id",
+        "source_document_id"
+      ],
+      "foreign_keys": [
+        {
+          "from": [
+            "tenant_id",
+            "site_id"
+          ],
+          "table": "site",
+          "to": [
+            "tenant_id",
+            "site_id"
+          ]
+        }
+      ],
+      "expected_fixture_rows": 3,
+      "semantic": "checksum of committed synthetic fixture file"
+    },
+    {
+      "name": "record_origin",
+      "primary_key": [
+        "tenant_id",
+        "site_id",
+        "trace_id"
+      ],
+      "foreign_keys": [
+        {
+          "from": [
+            "tenant_id",
+            "site_id",
+            "source_document_id"
+          ],
+          "table": "source_document",
+          "to": [
+            "tenant_id",
+            "site_id",
+            "source_document_id"
+          ]
+        }
+      ],
+      "expected_fixture_rows": 34,
+      "semantic": "reconstructed origin, no real ingest timestamp"
+    },
+    {
+      "name": "transform_step",
+      "primary_key": [
+        "tenant_id",
+        "site_id",
+        "trace_id",
+        "step_ordinal"
+      ],
+      "foreign_keys": [
+        {
+          "from": [
+            "tenant_id",
+            "site_id",
+            "trace_id"
+          ],
+          "table": "record_origin",
+          "to": [
+            "tenant_id",
+            "site_id",
+            "trace_id"
+          ]
+        }
+      ],
+      "expected_fixture_rows": 36,
+      "semantic": "V15 conversion hash trace"
+    }
+  ],
+  "expected_relationship_count": 9,
+  "expected_entity_count": 10,
+  "expected_total_synthetic_rows": 120,
+  "source_mapping": {
+    "assets": "fixtures/cases.json#/assets",
+    "maintenance_cases": "fixtures/cases.json#/records",
+    "evidence_reference": "fixtures/cases.json#/records/*/evidence_refs",
+    "scripted_reviews": "fixtures/demo_review_script.json#/entries",
+    "reference_labels": "fixtures/reference_labels.json#/records",
+    "source_documents": "Three exact committed fixture source file checksums",
+    "record_origins": "34 reconstructed V16 fixture-row hashes and pointers",
+    "transform_steps": "36 V15 field normalizations from the V16 trace",
+    "synthetic_tenant_site": "Invented isolated test namespace, not verified company/customer tenant"
+  },
+  "unresolved_design_decisions": [
+    "Approval of formal V20 Data Correctness sign-off and older V10 phase gate",
+    "Customer data rights, site and tenant boundaries, authorization/RLS enforcement, retention and deletion",
+    "Canonical identity and reference-data rules (V22), not guaranteed by synthetic IDs",
+    "Schema migration/up/down path (V23), not implemented by this DDL candidate",
+    "Durable transactions, concurrency and backups (V24 onward), not implemented",
+    "Production database choice, encryption, security classification, row access controls and audit retention",
+    "Typed cross-entity source-record origin references; current generic origin refers to dataset/key without dynamic FK"
+  ],
+  "approval": {
+    "v10_formal_phase_promotion": false,
+    "v20_data_quality_signoff": false,
+    "v21_schema_human_review": false,
+    "customer_data_authorized": false,
+    "production_database_approved": false,
+    "tenant_access_control_approved": false,
+    "v22_authorized": false,
+    "ot_or_cmms_write_permitted": false,
+    "named_product_owner": null,
+    "named_data_architect": null,
+    "named_domain_steward": null,
+    "named_security_reviewer": null,
+    "approval_signature": null,
+    "approval_date_utc": null
+  }
+}
