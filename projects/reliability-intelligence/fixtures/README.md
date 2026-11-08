@@ -39,3 +39,14 @@ The validator enforces fixed file paths, Git blob object hashes (SHA-1 over the 
 Git blob IDs protect against inadvertent fixture changes within this checked-in set; **they are not signatures or cryptographically strong provenance attestations**. Content changes require review and an updated release record, not silent checksum changes.
 
 No real maintenance failures, actual machine risk estimates, staff actions, economic outcomes, production permissions or independent SME validation are claimed.
+
+
+## V6 synthetic reviewer-role script
+
+A third pinned file, demo_review_script.json, contains four hand-authored fictional reviewer actions. Its Git blob SHA-1 is recorded in manifest.json and validated before any V6 replay. All reviewer IDs start SYN-REVIEWER. The script explicitly states human_execution=false and scripted_only=true.
+
+The actions rehearse four example dispositions: acknowledge, investigate_history, request_evidence and defer. They do not represent human signatures, approved work orders or independent domain review. Eight other synthetic cases have no disposition. The test suite rejects unexpected fields, non-synthetic identities, unauthorized actions and decisions inconsistent with demonstration flags.
+
+The V5 reference_labels.json file remains separate and is NOT used by V6 rule calculation or exposed in API/UI. It is author-created illustration, not true ground truth or blinded evaluation.
+
+V6 reproduction: PYTHONPATH=src python -m reliability_intelligence demo --json. The trace and checksum are produced in-memory only; no disk or external writes.

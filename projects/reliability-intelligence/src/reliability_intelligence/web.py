@@ -1,4 +1,4 @@
-"""V5 local-only read-only UI and versioned API transport."""
+"""V6 local-only read-only UI and versioned API transport."""
 
 from __future__ import annotations
 
@@ -9,10 +9,12 @@ from wsgiref.simple_server import make_server
 from .charter import InvalidCharter, load_charter
 from . import api_v1
 from .fixtures import InvalidFixture, load_fixture_set
+from .workflow import run_demo
 
 ROUTES = (
     ("/", "Overview"),
     ("/workbench", "Case workspace"),
+    ("/workflow", "Workflow replay"),
     ("/evaluation", "Evaluation"),
     ("/governance", "Boundaries"),
 )
@@ -50,7 +52,7 @@ def _page_content(path: str, charter: dict) -> str:
     goal = escape(str(charter["primary_metric"]["proposed_relative_improvement_pct"]))
     if path == "/":
         return f"""<section class="hero">
-          <p class="eyebrow">V5 / Prototype foundation</p>
+          <p class="eyebrow">V6 / Prototype foundation</p>
           <h1>Maintenance intelligence that keeps people in control.</h1>
           <p class="lead">A proposed, source-traceable review workspace for industrial maintenance teams. This shell contains no customer records, predictions, or production connections.</p>
           <a class="text-link" href="/workbench">Open empty case workspace</a>
@@ -82,6 +84,38 @@ def _page_content(path: str, charter: dict) -> str:
             <thead><tr><th scope="col">Case ID</th><th scope="col">Asset</th><th scope="col">Example failure code</th><th scope="col">Example time (UTC)</th><th scope="col">Source</th></tr></thead>
             <tbody>{rows}</tbody></table></div></div>
           <p class="note">No automated classification or approval workflow exists. Seeded reference labels are excluded from this page and API. V6 will develop the end-to-end synthetic review workflow.</p>
+        </section>"""
+    if path == "/workflow":
+        report = run_demo(charter)
+        reviewed = [row for row in report["cases"] if row["simulated_disposition"] is not None]
+        rows = "\n".join(
+            f'<tr><td>{escape(row["case_id"])}</td>'
+            f'<td>{escape(", ".join(row["synthetic_flags"]) or "No flagged rule")}</td>'
+            f'<td>{escape(row["simulated_disposition"]["value"].replace("_", " "))}</td>'
+            f'<td>Fictional reviewer role only</td></tr>'
+            for row in reviewed
+        )
+        trace_id = escape(report["trace_sha256"])
+        return f"""<section class="section">
+          <p class="eyebrow">02 / Deterministic rehearsal — not operational software</p>
+          <h1>End-to-end synthetic workflow</h1>
+          <p class="lead">A reproducible, entirely fictional path from twelve fabricated case records to transparent rule flags, four <strong>scripted</strong> reviewer-role dispositions and an in-memory export trace. No real human reviewed these cases.</p>
+          <div class="cards">
+            <article class="panel"><p class="eyebrow">Fixture intake</p><h3>{report["case_count"]} synthetic cases</h3><p>Records are fixed, validated and not customer data.</p></article>
+            <article class="panel"><p class="eyebrow">Scripted dispositions</p><h3>{report["scripted_disposition_count"]} illustrative decisions</h3><p>Not a real approval or maintenance instruction.</p></article>
+            <article class="panel"><p class="eyebrow">Remaining cases</p><h3>{report["not_dispositioned_count"]} not dispositioned</h3><p>No simulated reviewer decision supplied.</p></article>
+          </div>
+          <h2>Review stages</h2>
+          <ol class="steps"><li>Ingest pinned synthetic fixture records.</li><li>Check fictional evidence-reference presence.</li><li>Flag missing references or repeat events in the preceding 30 days.</li><li>Apply fictional, explicitly scripted reviewer-role dispositions.</li><li>Produce reproducible in-memory trace without files or work orders.</li></ol>
+          <div class="panel"><div class="table-scroll"><table class="data-table">
+            <caption>Scripted demonstration dispositions only</caption>
+            <thead><tr><th scope="col">Case</th><th scope="col">Synthetic rule flags</th><th scope="col">Scripted disposition</th><th scope="col">Authority</th></tr></thead>
+            <tbody>{rows}</tbody></table></div></div>
+          <h2>Reproducibility evidence</h2>
+          <p>{report["event_count"]} in-memory trace events; SHA-256 checksum (not a signature):</p>
+          <p class="digest">{trace_id}</p>
+          <p><a class="text-link-secondary" href="/api/v1/demo">Inspect JSON demo trace</a></p>
+          <p class="note">Synthetic, scripted rehearsal only. No authenticated operator, customer access, permanent audit log, CMMS/ERP writes, PLC/SCADA actions, machine-risk prediction or measured savings.</p>
         </section>"""
     if path == "/evaluation":
         return f"""<section class="section">
@@ -128,7 +162,7 @@ def render_page(path: str, charter: dict) -> bytes:
   <div class="app-layout">
     <nav class="sidebar" aria-label="Primary navigation"><p class="nav-label">Workspace</p>{_navigation(path)}</nav>
     <main id="main-content" tabindex="-1">{main}
-      <footer><p>V5 synthetic fixture preview. No live integrations, operational recommendations, measured savings, or Minn-Dak endorsement.</p></footer>
+      <footer><p>V6 synthetic replay. No live integrations, real reviewer authorization, operational recommendations, measured savings, or Minn-Dak endorsement.</p></footer>
     </main>
   </div>
 </body>

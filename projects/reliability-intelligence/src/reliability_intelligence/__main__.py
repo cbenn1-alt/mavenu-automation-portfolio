@@ -1,4 +1,4 @@
-"""Local V5 synthetic fixtures, UI shell and read-only API."""
+"""Local V6 synthetic workflow replay, UI shell and read-only API."""
 
 import argparse
 import json
@@ -6,11 +6,13 @@ import json
 from . import __version__
 from .charter import InvalidCharter, load_charter
 from .web import serve_local
+from .workflow import run_demo
+from .fixtures import InvalidFixture
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="mavenu-reliability")
-    parser.add_argument("command", nargs="?", choices=("status", "charter", "validate", "serve"), default="status")
+    parser.add_argument("command", nargs="?", choices=("status", "charter", "validate", "serve", "demo"), default="status")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--port", type=int, default=8765, help="loopback UI port (1024-65535)")
     args = parser.parse_args(argv)
@@ -23,29 +25,42 @@ def main(argv=None) -> int:
             parser.error("--port must be 1024-65535")
         serve_local(args.port)
         return 0
+    if args.command == "demo":
+        try:
+            report = run_demo(charter)
+        except InvalidFixture:
+            parser.exit(2, "Synthetic demo inputs invalid; replay stopped.\n")
+        if args.json:
+            print(json.dumps(report, sort_keys=True, indent=2))
+        else:
+            print(f"V6 synthetic replay: {report['case_count']} fabricated cases; {report['scripted_disposition_count']} scripted dispositions")
+            print(f"Trace SHA256: {report['trace_sha256']}")
+            print("In-memory only; no real human approval or external work orders.")
+        return 0
     if args.command == "validate":
         payload = {"valid_contract": True, "business_approved": False, "external_connections": False}
     elif args.command == "charter":
         payload = charter
     else:
         payload = {
-            "product": charter["product"], "version": __version__, "increment": "V5",
+            "product": charter["product"], "version": __version__, "increment": "V6",
             "charter_increment": charter["increment"], "state": charter["state"],
             "business_approved": False, "production_ready": False,
             "customer_data_authorized": False,
             "external_integrations_enabled": False, "ot_writes_enabled": False,
             "measured_effectiveness": False,
-            "ui_routes": ["/", "/workbench", "/evaluation", "/governance"],
+            "ui_routes": ["/", "/workbench", "/workflow", "/evaluation", "/governance"],
             "ui_mode": "loopback_only",
             "api_version": "v1",
-            "api_schema_version": "1.1.0",
+            "api_schema_version": "1.2.0",
             "fixtures_mode": "versioned_local_synthetic_only",
-            "api_routes": ["/api/v1/status", "/api/v1/scope", "/api/v1/cases", "/api/v1/contract"],
+            "workflow_mode": "scripted_synthetic_replay_only",
+            "api_routes": ["/api/v1/status", "/api/v1/scope", "/api/v1/cases", "/api/v1/demo", "/api/v1/contract"],
         }
     if args.json or args.command == "charter":
         print(json.dumps(payload, indent=2, sort_keys=True))
     else:
-        print(f"{charter['product']} / V5 / {charter['state']}")
+        print(f"{charter['product']} / V6 / {charter['state']}")
         print("Local synthetic-only navigation shell; NOT customer-approved.")
         print("No OT writes, customer data, AI model, deployment, or ROI proof.")
     return 0

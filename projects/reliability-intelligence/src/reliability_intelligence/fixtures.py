@@ -1,4 +1,4 @@
-"""V5 read-only, version-pinned synthetic fixture repository.
+"""V6 read-only, version-pinned synthetic fixtures and scripted reviewer-role inputs.
 
 All paths are hard-coded under the checked-in repository fixtures directory.
 Manifest SHA-1 values are *Git blob object IDs* (including Git's blob header),
@@ -83,12 +83,14 @@ def _manifest() -> dict[str, Any]:
         "reference_labels_file": "reference_labels.json",
         "assets_count": 6,
         "cases_count": 12,
+        "demo_review_script_file": "demo_review_script.json",
         "source_systems": [],
     }
     for key, expected in required.items():
         if key not in manifest or type(manifest[key]) is not type(expected) or manifest[key] != expected:
             raise InvalidFixture("Invalid manifest field: " + key)
-    for name in ("case_git_blob_sha1", "reference_labels_git_blob_sha1"):
+    for name in ("case_git_blob_sha1", "reference_labels_git_blob_sha1",
+                 "demo_review_script_git_blob_sha1"):
         value = manifest.get(name)
         if not isinstance(value, str) or not re.fullmatch("[0-9a-f]{40}", value):
             raise InvalidFixture("Missing version-pinned file digest")
@@ -213,3 +215,58 @@ def load_reference_labels() -> dict[str, Any]:
     labels = _load_json_file(FIXTURE_DIR / "reference_labels.json",
                              manifest["reference_labels_git_blob_sha1"])
     return validate_reference_labels(labels, dataset)
+
+
+SCRIPT_DISPOSITIONS = frozenset(("acknowledge", "investigate_history", "request_evidence", "defer"))
+SCRIPT_REASONS = {
+    "acknowledge": "routine_synthetic_review",
+    "investigate_history": "repeat_history_flag",
+    "request_evidence": "missing_evidence_reference",
+    "defer": "further_demo_review",
+}
+REVIEWER_ID = re.compile(r"SYN-REVIEWER-[0-9]{3}\Z")
+
+
+def validate_demo_review_script(script: dict[str, Any], dataset: dict[str, Any]) -> dict[str, Any]:
+    """Validate four fictional dispositions; no actual human review is implied."""
+    if not isinstance(script, dict) or set(script) != {
+        "fixture_set_id", "scripted_only", "human_execution", "purpose", "entries"
+    }:
+        raise InvalidFixture("Unexpected synthetic review-script fields")
+    if (script["fixture_set_id"] != FIXTURE_SET_ID
+        or script["scripted_only"] is not True
+        or script["human_execution"] is not False
+        or not isinstance(script["purpose"], str)
+        or "not an actual approval" not in script["purpose"]):
+        raise InvalidFixture("Scripted human-role provenance invalid")
+    rows = script["entries"]
+    if not isinstance(rows, list) or len(rows) != 4:
+        raise InvalidFixture("Expected four controlled synthetic dispositions")
+    allowed_cases = {row["case_id"] for row in dataset["records"]}
+    seen: set[str] = set()
+    for row in rows:
+        if not isinstance(row, dict) or set(row) != {
+            "case_id", "reviewer_id", "disposition", "reason_code"
+        }:
+            raise InvalidFixture("Unexpected reviewer-script fields")
+        cid = row["case_id"]
+        decision = row["disposition"]
+        if not _ident(cid, CASE_ID) or cid not in allowed_cases or cid in seen:
+            raise InvalidFixture("Unknown or duplicate scripted case")
+        if not _ident(row["reviewer_id"], REVIEWER_ID):
+            raise InvalidFixture("Reviewer identity must be fictional")
+        if decision not in SCRIPT_DISPOSITIONS or row["reason_code"] != SCRIPT_REASONS[decision]:
+            raise InvalidFixture("Scripted disposition or reason not allowed")
+        seen.add(cid)
+    return script
+
+
+def load_demo_review_script() -> dict[str, Any]:
+    """Load pinned, wholly invented reviewer-role inputs; never persist changes."""
+    manifest = _manifest()
+    dataset = load_fixture_set()
+    script = _load_json_file(
+        FIXTURE_DIR / "demo_review_script.json",
+        manifest["demo_review_script_git_blob_sha1"],
+    )
+    return validate_demo_review_script(script, dataset)

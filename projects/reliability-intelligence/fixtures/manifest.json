@@ -18,5 +18,8 @@
   "assets_count": 6,
   "cases_count": 12,
   "reference_label_usage": "For internal synthetic-test assertions only; never expose seeded labels via demonstration API.",
-  "limitations": "Not a random sample, predictive model, operational risk assessment, downtime baseline, or proof of customer savings."
+  "limitations": "Not a random sample, predictive model, operational risk assessment, downtime baseline, or proof of customer savings.",
+  "demo_review_script_file": "demo_review_script.json",
+  "demo_review_script_git_blob_sha1": "0b2ffdfc53494c3363f1c021daa3c2278f70292f",
+  "demo_review_script_origin": "Hand-authored fictional reviewer-role dispositions; no real human execution or authorization"
 }
