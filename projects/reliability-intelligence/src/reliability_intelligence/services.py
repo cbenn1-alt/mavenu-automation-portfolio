@@ -1,4 +1,4 @@
-"""V6 read-only services with a deterministic synthetic workflow replay.
+"""V7 read-only services with synthetic replay and safe diagnostic status.
 
 No customer connectors, operational data, inference, network calls, mutations,
 or operational decisions. Fixed repository fixtures are validated on read.
@@ -11,7 +11,7 @@ from typing import Any
 from .fixtures import load_fixture_set, load_demo_review_script
 from .workflow import run_demo
 
-SERVICE_VERSION = "0.6.0"
+SERVICE_VERSION = "0.7.0"
 
 
 def status(charter: dict[str, Any]) -> dict[str, Any]:
@@ -20,7 +20,7 @@ def status(charter: dict[str, Any]) -> dict[str, Any]:
     load_demo_review_script()  # Fail closed if scripted inputs are invalid.
     return {
         "product": charter["product"],
-        "increment": "V6",
+        "increment": "V7",
         "business_approval": "pending",
         "validated_customer_problem": False,
         "mode": "synthetic_only",
@@ -28,6 +28,7 @@ def status(charter: dict[str, Any]) -> dict[str, Any]:
         "operational_data_loaded": False,
         "synthetic_fixtures_available": True,
         "synthetic_workflow_replay_available": True,
+        "structured_failure_diagnostics_available": True,
         "model_present": False,
         "external_integrations_enabled": False,
         "ot_or_cmms_writes_enabled": False,

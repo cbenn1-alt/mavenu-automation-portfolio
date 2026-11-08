@@ -182,7 +182,7 @@ class V6WorkflowTests(unittest.TestCase):
         self.assertEqual(result["status"], "200 OK")
         self.assertEqual(result["headers"]["Content-Type"], api_v1.API_MEDIA_TYPE)
         payload = json.loads(result["body"])
-        self.assertEqual(payload["schema_version"], "1.2.0")
+        self.assertEqual(payload["schema_version"], "1.3.0")
         self.assertEqual(payload["resource"], "demo")
         self.assertEqual(payload["data"]["trace_sha256"], self.report["trace_sha256"])
         self.assertNotIn(b"expected_review_label", result["body"])
@@ -229,8 +229,8 @@ class V6WorkflowTests(unittest.TestCase):
         with contextlib.redirect_stdout(output):
             self.assertEqual(main(["status", "--json"]), 0)
         data = json.loads(output.getvalue())
-        self.assertEqual(data["increment"], "V6")
-        self.assertEqual(data["api_schema_version"], "1.2.0")
+        self.assertEqual(data["increment"], "V7")
+        self.assertEqual(data["api_schema_version"], "1.3.0")
         self.assertFalse(data["production_ready"])
         self.assertFalse(data["ot_writes_enabled"])
 

@@ -20,3 +20,8 @@ Simulated dispositions are acknowledge, investigate_history, request_evidence an
 Output contains 12 case results, ordered synthetic events, four scripted dispositions, eight unresolved items, rule counts, provenance and SHA-256 of canonical event JSON. This is reproducible but not signed or retained. Real human approvals and audit histories are later independently gated work; the V6 dry-run is not equivalent.
 
 V2 business problem validation, V3–V5 release sign-offs, and future G1/G2 decisions remain outstanding.
+
+
+## V7 failure-handling separation
+
+V7 adds error-category diagnostics around the V6 local API/UI transport without modifying the canonical events or trace checksum of successful synthetic replays. Structured JSON-line failures are transient; they do not create or amend an audit ledger. Simulated negative-path test cases are not actual maintenance incidents, operator decisions or production alerts. See docs/DIAGNOSTICS_V7.md.

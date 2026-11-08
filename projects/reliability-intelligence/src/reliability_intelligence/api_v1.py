@@ -1,4 +1,4 @@
-"""V6 HTTP-independent v1 API contract and response composition.
+"""V7 HTTP-independent v1 API contract and response composition.
 
 The transport is owned by web.py; services.py is pure business-facing metadata.
 Any non-v1 path must be rejected rather than silently accepting it.
@@ -12,7 +12,7 @@ from typing import Any
 from . import services
 
 API_VERSION = "v1"
-API_SCHEMA_VERSION = "1.2.0"
+API_SCHEMA_VERSION = "1.3.0"
 API_MEDIA_TYPE = "application/json; charset=utf-8"
 
 ROUTE_DESCRIPTIONS = {
@@ -27,7 +27,8 @@ REQUIRED_FIELDS = {
     "status": (
         "product", "increment", "business_approval", "validated_customer_problem",
         "mode", "production_ready", "operational_data_loaded",
-        "synthetic_fixtures_available", "synthetic_workflow_replay_available", "model_present",
+        "synthetic_fixtures_available", "synthetic_workflow_replay_available",
+        "structured_failure_diagnostics_available", "model_present",
         "external_integrations_enabled", "ot_or_cmms_writes_enabled",
         "measured_effectiveness",
     ),
@@ -59,7 +60,7 @@ RESOURCES = {
 
 
 def contract() -> dict[str, Any]:
-    """Describe implemented endpoints and V6 synthetic-only replay."""
+    """Describe implemented endpoints and V7 safe diagnostic capabilities."""
     return {
         "api_version": API_VERSION,
         "schema_version": API_SCHEMA_VERSION,
@@ -85,6 +86,8 @@ def contract() -> dict[str, Any]:
             "write_endpoints": False,
             "case_fixtures_loaded": True,
             "synthetic_replay_available": True,
+            "structured_failure_diagnostics_available": True,
+            "diagnostic_logs_persistent": False,
             "real_human_review_supported": False,
             "public_network_hosting": False,
         },
