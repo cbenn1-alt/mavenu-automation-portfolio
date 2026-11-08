@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V17 (exploratory golden/reference calculations)
+# Mavenu Reliability Intelligence — V18 (synthetic adverse-input regression)
 
-**State:** V17 adds precomputed expected-output fixtures and an exact Decimal comparison against validated fabricated maintenance records. No real customer data, independent domain ground truth or production runtime changes. V10 formal promotion remains BLOCKED/PENDING human decision, and V11/V12 source approvals remain unsigned.
+**State:** V18 adds missing, stale, and malformed synthetic input rejection tests with a fixed illustrative clock. V10 Phase 02 formal promotion remains BLOCKED/PENDING human sign-off and V11/V12 source approvals unsigned. No actual customer input, deployed ingestion or industrial system action.
 
-**Standard (Architecture V4, page 42):** V17 = Define golden/reference calculations. Proof = Expected-output fixtures. V9 application runtime remains frozen at 0.9.0, API v1/schema 1.3.0.
+**Standard (Architecture V4, page 42):** V18 = Test missing, stale and malformed inputs. Proof = Adverse-case regression suite. V9 application runtime remains frozen at 0.9.0, API v1/schema 1.3.0.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -21,6 +21,7 @@ PYTHONPATH=src python scripts/verify_v14.py
 PYTHONPATH=src python scripts/verify_v15.py
 PYTHONPATH=src python scripts/verify_v16.py
 PYTHONPATH=src python scripts/verify_v17.py
+PYTHONPATH=src python scripts/verify_v18.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -159,3 +160,10 @@ V16 adds 115 tests to the inherited 429, yielding **544 expected** tests (verify
 - docs/GOLDEN_REFERENCES_V17.md, docs/DEMO_V17.md, docs/releases/V17.md: controls, human review and release packet.
 
 Synthetic summary expectations: 12 cases, 6 example assets, 45.5 invented downtime hours, USD 12,735.00 illustrative cost, median case duration 3 hours, one record without an example evidence-reference ID, and six later occurrences of previously seen fictitious asset IDs. These are authored test assertions, NOT measured plant activity, savings, customer business value, failure forecasts or independently verified labels. V10 phase advancement remains formally unapproved.
+
+
+## V18 adverse input fixtures and regression
+
+The synthetic fixture at fixtures/adverse_inputs_v18.json defines **44 deliberate invalid inputs** (16 missing, 7 stale/future, 21 malformed) and **5 valid boundary controls**. scripts/adverse_v18.py checks exact field inventory, strict JSON/UTF-8, an explicit fixed synthetic reference clock (2026-02-05T00:00:00Z, 45-day age / 24-hour future skew), and prevents source mutation. scripts/verify_v18.py generates evidence/V18/adverse_regression_report.json.
+
+The new tests/test_adverse_v18.py supplies **74 tests**, expected complete **677** including 603 historical, subject to hosted CI. See docs/ADVERSE_INPUTS_V18.md, docs/DEMO_V18.md and docs/releases/V18.md. All clock/age constraints are authored test values, NOT an approved Minn-Dak/plant data SLA. The product's V9 runtime is unchanged, and formal Phase 02 promotion remains blocked pending human owner approval.
