@@ -1,4 +1,4 @@
-name: Reliability Intelligence V2 Contract Checks
+name: Reliability Intelligence Prototype Checks
 
 on:
   push:
@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 jobs:
-  contract-tests:
+  prototype-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -22,11 +22,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Run synthetic-only V2 charter contract tests
+      - name: Validate charter and run V2/V3 smoke regression
         working-directory: projects/reliability-intelligence
         env:
           PYTHONPATH: src
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           python -m reliability_intelligence validate --json
+          python -m reliability_intelligence status --json
           python -m unittest discover -s tests -v
