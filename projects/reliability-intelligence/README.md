@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V11 (exploratory synthetic data correctness)
+# Mavenu Reliability Intelligence — V12 (exploratory synthetic schema validation)
 
-**State:** V11 introduces a drafted, machine-checked 21-field dictionary for fabricated data. **Formal Phase 02 promotion is still BLOCKED/PENDING human decision** at V10; the required V11 approved source/field dictionary does not yet have actual owner signatures. No customer/plant authorization or production capability is implied.
+**State:** V12 validates required fields and allowed values on V11's **unsigned** synthetic source dictionary. Formal V10 promotion remains BLOCKED/PENDING human decision; there is no customer-approved source contract or production authorization.
 
-**Standard (Architecture V4, page 42):** V11 = Declare data types, meaning, and ownership. Proof = Approved source/field dictionary. V11 implements a candidate technical dictionary only; sign-off remains outstanding. The frozen V9 runtime remains 0.9.0 with API contract v1/schema 1.3.0.
+**Standard (Architecture V4, page 42):** V12 = Validate required fields and allowed values. Proof = Schema validation test report. The pinned V9 runtime remains 0.9.0 and API v1/schema 1.3.0.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -15,6 +15,7 @@ PYTHONPATH=src python scripts/verify_v8.py
 PYTHONPATH=src python scripts/replay_v9.py
 PYTHONPATH=src python scripts/verify_v10.py
 PYTHONPATH=src python scripts/verify_v11.py
+PYTHONPATH=src python scripts/verify_v12.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -95,6 +96,13 @@ No customer/Minn-Dak data, real maintenance orders, OT/PLC/SCADA controls, model
 
 No client data, genuine system of record, employee ID, authenticated reviewer, equipment diagnosis, financial benefit or industrial control connection exists in this prototype. Data roles are proposed but not assigned. The V10 blocked promotion decision is carried forward unchanged; exploratory V11 work is not a formally accepted Phase 02 release.
 
-Expected test count: **210** (176 from V10 plus 34 V11); verify exact GitHub Actions output and existing 84.5% combined coverage floor. The CI workflow uploads V8–V11 evidence for 30 days.
+V11 has **210** inherited tests. V12 adds **34** regression tests (expected full suite **244**), with the same 84.5% coverage floor. GitHub Actions uploads V8–V12 evidence for 30 days. Verify actual hosted output before claiming success.
 
-**V12 next:** Identify source priorities, quality concerns and authoritative ownership with a human-reviewed source inventory; until authorized, use hypothetical/synthetic-only references and do not infer customer system access.
+**V13 next:** Reject impossible, null and out-of-range values using dedicated negative-case fixtures. No customer or plant data is authorized.
+
+
+## V12 strict source schema and test report
+
+The JSON contract at docs/data/SCHEMA_CONTRACT_V12.json mirrors V11's four fabricated datasets and 21 fields, requiring exact field presence, types, enumerations, SYN-only identifier shapes and evidence-reference formats. scripts/verify_v12.py checks every row and produces 16 non-destructive negative-case failures in evidence/V12/schema_validation_report.json. The 34 new tests are in tests/test_schema_v12.py. Reviewer instructions and security scope are in docs/data/SCHEMA_CONTRACT_V12.md, docs/DEMO_V12.md and docs/releases/V12.md.
+
+The required artifact is a **schema validation test report**. It does not approve the V11 source dictionary, supersede the blocked V10 decision, or authorize real customer records, integrations, industrial control writes, predictive claims or measured ROI.
