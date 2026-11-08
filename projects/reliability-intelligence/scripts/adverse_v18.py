@@ -200,7 +200,7 @@ def validate_corpus(corpus: dict[str, Any]) -> dict[str, int]:
                 "category_id_mismatch")
         categories[category] += 1
         require(type(item.get("expected_error")) is str and
-                re.fullmatch(r"[a-z_]+", item["expected_error"]),
+                re.fullmatch(r"[a-z0-9_]+", item["expected_error"]),
                 "expected_error_invalid")
         require(item["expected_error"] == EXPECTED_CASE_CODES[item["id"]],
                 "adverse_case_expected_error_drift")
