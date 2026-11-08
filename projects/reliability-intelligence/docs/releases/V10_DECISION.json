@@ -1,0 +1,56 @@
+{
+  "increment": "V10",
+  "decision_record_id": "RI-V10-PROTOTYPE-FOUNDATION-2026-11-08",
+  "standard": "Mavenu AI SaaS Platform Development Architecture V4, p.42",
+  "objective": "Freeze prototype baseline and open risk list",
+  "required_proof": "Prototype decision record",
+  "baseline_ref": "docs/releases/V10_BASELINE.json",
+  "risk_register_ref": "docs/RISK_REGISTER_V10.json",
+  "status": "DRAFT_UNAPPROVED",
+  "technical_baseline": "FROZEN_V9_SNAPSHOT",
+  "recommended_promotion_decision": "BLOCKED",
+  "recommended_scope": "Formal completion of V10 and promotion into V11–V20 as an approved phase",
+  "reason": "V2 requirements approval, V3–V8 release approvals and independent V9 human reviewer sign-off are missing; reviewer and owner cannot be invented.",
+  "formal_decision": "PENDING_HUMAN_SIGNOFF",
+  "named_decision_owner": null,
+  "owner_signature": null,
+  "decision_date": null,
+  "product_owner_approval": false,
+  "independent_reviewer_approval": false,
+  "formal_phase_promotion_authorized": false,
+  "next_phase_internal_synthetic_experiments_allowed": true,
+  "next_phase_internal_work_constraints": "Exploratory source dictionaries, schema tests and fixtures using fabricated data may be developed without describing Phase 02 as formally approved or using customer systems.",
+  "blocking_risk_ids": [
+    "RI-V10-R01",
+    "RI-V10-R02",
+    "RI-V10-R03",
+    "RI-V10-R04",
+    "RI-V10-R09"
+  ],
+  "known_technical_evidence": {
+    "baseline_commit": "704123eca45628bf504594af39a66036cc0451c5",
+    "v9_ci_run_id": 42491392469,
+    "v9_ci_result": "success",
+    "v9_automated_tests": 153,
+    "v9_combined_coverage_percent": 84.951,
+    "v9_replay_checks": 12,
+    "human_reviewer_completed": false
+  },
+  "alternatives": [
+    "Approve a bounded V11-only internal synthetic data-correctness exploration without promotion",
+    "Obtain V2 owner signature and V9 independent reviewer replay before formal V10 acceptance",
+    "Use incumbent configuration or no-build if customer discovery invalidates proposed workflow"
+  ],
+  "conditions_for_reconsideration": [
+    "Assigned accountable product owner and signed narrow problem statement",
+    "Independent V9 human replay with recorded exceptions and reproducible artifacts",
+    "Disposition of outstanding V3-V8 human acceptance packets",
+    "Named risk owners, remediation dates and reviewed technical coverage gaps",
+    "Documented V1 separate Git history or approved evidence-based continuity exception",
+    "Recorded signed V10 decision with scope, date, residual risks and next gate"
+  ],
+  "commercial_approval": false,
+  "customer_data_or_ot_access": false,
+  "deployment_authorization": false,
+  "economic_benefit_verified": false
+}
