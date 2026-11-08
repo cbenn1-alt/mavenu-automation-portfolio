@@ -153,7 +153,7 @@ class V3InterfaceTests(unittest.TestCase):
             code = main(["status", "--json"])
         self.assertEqual(code, 0)
         payload = json.loads(out.getvalue())
-        self.assertEqual(payload["increment"], "V7")
+        self.assertEqual(payload["increment"], "V8")
         self.assertEqual(payload["api_schema_version"], "1.3.0")
         self.assertEqual(payload["api_version"], "v1")
         self.assertEqual(payload["charter_increment"], "V2")

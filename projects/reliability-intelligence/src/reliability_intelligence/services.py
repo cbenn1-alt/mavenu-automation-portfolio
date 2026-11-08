@@ -1,4 +1,4 @@
-"""V7 read-only services with synthetic replay and safe diagnostic status.
+"""V8 regression-verified read-only services and synthetic replay.
 
 No customer connectors, operational data, inference, network calls, mutations,
 or operational decisions. Fixed repository fixtures are validated on read.
@@ -20,7 +20,7 @@ def status(charter: dict[str, Any]) -> dict[str, Any]:
     load_demo_review_script()  # Fail closed if scripted inputs are invalid.
     return {
         "product": charter["product"],
-        "increment": "V7",
+        "increment": "V8",
         "business_approval": "pending",
         "validated_customer_problem": False,
         "mode": "synthetic_only",

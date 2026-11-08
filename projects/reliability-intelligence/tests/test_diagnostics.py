@@ -224,7 +224,7 @@ class V7DiagnosticTests(unittest.TestCase):
         with contextlib.redirect_stdout(stdout):
             self.assertEqual(main(["status", "--json"]), 0)
         status = json.loads(stdout.getvalue())
-        self.assertEqual(status["increment"], "V7")
+        self.assertEqual(status["increment"], "V8")
         self.assertEqual(status["api_schema_version"], "1.3.0")
         self.assertEqual(status["diagnostic_schema_version"], "1.0.0")
         self.assertFalse(status["diagnostic_logs_persistent"])
@@ -232,7 +232,7 @@ class V7DiagnosticTests(unittest.TestCase):
 
     def test_service_status_is_not_equipment_health(self):
         s = services.status(load_charter())
-        self.assertEqual(s["increment"], "V7")
+        self.assertEqual(s["increment"], "V8")
         self.assertTrue(s["structured_failure_diagnostics_available"])
         self.assertFalse(s["operational_data_loaded"])
         self.assertFalse(s["ot_or_cmms_writes_enabled"])

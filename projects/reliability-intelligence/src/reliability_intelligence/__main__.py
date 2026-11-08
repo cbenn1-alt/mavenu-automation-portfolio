@@ -1,4 +1,4 @@
-"""Local V7 structured diagnostics and read-only synthetic workflow."""
+"""Local V8 regression-verified synthetic prototype with safe diagnostics."""
 
 import argparse
 import json
@@ -54,7 +54,7 @@ def main(argv=None) -> int:
         payload = charter
     else:
         payload = {
-            "product": charter["product"], "version": __version__, "increment": "V7",
+            "product": charter["product"], "version": __version__, "increment": "V8",
             "charter_increment": charter["increment"], "state": charter["state"],
             "business_approved": False, "production_ready": False,
             "customer_data_authorized": False,
@@ -74,7 +74,7 @@ def main(argv=None) -> int:
     if args.json or args.command == "charter":
         print(json.dumps(payload, indent=2, sort_keys=True))
     else:
-        print(f"{charter['product']} / V7 / {charter['state']}")
+        print(f"{charter['product']} / V8 / {charter['state']}")
         print("Local synthetic-only navigation shell; NOT customer-approved.")
         print("No OT writes, customer data, AI model, deployment, or ROI proof.")
     return 0
