@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V14",
+  "objective": "Enforce duplicates and idempotency rules",
+  "required_proof": "Repeated-ingest comparison",
+  "plan_state": "SYNTHETIC_REPLAY_TECHNICAL_DRAFT",
+  "source_fixture_set_id": "SYN-RI-V5-20261107-A",
+  "expected_original_records": 34,
+  "scenarios": [
+    {
+      "scenario_id": "FULL_BASELINE",
+      "kind": "accepted",
+      "expected_new_records": 34,
+      "expected_duplicates": 0,
+      "description": "First ingest of all four complete synthetic datasets"
+    },
+    {
+      "scenario_id": "REPEAT_IDENTICAL",
+      "kind": "accepted",
+      "expected_new_records": 0,
+      "expected_duplicates": 34,
+      "description": "Repeat full ingest without changing canonical state digest"
+    },
+    {
+      "scenario_id": "REORDER_IDENTICAL",
+      "kind": "accepted",
+      "expected_new_records": 0,
+      "expected_duplicates": 34,
+      "description": "Reorder datasets and rows and compare digest to initial load"
+    },
+    {
+      "scenario_id": "PARTITIONED_REPLAY",
+      "kind": "accepted",
+      "expected_new_records": 34,
+      "expected_duplicates": 0,
+      "description": "Load assets, cases, script and labels in separate atomic batches; same final digest"
+    },
+    {
+      "scenario_id": "PARTIAL_OVERLAP",
+      "kind": "accepted",
+      "expected_new_records": 0,
+      "expected_duplicates": 7,
+      "description": "Replay seven already ingested cases; same digest"
+    },
+    {
+      "scenario_id": "INTRA_BATCH_IDENTICAL_DUPLICATE",
+      "kind": "accepted",
+      "expected_new_records": 34,
+      "expected_duplicates": 1,
+      "description": "One identical record repeated inside otherwise new batch"
+    },
+    {
+      "scenario_id": "CONFLICTING_PRIMARY_KEY",
+      "kind": "rejected",
+      "expected_error": "identity_conflict",
+      "description": "Same case_id with changed cost; existing state remains identical"
+    },
+    {
+      "scenario_id": "CONFLICT_WITHIN_BATCH",
+      "kind": "rejected",
+      "expected_error": "identity_conflict",
+      "description": "Same asset_id with different class in one atomic batch"
+    },
+    {
+      "scenario_id": "SECONDARY_WORK_ORDER_CONFLICT",
+      "kind": "rejected",
+      "expected_error": "duplicate_work_order_reference",
+      "description": "Different synthetic case_id with an already-used work-order reference"
+    },
+    {
+      "scenario_id": "ORPHAN_CASE_ASSET",
+      "kind": "rejected",
+      "expected_error": "unknown_asset_reference",
+      "description": "Synthetic case references a nonexistent synthetic asset"
+    },
+    {
+      "scenario_id": "ORPHAN_REVIEW_CASE",
+      "kind": "rejected",
+      "expected_error": "unknown_case_reference",
+      "description": "Scripted review references a nonexistent case"
+    },
+    {
+      "scenario_id": "ORPHAN_LABEL_CASE",
+      "kind": "rejected",
+      "expected_error": "unknown_case_reference",
+      "description": "Seeded label references a nonexistent case"
+    },
+    {
+      "scenario_id": "INVALID_ROW_ATOMIC_ROLLBACK",
+      "kind": "rejected",
+      "expected_error": "source_record_invalid",
+      "description": "New valid synthetic asset and invalid row together must not partially commit"
+    },
+    {
+      "scenario_id": "NON_SYNTHETIC_ID",
+      "kind": "rejected",
+      "expected_error": "source_record_invalid",
+      "description": "Reject record whose identifier does not match the SYN-only schema"
+    },
+    {
+      "scenario_id": "EXTRA_PERSONNEL_FIELD",
+      "kind": "rejected",
+      "expected_error": "source_record_invalid",
+      "description": "Reject an undeclared personnel field without logging its value"
+    },
+    {
+      "scenario_id": "INVALID_BATCH_SHAPE",
+      "kind": "rejected",
+      "expected_error": "batch_shape_invalid",
+      "description": "Reject unknown dataset name or wrong batch container"
+    }
+  ],
+  "customer_data_used": false,
+  "real_operator_actions": false,
+  "human_approval_recorded": false,
+  "formal_phase_02_approval": false
+}

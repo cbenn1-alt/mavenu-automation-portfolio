@@ -25,7 +25,7 @@ jobs:
       - name: Install pinned test-only coverage tool
         working-directory: projects/reliability-intelligence
         run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
-      - name: Run V13 negative cases and V8-V12 regression in clean snapshot
+      - name: Run V14 repeated-ingest comparison and V8-V13 regression in clean snapshot
         shell: bash
         env:
           PYTHONDONTWRITEBYTECODE: '1'
@@ -42,23 +42,26 @@ jobs:
           PYTHONPATH=src python scripts/verify_v11.py
           PYTHONPATH=src python scripts/verify_v12.py
           PYTHONPATH=src python scripts/verify_v13.py
+          PYTHONPATH=src python scripts/verify_v14.py
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V8"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V9"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V10"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V11"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V12"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V13"
+          mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V14"
           cp evidence/V8/verification.json evidence/V8/coverage.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V8/"
           cp evidence/V9/replay.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V9/"
           cp evidence/V10/verification.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V10/"
           cp evidence/V11/verification.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V11/"
           cp evidence/V12/schema_validation_report.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V12/"
           cp evidence/V13/negative_case_report.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V13/"
-      - name: Preserve V8-V13 regression, replay, freeze and negative fixture evidence
+          cp evidence/V14/repeated_ingest_comparison.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V14/"
+      - name: Preserve V8-V14 regression, freeze and idempotency comparison evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: reliability-intelligence-v13-evidence
+          name: reliability-intelligence-v14-evidence
           path: |
             projects/reliability-intelligence/evidence/V8/
             projects/reliability-intelligence/evidence/V9/
@@ -66,5 +69,6 @@ jobs:
             projects/reliability-intelligence/evidence/V11/
             projects/reliability-intelligence/evidence/V12/
             projects/reliability-intelligence/evidence/V13/
+            projects/reliability-intelligence/evidence/V14/
           if-no-files-found: warn
           retention-days: 30

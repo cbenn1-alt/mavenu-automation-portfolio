@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V13 (exploratory negative-case fixtures)
+# Mavenu Reliability Intelligence — V14 (exploratory duplicate and idempotency controls)
 
-**State:** V13 adds controlled impossible/null/out-of-range negative cases and positive boundary controls for fabricated maintenance fixtures. **V10 formal promotion remains BLOCKED/PENDING human sign-off** and V11/V12 data-source approvals remain unsigned. No customer or production authorization is implied.
+**State:** V14 adds in-memory atomic synthetic ingestion, duplicate suppression and repeated-ingest comparison evidence. **Formal Phase 02 promotion remains BLOCKED/PENDING human sign-off**; V11/V12 customer-source approvals remain unsigned. No customer, plant or production integration is authorized.
 
-**Standard (Architecture V4, page 42):** V13 = Reject impossible, null, and out-of-range values. Proof = Negative-case fixtures. The pinned V9 runtime remains 0.9.0 and API v1/schema 1.3.0.
+**Standard (Architecture V4, page 42):** V14 = Enforce duplicates and idempotency rules. Proof = Repeated-ingest comparison. The frozen V9 runtime remains 0.9.0; API v1/schema 1.3.0.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -17,6 +17,7 @@ PYTHONPATH=src python scripts/verify_v10.py
 PYTHONPATH=src python scripts/verify_v11.py
 PYTHONPATH=src python scripts/verify_v12.py
 PYTHONPATH=src python scripts/verify_v13.py
+PYTHONPATH=src python scripts/verify_v14.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -117,3 +118,12 @@ The required artifact is a **schema validation test report**. It does not approv
 - docs/NEGATIVE_CASES_V13.md, docs/DEMO_V13.md, docs/releases/V13.md: reviewer protocol and six-part evidence packet.
 
 Expected full regression suite: **300** tests (244 historical + 56 V13), subject to the actual hosted CI results. The 84.5% V8 combined coverage floor and historical module checks remain enforced. The product itself gains no customer API, industrial connector, real data source, maintenance decision or financial benefit. The V10 recommendation remains BLOCKED, not overwritten by a green CI run.
+
+
+## V14 atomic in-memory replay comparisons
+
+V14's exact identity and duplicate policy is in docs/data/IDEMPOTENCY_CONTRACT_V14.json, with a 16-case replay plan at fixtures/repeated_ingest_v14.json. The new scripts/ingest_v14.py module implements temporary, read-only-to-the-outside, all-or-none synthetic batch loading. scripts/verify_v14.py compares canonical state checksums for identical, reordered, partial, partitioned and duplicate-bearing replay sequences; verifies conflicts do not partially commit; and generates evidence/V14/repeated_ingest_comparison.json.
+
+tests/test_idempotency_v14.py adds **48 tests** to the historical 300, for **348 expected**; the actual CI output controls. The V8 84.5% source coverage floor and V9–V13 checks remain enforced. CI publishes the V8–V14 reports. No real customer identity, production idempotency key, persistent store, distributed exactly-once guarantee, credential, customer interface or operational write endpoint is present.
+
+Reviewer sources: docs/IDEMPOTENCY_V14.md, docs/DEMO_V14.md, docs/releases/V14.md. Passing tests are **engineering evidence only**, not owner sign-off or permission to cross the blocked V10 promotion gate.
