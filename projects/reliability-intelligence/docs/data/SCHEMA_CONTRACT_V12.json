@@ -1,0 +1,213 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V12",
+  "phase": "Data correctness (V11-V20) - exploratory synthetic-only; formal V10 promotion blocked",
+  "objective": "Validate required fields and allowed values",
+  "required_proof": "Schema validation test report",
+  "contract_status": "TECHNICALLY_CHECKABLE_DRAFT_NOT_APPROVED",
+  "dictionary_reference": "docs/data/SOURCE_FIELD_DICTIONARY_V11.json",
+  "dictionary_increment": "V11",
+  "dictionary_approval_status": "PENDING",
+  "source_baseline_commit": "704123eca45628bf504594af39a66036cc0451c5",
+  "fixture_set_id": "SYN-RI-V5-20261107-A",
+  "record_count_expected": 34,
+  "field_occurrence_count": 21,
+  "enum_field_count": 10,
+  "identifier_pattern_count": 7,
+  "validation_mode": "STRICT_EXACT_FIELDS_AND_ALLOWED_VALUES",
+  "version_relation": "Compiled from V11 dictionary; reject mismatch, not independent domain authority.",
+  "real_source_systems": [],
+  "customer_data_permitted": false,
+  "production_approved": false,
+  "formal_phase_02_approval": false,
+  "schema_owner_approved": false,
+  "customer_data_owner_approved": false,
+  "named_approver": null,
+  "approval_at_utc": null,
+  "approval_signature": null,
+  "groups": [
+    {
+      "dataset_id": "asset_records",
+      "fixture_file": "fixtures/cases.json",
+      "array_path": "assets",
+      "expected_row_count": 6,
+      "required_fields": [
+        "asset_class",
+        "asset_id",
+        "cohort",
+        "synthetic"
+      ],
+      "allowed_values": {
+        "asset_class": [
+          "bearing_drive",
+          "belt_conveyor",
+          "transfer_pump",
+          "sensor_module",
+          "electric_motor",
+          "control_valve"
+        ],
+        "cohort": [
+          "Assembly Test Line",
+          "Utility Test Zone",
+          "Mock Workshop"
+        ],
+        "synthetic": [
+          true
+        ]
+      },
+      "identifier_patterns": {
+        "asset_id": "^SYN-ASSET-[0-9]{3}$"
+      },
+      "element_patterns": {},
+      "field_types": {
+        "asset_id": "string",
+        "asset_class": "string",
+        "cohort": "string",
+        "synthetic": "boolean"
+      },
+      "extra_fields": "REJECT",
+      "missing_required_fields": "REJECT",
+      "false_boolean_provenance": "REJECT",
+      "customer_source_role": "NOT_APPROVED"
+    },
+    {
+      "dataset_id": "case_records",
+      "fixture_file": "fixtures/cases.json",
+      "array_path": "records",
+      "expected_row_count": 12,
+      "required_fields": [
+        "asset_id",
+        "case_id",
+        "downtime_hours",
+        "evidence_refs",
+        "failure_code",
+        "occurred_at_utc",
+        "repair_cost_usd",
+        "review_state",
+        "synthetic",
+        "work_order_ref"
+      ],
+      "allowed_values": {
+        "failure_code": [
+          "bearing_wear",
+          "belt_slip",
+          "seal_leak",
+          "sensor_fault",
+          "motor_trip",
+          "valve_stick"
+        ],
+        "synthetic": [
+          true
+        ],
+        "review_state": [
+          "fixture_only"
+        ]
+      },
+      "identifier_patterns": {
+        "case_id": "^SYN-CASE-[0-9]{3}$",
+        "asset_id": "^SYN-ASSET-[0-9]{3}$",
+        "work_order_ref": "^SYN-WO-[0-9]{3}$"
+      },
+      "element_patterns": {
+        "evidence_refs": "^SYN-EV-[0-9]{3}$"
+      },
+      "field_types": {
+        "case_id": "string",
+        "asset_id": "string",
+        "work_order_ref": "string",
+        "occurred_at_utc": "utc_timestamp",
+        "failure_code": "string",
+        "downtime_hours": "number",
+        "repair_cost_usd": "number",
+        "evidence_refs": "array[string]",
+        "synthetic": "boolean",
+        "review_state": "string"
+      },
+      "extra_fields": "REJECT",
+      "missing_required_fields": "REJECT",
+      "false_boolean_provenance": "REJECT",
+      "customer_source_role": "NOT_APPROVED"
+    },
+    {
+      "dataset_id": "scripted_review_entries",
+      "fixture_file": "fixtures/demo_review_script.json",
+      "array_path": "entries",
+      "expected_row_count": 4,
+      "required_fields": [
+        "case_id",
+        "disposition",
+        "reason_code",
+        "reviewer_id"
+      ],
+      "allowed_values": {
+        "disposition": [
+          "acknowledge",
+          "investigate_history",
+          "request_evidence",
+          "defer"
+        ],
+        "reason_code": [
+          "routine_synthetic_review",
+          "repeat_history_flag",
+          "missing_evidence_reference",
+          "further_demo_review"
+        ]
+      },
+      "identifier_patterns": {
+        "case_id": "^SYN-CASE-[0-9]{3}$",
+        "reviewer_id": "^SYN-REVIEWER-[0-9]{3}$"
+      },
+      "element_patterns": {},
+      "field_types": {
+        "case_id": "string",
+        "reviewer_id": "string",
+        "disposition": "string",
+        "reason_code": "string"
+      },
+      "extra_fields": "REJECT",
+      "missing_required_fields": "REJECT",
+      "false_boolean_provenance": "REJECT",
+      "customer_source_role": "NOT_APPROVED"
+    },
+    {
+      "dataset_id": "seeded_reference_labels",
+      "fixture_file": "fixtures/reference_labels.json",
+      "array_path": "records",
+      "expected_row_count": 12,
+      "required_fields": [
+        "case_id",
+        "expected_review_label",
+        "synthetic"
+      ],
+      "allowed_values": {
+        "expected_review_label": [
+          "single_event",
+          "repeat_history_candidate",
+          "missing_evidence"
+        ],
+        "synthetic": [
+          true
+        ]
+      },
+      "identifier_patterns": {
+        "case_id": "^SYN-CASE-[0-9]{3}$"
+      },
+      "element_patterns": {},
+      "field_types": {
+        "case_id": "string",
+        "expected_review_label": "string",
+        "synthetic": "boolean"
+      },
+      "extra_fields": "REJECT",
+      "missing_required_fields": "REJECT",
+      "false_boolean_provenance": "REJECT",
+      "customer_source_role": "NOT_APPROVED"
+    }
+  ],
+  "non_goals": [
+    "No real industrial work-order data or Minn-Dak system integrations.",
+    "No benchmark of source quality, monetary measurement, semantic domain correctness or economic benefit.",
+    "V13 null, impossible value, and out-of-range negative-case coverage remains a distinct future increment.",
+    "No signed phase promotion, customer source authority, or domain reviewer approval."
+  ]
+}
