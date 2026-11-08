@@ -45,7 +45,7 @@ class V4APIContractTests(unittest.TestCase):
                 self.assertEqual(int(headers["Content-Length"]), len(body))
                 doc = json.loads(body)
                 self.assertEqual(doc["api_version"], "v1")
-                self.assertEqual(doc["schema_version"], "1.2.0")
+                self.assertEqual(doc["schema_version"], "1.3.0")
                 self.assertEqual(doc["resource"], resource)
                 self.assertIsInstance(doc["data"], dict)
 
@@ -64,7 +64,7 @@ class V4APIContractTests(unittest.TestCase):
     def test_service_status_explicitly_not_operational(self):
         _, _, body = request("/api/v1/status")
         data = json.loads(body)["data"]
-        self.assertEqual(data["increment"], "V6")
+        self.assertEqual(data["increment"], "V7")
         self.assertIs(data["synthetic_fixtures_available"], True)
         self.assertEqual(data["business_approval"], "pending")
         self.assertFalse(data["validated_customer_problem"])

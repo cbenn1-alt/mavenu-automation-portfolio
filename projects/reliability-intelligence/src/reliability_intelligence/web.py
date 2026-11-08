@@ -55,7 +55,7 @@ def _page_content(path: str, charter: dict) -> str:
           <p class="eyebrow">V6 / Prototype foundation</p>
           <h1>Maintenance intelligence that keeps people in control.</h1>
           <p class="lead">A proposed, source-traceable review workspace for industrial maintenance teams. This shell contains no customer records, predictions, or production connections.</p>
-          <a class="text-link" href="/workbench">Open empty case workspace</a>
+          <a class="text-link" href="/workbench">Open synthetic case workspace</a>
         </section>
         <section class="section" aria-label="Product scope">
           <h2>Prototype scope</h2>
@@ -83,7 +83,7 @@ def _page_content(path: str, charter: dict) -> str:
             <caption>V5 fictional example records, not customer work orders</caption>
             <thead><tr><th scope="col">Case ID</th><th scope="col">Asset</th><th scope="col">Example failure code</th><th scope="col">Example time (UTC)</th><th scope="col">Source</th></tr></thead>
             <tbody>{rows}</tbody></table></div></div>
-          <p class="note">No automated classification or approval workflow exists. Seeded reference labels are excluded from this page and API. V6 will develop the end-to-end synthetic review workflow.</p>
+          <p class="note">The V6 Workflow replay page illustrates scripted, fictional dispositions. No real human approves work orders. Seeded reference labels are excluded from the UI and API.</p>
         </section>"""
     if path == "/workflow":
         report = run_demo(charter)

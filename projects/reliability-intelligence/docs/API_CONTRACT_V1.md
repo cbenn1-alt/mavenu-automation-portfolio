@@ -1,4 +1,4 @@
-# Reliability Intelligence API v1 — V6 synthetic workflow addition
+# Reliability Intelligence API v1 — V7 structured diagnostic addition
 
 **Contract ID:** reliability-intelligence.api.v1
 **Approval:** Technical candidate for local evaluation only. Customer data and external deployment prohibited.
@@ -82,3 +82,14 @@ New read-only GET/HEAD /api/v1/demo endpoint returns the deterministic, wholly f
 The demo response includes run_id, fixture_set_id, rule_version, case_count, scripted_disposition_count, not_dispositioned_count, synthetic_flag_counts, cases, events, event_count, trace_sha256, trace_checksum_kind, trace_persisted=false, real_human_review_performed=false, actual_customer_data_used=false, operational_approval_granted=false, real_work_orders_written=false, external_actions_executed=false, measured_business_outcome=false, and explanation.
 
 The checksum is for repeatability of canonical in-memory event JSON only. The four scripted dispositions are not human decisions and eight cases remain undispositioned. Missing/bad fixture or script yields sanitized HTTP 503 with error.code=fixture_invalid; POST and other unsafe verbs still return 405. No production case actions or external writes are available. Future clients must not treat this synthetic replay as an operational event log.
+
+
+## V7 compatible diagnostic revision — schema 1.3.0
+
+GET/HEAD endpoints and their success envelope remain unchanged. Service status adds structured_failure_diagnostics_available=true. API schema version advances to 1.3.0. The documented limits now include structured_failure_diagnostics_available=true and diagnostic_logs_persistent=false.
+
+For failing API requests, the existing error.code/message JSON structure remains compatible. The HTTP response now adds X-Diagnostic-Code and X-Diagnostic-ID headers with allowlisted values. The diagnostic ID is a **stable category fingerprint**, not a unique request correlation ID, and its reuse must not be interpreted as multiple calls to the same incident.
+
+Expected 404, 405 and 503 responses are preserved. An unexpected internal API error returns a sanitized 500 instead of propagating raw Python error details to clients. The V7 logger emits one compact JSON event, without raw exceptions, headers, paths, queries or payloads. It does not manage the surrounding WSGI server access log, which can record requests separately and requires a later security review.
+
+All requests remain loopback-only; no write routes, customer data, production credentials or external integration are introduced. See docs/DIAGNOSTICS_V7.md for catalog, schema and limitations.
