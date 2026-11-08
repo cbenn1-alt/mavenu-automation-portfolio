@@ -32,6 +32,7 @@ from . import reconcile as recon_service
 from . import matching as match_service
 from . import docintel as di_service
 from . import sqlops as so_service
+from . import governance as gov_service
 from . import entity_resolution as er_service
 from . import firewall as fw_service
 from . import netsec as ns_service
@@ -115,7 +116,7 @@ def _page(title: str, body: str) -> bytes:
 <a href="/project02/dashboard">P02 Dashboard</a><a href="/project03">P03</a>
 <a href="/project03/documents">P03 Documents</a><a href="/project03/exceptions">P03 Exceptions</a>
 <a href="/project03/reports">P03 Reports</a><a href="/project04">P04</a>
-<a href="/project04/queries">P04 Queries</a><a href="/project04/runs">P04 Runs</a><a href="/project_q01">Q01</a>
+<a href="/project04/queries">P04 Queries</a><a href="/project04/runs">P04 Runs</a><a href="/project05">P05</a><a href="/project05/checks">P05 Checks</a><a href="/project05/alerts">P05 Alerts</a><a href="/project05/incidents">P05 Incidents</a><a href="/project_q01">Q01</a>
 <a href="/project_q01/queue">Q01 Queue</a><a href="/project_q01/dashboard">Q01 Dashboard</a>
 <a href="/project_q02">Q02</a><a href="/project_q02/outbox">Q02 Outbox</a>
 <a href="/project_q02/reports">Q02 Reports</a><a href="/project_q03">Q03</a>
@@ -594,6 +595,157 @@ class App:
         mr4e = re.fullmatch(r"/api/sqlops/runs/([0-9]+)/export", path or "")
         if mr4e and method == "GET":
             return self.api_so_export(mr4e.group(1), environ)
+        # ---- P05: reliability & governance -----------------------------------
+        if method == "GET" and path == "/project05":
+            return self.p05_page()
+        if method == "POST" and path == "/project05/seed":
+            return self.p05_seed_submit(environ)
+        if method == "GET" and path == "/project05/checks":
+            return self.p05_checks_page()
+        if method == "POST" and path == "/project05/checks":
+            return self.p05_create_check_submit(environ)
+        m5c = re.fullmatch(r"/project05/checks/([0-9]+)", path or "")
+        if m5c and method == "GET":
+            return self.p05_check_detail(m5c.group(1), environ)
+        m5cr = re.fullmatch(r"/project05/checks/([0-9]+)/run", path or "")
+        if m5cr and method == "POST":
+            return self.p05_run_check_submit(m5cr.group(1), environ)
+        if method == "GET" and path == "/project05/alerts":
+            return self.p05_alerts_page(environ)
+        m5aa = re.fullmatch(r"/project05/alerts/([0-9]+)/ack", path or "")
+        if m5aa and method == "POST":
+            return self.p05_alert_transition(m5aa.group(1), "ack", environ)
+        m5ar = re.fullmatch(r"/project05/alerts/([0-9]+)/resolve", path or "")
+        if m5ar and method == "POST":
+            return self.p05_alert_transition(m5ar.group(1), "resolve", environ)
+        if method == "GET" and path == "/project05/incidents":
+            return self.p05_incidents_page()
+        if method == "POST" and path == "/project05/incidents":
+            return self.p05_create_incident_submit(environ)
+        m5i = re.fullmatch(r"/project05/incidents/([0-9]+)", path or "")
+        if m5i and method == "GET":
+            return self.p05_incident_detail(m5i.group(1), environ)
+        m5it = re.fullmatch(r"/project05/incidents/([0-9]+)/transition", path or "")
+        if m5it and method == "POST":
+            return self.p05_incident_transition_submit(m5it.group(1), environ)
+        m5in = re.fullmatch(r"/project05/incidents/([0-9]+)/notes", path or "")
+        if m5in and method == "POST":
+            return self.p05_incident_note_submit(m5in.group(1), environ)
+        if method == "GET" and path == "/project05/jobs":
+            return self.p05_jobs_page()
+        if method == "POST" and path == "/project05/jobs":
+            return self.p05_create_job_submit(environ)
+        m5ja = re.fullmatch(r"/project05/jobs/([0-9]+)/attempt", path or "")
+        if m5ja and method == "POST":
+            return self.p05_attempt_job_submit(m5ja.group(1), environ)
+        m5dl = re.fullmatch(r"/project05/dead-letters/([0-9]+)/replay", path or "")
+        if m5dl and method == "POST":
+            return self.p05_replay_dead_letter_submit(m5dl.group(1), environ)
+        if method == "GET" and path == "/project05/rules":
+            return self.p05_rules_page()
+        if method == "POST" and path == "/project05/rules":
+            return self.p05_create_rule_submit(environ)
+        m5sr = re.fullmatch(r"/project05/rules/([0-9]+)/silence", path or "")
+        if m5sr and method == "POST":
+            return self.p05_silence_rule_submit(m5sr.group(1), environ)
+        if method == "GET" and path == "/project05/policies":
+            return self.p05_policies_page()
+        if method == "POST" and path == "/project05/policies":
+            return self.p05_create_policy_submit(environ)
+        if method == "POST" and path == "/project05/policies/supersede":
+            return self.p05_supersede_policy_submit(environ)
+        if method == "GET" and path == "/project05/runbooks":
+            return self.p05_runbooks_page()
+        if method == "POST" and path == "/project05/runbooks":
+            return self.p05_create_runbook_submit(environ)
+        m5rb = re.fullmatch(r"/project05/runbooks/([0-9]+)", path or "")
+        if m5rb and method == "GET":
+            return self.p05_runbook_detail(m5rb.group(1), environ)
+        m5rbs = re.fullmatch(r"/project05/runbooks/([0-9]+)/supersede", path or "")
+        if m5rbs and method == "POST":
+            return self.p05_supersede_runbook_submit(m5rbs.group(1), environ)
+        m5rbw = re.fullmatch(r"/project05/runbooks/([0-9]+)/walkthrough", path or "")
+        if m5rbw and method == "POST":
+            return self.p05_walkthrough_submit(m5rbw.group(1), environ)
+        if method == "GET" and path == "/api/governance/status":
+            return self.api_gov_status()
+        if method == "POST" and path == "/api/governance/seed":
+            return self.api_gov_seed()
+        if method == "POST" and path == "/api/governance/checks":
+            return self.api_gov_create_check(environ)
+        if method == "GET" and path == "/api/governance/checks":
+            return self.api_gov_list_checks()
+        m5ac = re.fullmatch(r"/api/governance/checks/([0-9]+)", path or "")
+        if m5ac and method == "GET":
+            return self.api_gov_get_check(m5ac.group(1))
+        m5acr = re.fullmatch(r"/api/governance/checks/([0-9]+)/run", path or "")
+        if m5acr and method == "POST":
+            return self.api_gov_run_check(m5acr.group(1), environ)
+        if method == "GET" and path == "/api/governance/runs":
+            return self.api_gov_list_runs(environ)
+        if method == "GET" and path == "/api/governance/policies":
+            return self.api_gov_list_policies(environ)
+        if method == "POST" and path == "/api/governance/policies":
+            return self.api_gov_create_policy(environ)
+        m5aps = re.fullmatch(r"/api/governance/policies/([0-9]+)/supersede", path or "")
+        if m5aps and method == "POST":
+            return self.api_gov_supersede_policy(m5aps.group(1), environ)
+        if method == "GET" and path == "/api/governance/jobs":
+            return self.api_gov_list_jobs(environ)
+        if method == "POST" and path == "/api/governance/jobs":
+            return self.api_gov_create_job(environ)
+        m5aja = re.fullmatch(r"/api/governance/jobs/([0-9]+)/attempt", path or "")
+        if m5aja and method == "POST":
+            return self.api_gov_attempt_job(m5aja.group(1), environ)
+        if method == "GET" and path == "/api/governance/dead-letters":
+            return self.api_gov_list_dead_letters(environ)
+        m5adl = re.fullmatch(r"/api/governance/dead-letters/([0-9]+)/replay", path or "")
+        if m5adl and method == "POST":
+            return self.api_gov_replay_dead_letter(m5adl.group(1), environ)
+        if method == "GET" and path == "/api/governance/rules":
+            return self.api_gov_list_rules()
+        if method == "POST" and path == "/api/governance/rules":
+            return self.api_gov_create_rule(environ)
+        m5asr = re.fullmatch(r"/api/governance/rules/([0-9]+)/silence", path or "")
+        if m5asr and method == "POST":
+            return self.api_gov_silence_rule(m5asr.group(1), environ)
+        if method == "GET" and path == "/api/governance/alerts":
+            return self.api_gov_list_alerts(environ)
+        m5aal = re.fullmatch(r"/api/governance/alerts/([0-9]+)", path or "")
+        if m5aal and method == "GET":
+            return self.api_gov_get_alert(m5aal.group(1))
+        m5aak = re.fullmatch(r"/api/governance/alerts/([0-9]+)/ack", path or "")
+        if m5aak and method == "POST":
+            return self.api_gov_ack_alert(m5aak.group(1), environ)
+        m5aar = re.fullmatch(r"/api/governance/alerts/([0-9]+)/resolve", path or "")
+        if m5aar and method == "POST":
+            return self.api_gov_resolve_alert(m5aar.group(1), environ)
+        if method == "GET" and path == "/api/governance/runbooks":
+            return self.api_gov_list_runbooks(environ)
+        if method == "POST" and path == "/api/governance/runbooks":
+            return self.api_gov_create_runbook(environ)
+        m5arb = re.fullmatch(r"/api/governance/runbooks/([0-9]+)", path or "")
+        if m5arb and method == "GET":
+            return self.api_gov_get_runbook(m5arb.group(1))
+        m5arbs = re.fullmatch(r"/api/governance/runbooks/([0-9]+)/supersede", path or "")
+        if m5arbs and method == "POST":
+            return self.api_gov_supersede_runbook(m5arbs.group(1), environ)
+        m5arbw = re.fullmatch(r"/api/governance/runbooks/([0-9]+)/walkthrough", path or "")
+        if m5arbw and method == "POST":
+            return self.api_gov_walkthrough(m5arbw.group(1), environ)
+        if method == "GET" and path == "/api/governance/incidents":
+            return self.api_gov_list_incidents(environ)
+        if method == "POST" and path == "/api/governance/incidents":
+            return self.api_gov_create_incident(environ)
+        m5ai = re.fullmatch(r"/api/governance/incidents/([0-9]+)", path or "")
+        if m5ai and method == "GET":
+            return self.api_gov_get_incident(m5ai.group(1))
+        m5ait = re.fullmatch(r"/api/governance/incidents/([0-9]+)/transition", path or "")
+        if m5ait and method == "POST":
+            return self.api_gov_transition_incident(m5ait.group(1), environ)
+        m5ain = re.fullmatch(r"/api/governance/incidents/([0-9]+)/notes", path or "")
+        if m5ain and method == "POST":
+            return self.api_gov_add_incident_note(m5ain.group(1), environ)
         # ---- Q06: data quality & entity resolution ---------------------------
         if method == "GET" and path == "/project_q06":
             return self.q06_page()
@@ -7589,6 +7741,1180 @@ baseline items. Full per-item evidence is available via
         return str(form_key).strip() or None if form_key else None
 
     # -- pages ------------------------------------------------------------------
+    # ---- P05: reliability & governance -----------------------------------
+    def _p05_error(self, exc: Exception) -> tuple[int, list, bytes]:
+        if isinstance(exc, gov_service.GovError):
+            msg = str(exc)
+            if msg.startswith("No "):
+                return _json(404, _error_envelope("not_found", msg))
+            return _json(422, _error_envelope("validation_failed", msg))
+        raise exc
+
+    def _p05_form(self, environ: dict) -> dict:
+        return dict(parse_qsl(self._read_body(environ).decode("utf-8"),
+                              keep_blank_values=True))
+
+    def _p05_actor(self, data: dict) -> str:
+        return str(data.get("actor", "web")).strip() or "web"
+
+    def _p05_err_html(self, errors: Optional[dict]) -> str:
+        if not errors:
+            return ""
+        items = "".join(
+            f"<li><strong>{html.escape(k)}</strong>: {html.escape(str(v))}</li>"
+            for k, v in errors.items())
+        return f'<div class="error-list"><ul>{items}</ul></div>'
+
+    def p05_page(self, errors: Optional[dict] = None):
+        conn = self._conn()
+        try:
+            summary = gov_service.status_summary(conn)
+            checks = gov_service.list_checks(conn)
+            alerts = gov_service.list_alerts(conn, status="open")[:10]
+            incidents = gov_service.list_incidents(conn)[:10]
+        finally:
+            conn.close()
+        c_rows = "".join(
+            f"<tr><td><a href=\"/project05/checks/{c['id']}\">{html.escape(c['name'])}</a></td>"
+            f"<td>{html.escape(c['subsystem'])}</td><td>{html.escape(c['kind'])}</td>"
+            f"<td>{html.escape(c['probe'])}</td>"
+            f"<td>{next((e['status'] for e in summary['checks'] if e['check']['id'] == c['id']), 'unknown')}</td></tr>"
+            for c in checks
+        ) or "<tr><td colspan=\"5\"><em>No checks yet — seed the demo data first.</em></td></tr>"
+        a_rows = "".join(
+            f"<tr><td>{a['id']}</td><td>{html.escape(a['severity'])}</td>"
+            f"<td>{html.escape(a['status'])}</td><td>{a['count']}</td>"
+            f"<td>{html.escape(a['first_seen'])}</td></tr>" for a in alerts
+        ) or "<tr><td colspan=\"5\"><em>No open alerts.</em></td></tr>"
+        i_rows = "".join(
+            f"<tr><td><a href=\"/project05/incidents/{i['id']}\">{html.escape(i['title'])}</a></td>"
+            f"<td>{html.escape(i['severity'])}</td><td>{html.escape(i['status'])}</td></tr>"
+            for i in incidents
+        ) or "<tr><td colspan=\"3\"><em>No incidents yet.</em></td></tr>"
+        body = f"""
+<div class="card"><h2>P05 — Automation Reliability &amp; Governance Center</h2>
+<p><strong>Synthetic data only.</strong> Health checks probe this local demo
+system (database, migrations, queue depths, storage). Retry policies are
+data — exponential backoff with a cap and deterministic jitter, dead-letter
+routing after the limit. <strong>Alerts are recorded only and never sent
+anywhere</strong> — there is no send path in P05 by architecture. Runbooks are
+versioned data; incidents carry an actor-stamped timeline. Every state
+change is audit-logged.</p>
+<p><strong>Overall status:</strong> {html.escape(summary['overall'])} ·
+open alerts: {summary['open_alerts']} · open incidents: {summary['open_incidents']}</p>
+<p><a href="/project05/checks">Checks →</a> · <a href="/project05/alerts">Alerts →</a> ·
+<a href="/project05/incidents">Incidents →</a> · <a href="/project05/jobs">Jobs →</a> ·
+<a href="/project05/rules">Rules →</a> · <a href="/project05/policies">Policies →</a> ·
+<a href="/project05/runbooks">Runbooks →</a></p>
+<form method="post" action="/project05/seed">
+<button type="submit">Seed demo data</button></form>
+<p>Seeds 5 checks, 2 retry policies, 4 alert rules, 2 runbooks, one run of
+each check, one demo job and one demo incident. Idempotent — a second click
+inserts nothing.</p></div>
+{self._p05_err_html(errors)}
+<div class="card"><h3>Checks</h3>
+<table><tr><th>Name</th><th>Subsystem</th><th>Kind</th><th>Probe</th><th>Latest</th></tr>{c_rows}</table>
+<h3>Open alerts</h3>
+<table><tr><th>ID</th><th>Severity</th><th>Status</th><th>Count</th><th>First seen</th></tr>{a_rows}</table>
+<h3>Recent incidents</h3>
+<table><tr><th>Title</th><th>Severity</th><th>Status</th></tr>{i_rows}</table></div>
+"""
+        return _html(200, "P05 — Reliability & Governance", body)
+
+    def p05_seed_submit(self, environ: dict):
+        conn = self._conn()
+        try:
+            gov_service.seed_demo_data(conn, actor="demo")
+        finally:
+            conn.close()
+        return 303, [("Location", "/project05")], b""
+
+    def p05_checks_page(self, errors: Optional[dict] = None):
+        conn = self._conn()
+        try:
+            checks = gov_service.list_checks(conn)
+            summary = gov_service.status_summary(conn)
+        finally:
+            conn.close()
+        rows = "".join(
+            f"<tr><td><a href=\"/project05/checks/{c['id']}\">{html.escape(c['name'])}</a></td>"
+            f"<td>{html.escape(c['subsystem'])}</td><td>{html.escape(c['kind'])}</td>"
+            f"<td>{html.escape(c['probe'])}</td>"
+            f"<td>{html.escape(json.dumps(c['params_json']))}</td>"
+            f"<td>{c['warn_threshold']} / {c['fail_threshold']}</td>"
+            f"<td>{next((e['status'] for e in summary['checks'] if e['check']['id'] == c['id']), 'unknown')}</td></tr>"
+            for c in checks
+        ) or "<tr><td colspan=\"7\"><em>No checks yet.</em></td></tr>"
+        body = f"""
+<div class="card"><h2>P05 — Health checks</h2>
+<p><a href="/project05">← Back to P05</a></p>
+<p>A check is a probe (database, migrations, queue depth, storage, app
+smoke) plus warn/fail thresholds on the probe's numeric value. The latest
+run decides the status: pass, degraded, fail, or unknown (never run).</p></div>
+{self._p05_err_html(errors)}
+<div class="card"><h3>Checks</h3>
+<table><tr><th>Name</th><th>Subsystem</th><th>Kind</th><th>Probe</th><th>Params</th><th>Warn / Fail</th><th>Latest</th></tr>{rows}</table>
+<h3>Create a check</h3>
+<form method="post" action="/project05/checks">
+<label>Name <input name="name" required></label>
+<label>Subsystem <select name="subsystem"><option>db</option><option>queue</option><option>storage</option><option>app</option></select></label>
+<label>Kind <select name="kind"><option>liveness</option><option>readiness</option></select></label>
+<label>Probe <select name="probe"><option>db_reachable</option><option>migrations_current</option><option>queue_depth</option><option>storage_tmp</option><option>app_smoke</option></select></label>
+<label>Params (JSON) <textarea name="params" rows="2">{{"table": "missed_calls", "value": "pending"}}</textarea></label>
+<label>Warn threshold <input name="warn_threshold" value="0"></label>
+<label>Fail threshold <input name="fail_threshold" value="0"></label>
+<label>Description <input name="description"></label>
+<button type="submit">Create check</button></form></div>
+"""
+        return _html(200, "P05 — Health checks", body)
+
+    def p05_create_check_submit(self, environ: dict):
+        data = self._p05_form(environ)
+        try:
+            params = json.loads(data.get("params", "") or "{}")
+            warn = float(data.get("warn_threshold", "0") or 0)
+            fail = float(data.get("fail_threshold", "0") or 0)
+        except ValueError:
+            return self.p05_checks_page({"params": "Params must be valid JSON; thresholds must be numbers."})
+        conn = self._conn()
+        try:
+            try:
+                check = gov_service.create_check(
+                    conn, data.get("name", "").strip(),
+                    data.get("subsystem", "db").strip(),
+                    data.get("kind", "liveness").strip(),
+                    data.get("probe", "db_reachable").strip(), params, warn, fail,
+                    data.get("description", "").strip(), actor="web")
+            except gov_service.GovError as exc:
+                return self.p05_checks_page({"check": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", f"/project05/checks/{check['id']}")], b""
+
+    def p05_check_detail(self, check_id: str, environ: dict):
+        conn = self._conn()
+        try:
+            try:
+                check = gov_service.get_check(conn, int(check_id))
+            except gov_service.GovError as exc:
+                return _html(404, "P05 — Check", f"<p class='errors'>{html.escape(str(exc))}</p><p><a href=\"/project05/checks\">Back</a></p>")
+            runs = gov_service.list_check_runs(conn, check["id"], limit=20)
+        finally:
+            conn.close()
+        rows = "".join(
+            f"<tr><td>#{r['id']}</td><td>{html.escape(r['status'])}</td>"
+            f"<td>{html.escape(json.dumps(r['value_json']))}</td>"
+            f"<td>{r['duration_ms']} ms</td><td>{html.escape(r['created_at'])}</td></tr>"
+            for r in runs
+        ) or "<tr><td colspan=\"5\"><em>No runs yet.</em></td></tr>"
+        body = f"""
+<div class="card"><h2>Check — {html.escape(check['name'])}</h2>
+<p><a href="/project05/checks">← Checks</a> · <a href="/project05">P05 home</a></p>
+<p>Subsystem {html.escape(check['subsystem'])} · kind {html.escape(check['kind'])} ·
+probe <code>{html.escape(check['probe'])}</code> · warn/fail {check['warn_threshold']} / {check['fail_threshold']}</p>
+<p>{html.escape(check['description'] or '')}</p>
+<form method="post" action="/project05/checks/{check['id']}/run">
+<button type="submit">Run check now</button></form></div>
+<div class="card"><h3>Recent runs</h3>
+<table><tr><th>Run</th><th>Status</th><th>Value</th><th>Time</th><th>At</th></tr>{rows}</table></div>
+"""
+        return _html(200, f"P05 — {check['name']}", body)
+
+    def p05_run_check_submit(self, check_id: str, environ: dict):
+        conn = self._conn()
+        try:
+            try:
+                gov_service.run_check(conn, int(check_id), actor="web")
+            except gov_service.GovError as exc:
+                return _html(404, "P05 — Check", f"<p class='errors'>{html.escape(str(exc))}</p><p><a href=\"/project05/checks\">Back</a></p>")
+        finally:
+            conn.close()
+        return 303, [("Location", f"/project05/checks/{check_id}")], b""
+
+    def p05_alerts_page(self, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            status = query.get("status") or None
+            alerts = gov_service.list_alerts(conn, status=status)
+        finally:
+            conn.close()
+        rows = "".join(
+            f"<tr><td>{a['id']}</td><td>{html.escape(a['severity'])}</td>"
+            f"<td>{html.escape(a['status'])}</td><td>{a['count']}</td>"
+            f"<td>{html.escape(a['detail_json'].get('check', ''))}</td>"
+            f"<td>{html.escape(json.dumps(a['detail_json'].get('value')))}</td>"
+            f"<td>{html.escape(a['first_seen'])}</td><td>{html.escape(a['last_seen'])}</td>"
+            f"<td><form method=\"post\" action=\"/project05/alerts/{a['id']}/ack\" style=\"display:inline\"><button type=\"submit\">Ack</button></form> "
+            f"<form method=\"post\" action=\"/project05/alerts/{a['id']}/resolve\" style=\"display:inline\"><button type=\"submit\">Resolve</button></form></td></tr>"
+            for a in alerts
+        ) or "<tr><td colspan=\"9\"><em>No alerts.</em></td></tr>"
+        body = f"""
+<div class="card"><h2>P05 — Alerts</h2>
+<p><a href="/project05">← Back to P05</a></p>
+<p><strong>Alerts are recorded only and never sent anywhere.</strong> There is
+no email, webhook, SMS, or pager path in P05. An alert fires when a rule's
+threshold condition holds on a recorded check run; repeat firings inside the
+rule's dedup window bump the count instead of opening a new alert.</p>
+<p>Filter: <a href="/project05/alerts">all</a> · <a href="/project05/alerts?status=open">open</a> ·
+<a href="/project05/alerts?status=acked">acked</a> · <a href="/project05/alerts?status=resolved">resolved</a></p></div>
+<div class="card"><h3>Alerts</h3>
+<table><tr><th>ID</th><th>Severity</th><th>Status</th><th>Count</th><th>Check</th><th>Value</th><th>First seen</th><th>Last seen</th><th>Actions</th></tr>{rows}</table></div>
+"""
+        return _html(200, "P05 — Alerts", body)
+
+    def p05_alert_transition(self, alert_id: str, action: str, environ: dict):
+        conn = self._conn()
+        try:
+            try:
+                if action == "ack":
+                    gov_service.ack_alert(conn, int(alert_id), actor="web")
+                else:
+                    gov_service.resolve_alert(conn, int(alert_id), actor="web")
+            except gov_service.GovError as exc:
+                return _html(422, "P05 — Alerts", f"<p class='errors'>{html.escape(str(exc))}</p><p><a href=\"/project05/alerts\">Back</a></p>")
+        finally:
+            conn.close()
+        return 303, [("Location", "/project05/alerts")], b""
+
+    def p05_incidents_page(self, errors: Optional[dict] = None):
+        conn = self._conn()
+        try:
+            incidents = gov_service.list_incidents(conn)
+        finally:
+            conn.close()
+        rows = "".join(
+            f"<tr><td><a href=\"/project05/incidents/{i['id']}\">{html.escape(i['title'])}</a></td>"
+            f"<td>{html.escape(i['severity'])}</td><td>{html.escape(i['status'])}</td>"
+            f"<td>{html.escape(i['created_at'])}</td></tr>" for i in incidents
+        ) or "<tr><td colspan=\"4\"><em>No incidents yet.</em></td></tr>"
+        body = f"""
+<div class="card"><h2>P05 — Incidents</h2>
+<p><a href="/project05">← Back to P05</a></p>
+<p>Lifecycle: open → triaged → mitigating → resolved → closed, plus reopen
+from resolved or closed. Resolving requires a resolution note. Every
+transition and note is stamped with its actor on the timeline.</p></div>
+{self._p05_err_html(errors)}
+<div class="card"><h3>Incidents</h3>
+<table><tr><th>Title</th><th>Severity</th><th>Status</th><th>Created</th></tr>{rows}</table>
+<h3>Open an incident</h3>
+<form method="post" action="/project05/incidents">
+<label>Title <input name="title" required></label>
+<label>Severity <select name="severity"><option>critical</option><option>high</option><option>medium</option><option>low</option><option>info</option></select></label>
+<label>Source alert ID (optional) <input name="source_alert_id"></label>
+<button type="submit">Open incident</button></form></div>
+"""
+        return _html(200, "P05 — Incidents", body)
+
+    def p05_create_incident_submit(self, environ: dict):
+        data = self._p05_form(environ)
+        raw_alert = (data.get("source_alert_id") or "").strip()
+        try:
+            source_alert = int(raw_alert) if raw_alert else None
+        except ValueError:
+            return self.p05_incidents_page({"source_alert_id": "Must be a number."})
+        conn = self._conn()
+        try:
+            try:
+                inc = gov_service.create_incident(
+                    conn, data.get("title", "").strip(),
+                    data.get("severity", "medium").strip(),
+                    source_alert_id=source_alert, actor="web")
+            except gov_service.GovError as exc:
+                return self.p05_incidents_page({"incident": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", f"/project05/incidents/{inc['id']}")], b""
+
+    def p05_incident_detail(self, incident_id: str, environ: dict,
+                            errors: Optional[dict] = None,
+                            walkthrough_result: Optional[dict] = None):
+        conn = self._conn()
+        try:
+            try:
+                inc = gov_service.get_incident(conn, int(incident_id))
+            except gov_service.GovError as exc:
+                return _html(404, "P05 — Incident", f"<p class='errors'>{html.escape(str(exc))}</p><p><a href=\"/project05/incidents\">Back</a></p>")
+        finally:
+            conn.close()
+        timeline = "".join(
+            f"<li>{html.escape(e['created_at'])} — <strong>{html.escape(e['event_type'])}</strong> "
+            f"by {html.escape(e['actor'] or '')}"
+            + (f" ({html.escape(e['from_status'] or '')} → {html.escape(e['to_status'] or '')})" if e['event_type'] == 'transition' else "")
+            + (f": {html.escape(json.loads(e['detail_json'])['note'])}" if e['detail_json'] and 'note' in json.loads(e['detail_json']) else "")
+            + "</li>"
+            for e in inc["timeline"]
+        )
+        wt = ""
+        if walkthrough_result is not None:
+            steps = "".join(
+                f"<li>{html.escape(s['step'])} — {s['elapsed_s']:.3f}s / {s['timebox_s']}s "
+                f"({'within' if s['within_timebox'] else 'OVER'} timebox)</li>"
+                for s in walkthrough_result["steps"])
+            wt = (f"<div class=\"card\"><h3>Walkthrough result</h3><ul>{steps}</ul>"
+                  f"<p>All within timebox: <strong>{walkthrough_result['all_within_timebox']}</strong></p></div>")
+        body = f"""
+<div class="card"><h2>Incident — {html.escape(inc['title'])}</h2>
+<p><a href="/project05/incidents">← Incidents</a> · <a href="/project05">P05 home</a></p>
+<p>Severity {html.escape(inc['severity'])} · status <strong>{html.escape(inc['status'])}</strong> ·
+opened by {html.escape(inc['actor'] or '')} at {html.escape(inc['created_at'])}</p>
+<p>Resolution note: {html.escape(inc.get('resolution_note') or '—')}</p>
+<h3>Timeline</h3><ul class="timeline">{timeline}</ul>
+<h3>Transition</h3>
+<form method="post" action="/project05/incidents/{inc['id']}/transition">
+<label>To <select name="to_status"><option>triaged</option><option>mitigating</option><option>resolved</option><option>closed</option><option>open</option></select></label>
+<label>Note (required to resolve) <input name="note"></label>
+<button type="submit">Transition</button></form>
+<h3>Add a note</h3>
+<form method="post" action="/project05/incidents/{inc['id']}/notes">
+<label>Note <input name="note" required></label>
+<button type="submit">Add note</button></form></div>
+{self._p05_err_html(errors)}
+{wt}
+"""
+        return _html(200, f"P05 — {inc['title']}", body)
+
+    def p05_incident_transition_submit(self, incident_id: str, environ: dict):
+        data = self._p05_form(environ)
+        conn = self._conn()
+        try:
+            try:
+                gov_service.transition_incident(
+                    conn, int(incident_id), data.get("to_status", "").strip(),
+                    actor="web", note=data.get("note", ""))
+            except gov_service.GovError as exc:
+                return self.p05_incident_detail(incident_id, environ, {"transition": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", f"/project05/incidents/{incident_id}")], b""
+
+    def p05_incident_note_submit(self, incident_id: str, environ: dict):
+        data = self._p05_form(environ)
+        conn = self._conn()
+        try:
+            try:
+                gov_service.add_incident_note(
+                    conn, int(incident_id), data.get("note", ""), actor="web")
+            except gov_service.GovError as exc:
+                return self.p05_incident_detail(incident_id, environ, {"note": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", f"/project05/incidents/{incident_id}")], b""
+
+    def p05_jobs_page(self, errors: Optional[dict] = None):
+        conn = self._conn()
+        try:
+            jobs = gov_service.list_jobs(conn)
+            policies = gov_service.list_policies(conn)
+            dead = gov_service.list_dead_letters(conn)
+        finally:
+            conn.close()
+        j_rows = "".join(
+            f"<tr><td>{j['id']}</td><td>{html.escape(j['name'])}</td>"
+            f"<td>{html.escape(j['status'])}</td><td>{j['attempts']}</td>"
+            f"<td>{html.escape(j['next_run_at'])}</td>"
+            f"<td>{html.escape(j.get('last_error') or '')}</td>"
+            f"<td><form method=\"post\" action=\"/project05/jobs/{j['id']}/attempt\">"
+            f"<select name=\"outcome\"><option>success</option><option>failure</option></select> "
+            f"<input name=\"error\" placeholder=\"error (if failure)\"> "
+            f"<button type=\"submit\">Attempt</button></form></td></tr>"
+            for j in jobs
+        ) or "<tr><td colspan=\"7\"><em>No jobs yet.</em></td></tr>"
+        d_rows = "".join(
+            f"<tr><td>{d['id']}</td><td>{d['job_id']}</td><td>{d['attempts']}</td>"
+            f"<td>{html.escape(d.get('last_error') or '')}</td><td>{html.escape(d['status'])}</td>"
+            f"<td><form method=\"post\" action=\"/project05/dead-letters/{d['id']}/replay\">"
+            f"<button type=\"submit\">Replay</button></form></td></tr>"
+            for d in dead
+        ) or "<tr><td colspan=\"6\"><em>No dead letters.</em></td></tr>"
+        pol_opts = "".join(
+            f"<option value=\"{p['id']}\">{html.escape(p['name'])} (v{p['version']})</option>"
+            for p in policies)
+        body = f"""
+<div class="card"><h2>P05 — Retry jobs</h2>
+<p><a href="/project05">← Back to P05</a></p>
+<p>Jobs execute no real work here: an attempt records the outcome the
+caller reports. On failure the job's policy computes the next delay
+(exponential backoff, capped, deterministic jitter); at the limit the job
+is dead-lettered. Replay requeues a dead letter as a fresh job.</p></div>
+{self._p05_err_html(errors)}
+<div class="card"><h3>Jobs</h3>
+<table><tr><th>ID</th><th>Name</th><th>Status</th><th>Attempts</th><th>Next run</th><th>Last error</th><th>Attempt</th></tr>{j_rows}</table>
+<h3>Dead letters</h3>
+<table><tr><th>ID</th><th>Job</th><th>Attempts</th><th>Last error</th><th>Status</th><th>Action</th></tr>{d_rows}</table>
+<h3>Create a job</h3>
+<form method="post" action="/project05/jobs">
+<label>Name <input name="name" required></label>
+<label>Policy <select name="policy_id">{pol_opts}</select></label>
+<label>Payload (JSON) <textarea name="payload" rows="2">{{"endpoint": "stub:crm-sink"}}</textarea></label>
+<button type="submit">Create job</button></form></div>
+"""
+        return _html(200, "P05 — Retry jobs", body)
+
+    def p05_create_job_submit(self, environ: dict):
+        data = self._p05_form(environ)
+        try:
+            payload = json.loads(data.get("payload", "") or "{}")
+            policy_id = int(data.get("policy_id", "0"))
+        except ValueError:
+            return self.p05_jobs_page({"job": "Payload must be valid JSON; policy must be a number."})
+        conn = self._conn()
+        try:
+            try:
+                gov_service.create_job(conn, data.get("name", "").strip(),
+                                       policy_id, payload, actor="web")
+            except gov_service.GovError as exc:
+                return self.p05_jobs_page({"job": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", "/project05/jobs")], b""
+
+    def p05_attempt_job_submit(self, job_id: str, environ: dict):
+        data = self._p05_form(environ)
+        conn = self._conn()
+        try:
+            try:
+                gov_service.attempt_job(conn, int(job_id),
+                                        data.get("outcome", "").strip(),
+                                        error=data.get("error", ""),
+                                        actor="web")
+            except gov_service.GovError as exc:
+                return self.p05_jobs_page({"attempt": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", "/project05/jobs")], b""
+
+    def p05_replay_dead_letter_submit(self, dead_letter_id: str, environ: dict):
+        conn = self._conn()
+        try:
+            try:
+                gov_service.replay_dead_letter(conn, int(dead_letter_id), actor="web")
+            except gov_service.GovError as exc:
+                return self.p05_jobs_page({"replay": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", "/project05/jobs")], b""
+
+    def p05_rules_page(self, errors: Optional[dict] = None):
+        conn = self._conn()
+        try:
+            rules = gov_service.list_rules(conn)
+            checks = gov_service.list_checks(conn)
+        finally:
+            conn.close()
+        rows = "".join(
+            f"<tr><td>{html.escape(r['name'])}</td><td>{html.escape(r.get('check_name') or 'any')}</td>"
+            f"<td>{html.escape(r['metric'])}</td><td>{html.escape(r['operator'])}</td>"
+            f"<td>{html.escape(r['threshold'])}</td><td>{html.escape(r['severity'])}</td>"
+            f"<td>{html.escape(r['owner'])}</td><td>{r['dedup_window_s']}s</td>"
+            f"<td>{html.escape(r['status'])}</td>"
+            f"<td>{html.escape(r.get('silenced_until') or '')}</td>"
+            f"<td><form method=\"post\" action=\"/project05/rules/{r['id']}/silence\">"
+            f"<input name=\"until\" placeholder=\"2099-01-01T00:00:00+00:00\" required> "
+            f"<button type=\"submit\">Silence</button></form></td></tr>"
+            for r in rules
+        ) or "<tr><td colspan=\"11\"><em>No rules yet.</em></td></tr>"
+        check_opts = "".join(
+            f"<option>{html.escape(c['name'])}</option>" for c in checks)
+        body = f"""
+<div class="card"><h2>P05 — Alerting rules</h2>
+<p><a href="/project05">← Back to P05</a></p>
+<p>A rule watches one check's metric (or any check) and fires an alert when
+the comparison holds. Firing is recorded only — nothing is sent. Repeat
+firings inside the dedup window bump the alert's count. A silenced rule is
+skipped and the suppression is audit-logged.</p></div>
+{self._p05_err_html(errors)}
+<div class="card"><h3>Rules</h3>
+<table><tr><th>Name</th><th>Check</th><th>Metric</th><th>Op</th><th>Threshold</th><th>Severity</th><th>Owner</th><th>Dedup</th><th>Status</th><th>Silenced until</th><th>Silence</th></tr>{rows}</table>
+<h3>Create a rule</h3>
+<form method="post" action="/project05/rules">
+<label>Name <input name="name" required></label>
+<label>Check (blank = any) <select name="check_name"><option value=""></option>{check_opts}</select></label>
+<label>Metric <input name="metric" value="value"></label>
+<label>Operator <select name="operator"><option>gt</option><option>gte</option><option>lt</option><option>lte</option><option>eq</option><option>ne</option></select></label>
+<label>Threshold <input name="threshold" value="0"></label>
+<label>Severity <select name="severity"><option>critical</option><option>high</option><option>medium</option><option>low</option><option>info</option></select></label>
+<label>Owner <input name="owner" value="on-call"></label>
+<label>Dedup window (seconds) <input name="dedup_window_s" value="3600"></label>
+<button type="submit">Create rule</button></form></div>
+"""
+        return _html(200, "P05 — Alerting rules", body)
+
+    def p05_create_rule_submit(self, environ: dict):
+        data = self._p05_form(environ)
+        try:
+            dedup = int(data.get("dedup_window_s", "3600") or 3600)
+        except ValueError:
+            return self.p05_rules_page({"rule": "Dedup window must be a number."})
+        conn = self._conn()
+        try:
+            try:
+                gov_service.create_rule(
+                    conn, data.get("name", "").strip(),
+                    (data.get("check_name", "") or "").strip() or None,
+                    data.get("metric", "value").strip(),
+                    data.get("operator", "gt").strip(),
+                    data.get("threshold", "0").strip(),
+                    data.get("severity", "medium").strip(),
+                    owner=data.get("owner", "on-call").strip(),
+                    dedup_window_s=dedup, actor="web")
+            except gov_service.GovError as exc:
+                return self.p05_rules_page({"rule": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", "/project05/rules")], b""
+
+    def p05_silence_rule_submit(self, rule_id: str, environ: dict):
+        data = self._p05_form(environ)
+        conn = self._conn()
+        try:
+            try:
+                gov_service.silence_rule(conn, int(rule_id),
+                                         data.get("until", "").strip(),
+                                         actor="web")
+            except gov_service.GovError as exc:
+                return self.p05_rules_page({"silence": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", "/project05/rules")], b""
+
+    def p05_policies_page(self, errors: Optional[dict] = None):
+        conn = self._conn()
+        try:
+            policies = gov_service.list_policies(conn, include_superseded=True)
+        finally:
+            conn.close()
+        rows = "".join(
+            f"<tr><td>{html.escape(p['name'])}</td><td>v{p['version']}</td>"
+            f"<td>{html.escape(p['status'])}</td><td>{p['max_attempts']}</td>"
+            f"<td>{p['backoff_base_s']}s</td><td>{p['backoff_cap_s']}s</td>"
+            f"<td>{p['jitter_max_s']}s</td><td>{p['dead_letter_after']}</td></tr>"
+            for p in policies
+        ) or "<tr><td colspan=\"8\"><em>No policies yet.</em></td></tr>"
+        body = f"""
+<div class="card"><h2>P05 — Retry policies</h2>
+<p><a href="/project05">← Back to P05</a></p>
+<p>Policies are versioned data: max attempts, exponential-backoff base and
+cap, deterministic jitter bound, and the attempt count at which a job is
+dead-lettered. Superseding creates a new version; existing jobs keep the
+version they were created with.</p></div>
+{self._p05_err_html(errors)}
+<div class="card"><h3>Policies</h3>
+<table><tr><th>Name</th><th>Version</th><th>Status</th><th>Max attempts</th><th>Base</th><th>Cap</th><th>Jitter</th><th>Dead-letter after</th></tr>{rows}</table>
+<h3>Create a policy</h3>
+<form method="post" action="/project05/policies">
+<label>Name <input name="name" required></label>
+<label>Max attempts <input name="max_attempts" value="5"></label>
+<label>Backoff base (s) <input name="backoff_base_s" value="30"></label>
+<label>Backoff cap (s) <input name="backoff_cap_s" value="3600"></label>
+<label>Jitter max (s) <input name="jitter_max_s" value="0"></label>
+<label>Dead-letter after <input name="dead_letter_after" value="5"></label>
+<label>Description <input name="description"></label>
+<button type="submit">Create policy</button></form>
+<h3>Supersede a policy</h3>
+<form method="post" action="/project05/policies/supersede">
+<label>Name <input name="name" required></label>
+<label>Max attempts <input name="max_attempts" value="5"></label>
+<label>Backoff base (s) <input name="backoff_base_s" value="30"></label>
+<label>Backoff cap (s) <input name="backoff_cap_s" value="3600"></label>
+<label>Jitter max (s) <input name="jitter_max_s" value="0"></label>
+<label>Dead-letter after <input name="dead_letter_after" value="5"></label>
+<label>Description <input name="description"></label>
+<button type="submit">Supersede (new version)</button></form></div>
+"""
+        return _html(200, "P05 — Retry policies", body)
+
+    def _p05_policy_fields(self, data: dict):
+        return {
+            "max_attempts": int(data.get("max_attempts", "5") or 5),
+            "backoff_base_s": float(data.get("backoff_base_s", "30") or 30),
+            "backoff_cap_s": float(data.get("backoff_cap_s", "3600") or 3600),
+            "jitter_max_s": float(data.get("jitter_max_s", "0") or 0),
+            "dead_letter_after": int(data.get("dead_letter_after", "") or 0) or None,
+        }
+
+    def p05_create_policy_submit(self, environ: dict):
+        data = self._p05_form(environ)
+        try:
+            fields = self._p05_policy_fields(data)
+        except ValueError:
+            return self.p05_policies_page({"policy": "Policy numbers must be numbers."})
+        conn = self._conn()
+        try:
+            try:
+                gov_service.create_policy(
+                    conn, data.get("name", "").strip(),
+                    description=data.get("description", "").strip(),
+                    actor="web", **fields)
+            except gov_service.GovError as exc:
+                return self.p05_policies_page({"policy": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", "/project05/policies")], b""
+
+    def p05_supersede_policy_submit(self, environ: dict):
+        data = self._p05_form(environ)
+        try:
+            fields = self._p05_policy_fields(data)
+        except ValueError:
+            return self.p05_policies_page({"policy": "Policy numbers must be numbers."})
+        conn = self._conn()
+        try:
+            try:
+                gov_service.supersede_policy(
+                    conn, data.get("name", "").strip(),
+                    description=data.get("description", "").strip(),
+                    actor="web", **fields)
+            except gov_service.GovError as exc:
+                return self.p05_policies_page({"policy": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", "/project05/policies")], b""
+
+    def p05_runbooks_page(self, errors: Optional[dict] = None):
+        conn = self._conn()
+        try:
+            runbooks = gov_service.list_runbooks(conn, include_superseded=True)
+        finally:
+            conn.close()
+        rows = "".join(
+            f"<tr><td><a href=\"/project05/runbooks/{r['id']}\">{html.escape(r['name'])}</a></td>"
+            f"<td>v{r['version']}</td><td>{html.escape(r['status'])}</td>"
+            f"<td>{html.escape(r['alert_key'])}</td><td>{len(r['steps_json'])} steps</td></tr>"
+            for r in runbooks
+        ) or "<tr><td colspan=\"5\"><em>No runbooks yet.</em></td></tr>"
+        body = f"""
+<div class="card"><h2>P05 — Runbooks</h2>
+<p><a href="/project05">← Back to P05</a></p>
+<p>Runbooks are versioned data: steps with time boxes, keyed to an alert
+key (usually a severity). The walkthrough harness times each step against
+its box.</p></div>
+{self._p05_err_html(errors)}
+<div class="card"><h3>Runbooks</h3>
+<table><tr><th>Name</th><th>Version</th><th>Status</th><th>Alert key</th><th>Steps</th></tr>{rows}</table>
+<h3>Create a runbook</h3>
+<form method="post" action="/project05/runbooks">
+<label>Name <input name="name" required></label>
+<label>Alert key <input name="alert_key" required></label>
+<label>Steps (JSON) <textarea name="steps" rows="4">[{{\"step\": \"acknowledge\", \"action\": \"Open an incident.\", \"timebox_s\": 900}}]</textarea></label>
+<button type="submit">Create runbook</button></form></div>
+"""
+        return _html(200, "P05 — Runbooks", body)
+
+    def p05_create_runbook_submit(self, environ: dict):
+        data = self._p05_form(environ)
+        try:
+            steps = json.loads(data.get("steps", ""))
+        except ValueError:
+            return self.p05_runbooks_page({"steps": "Steps must be valid JSON."})
+        conn = self._conn()
+        try:
+            try:
+                rb = gov_service.create_runbook(
+                    conn, data.get("name", "").strip(),
+                    data.get("alert_key", "").strip(), steps, actor="web")
+            except gov_service.GovError as exc:
+                return self.p05_runbooks_page({"runbook": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", f"/project05/runbooks/{rb['id']}")], b""
+
+    def p05_runbook_detail(self, runbook_id: str, environ: dict,
+                           errors: Optional[dict] = None,
+                           walkthrough_result: Optional[dict] = None):
+        conn = self._conn()
+        try:
+            try:
+                rb = gov_service.get_runbook(conn, int(runbook_id))
+            except gov_service.GovError as exc:
+                return _html(404, "P05 — Runbook", f"<p class='errors'>{html.escape(str(exc))}</p><p><a href=\"/project05/runbooks\">Back</a></p>")
+        finally:
+            conn.close()
+        steps = "".join(
+            f"<tr><td>{html.escape(s['step'])}</td><td>{html.escape(s['action'])}</td>"
+            f"<td>{s['timebox_s']}s</td></tr>" for s in rb["steps_json"])
+        wt = ""
+        if walkthrough_result is not None:
+            wsteps = "".join(
+                f"<li>{html.escape(s['step'])} — {s['elapsed_s']:.3f}s / {s['timebox_s']}s "
+                f"({'within' if s['within_timebox'] else 'OVER'} timebox)</li>"
+                for s in walkthrough_result["steps"])
+            wt = (f"<div class=\"card\"><h3>Walkthrough result</h3><ul>{wsteps}</ul>"
+                  f"<p>All within timebox: <strong>{walkthrough_result['all_within_timebox']}</strong> · "
+                  f"wall elapsed {walkthrough_result['wall_elapsed_s']:.3f}s</p></div>")
+        body = f"""
+<div class="card"><h2>Runbook — {html.escape(rb['name'])} (v{rb['version']})</h2>
+<p><a href="/project05/runbooks">← Runbooks</a> · <a href="/project05">P05 home</a></p>
+<p>Alert key <code>{html.escape(rb['alert_key'])}</code> · status {html.escape(rb['status'])}</p>
+<table><tr><th>Step</th><th>Action</th><th>Time box</th></tr>{steps}</table>
+<form method="post" action="/project05/runbooks/{rb['id']}/walkthrough">
+<button type="submit">Run walkthrough</button></form>
+<h3>Supersede</h3>
+<form method="post" action="/project05/runbooks/{rb['id']}/supersede">
+<label>Alert key <input name="alert_key" value="{html.escape(rb['alert_key'])}"></label>
+<label>Steps (JSON) <textarea name="steps" rows="4">{html.escape(json.dumps(rb['steps_json']))}</textarea></label>
+<button type="submit">Supersede (new version)</button></form></div>
+{self._p05_err_html(errors)}
+{wt}
+"""
+        return _html(200, f"P05 — {rb['name']}", body)
+
+    def p05_walkthrough_submit(self, runbook_id: str, environ: dict):
+        conn = self._conn()
+        try:
+            try:
+                result = gov_service.walkthrough(conn, int(runbook_id))
+            except gov_service.GovError as exc:
+                return self.p05_runbook_detail(runbook_id, environ, {"walkthrough": str(exc)})
+        finally:
+            conn.close()
+        return self.p05_runbook_detail(runbook_id, environ,
+                                       walkthrough_result=result)
+
+    def p05_supersede_runbook_submit(self, runbook_id: str, environ: dict):
+        data = self._p05_form(environ)
+        try:
+            steps = json.loads(data.get("steps", ""))
+        except ValueError:
+            return self.p05_runbook_detail(runbook_id, environ, {"steps": "Steps must be valid JSON."})
+        conn = self._conn()
+        try:
+            try:
+                current = gov_service.get_runbook(conn, int(runbook_id))
+                new = gov_service.supersede_runbook(
+                    conn, current["name"], data.get("alert_key", "").strip(),
+                    steps, actor="web")
+            except gov_service.GovError as exc:
+                return self.p05_runbook_detail(runbook_id, environ, {"runbook": str(exc)})
+        finally:
+            conn.close()
+        return 303, [("Location", f"/project05/runbooks/{new['id']}")], b""
+
+    # ---- P05 JSON API ------------------------------------------------------
+    def api_gov_status(self):
+        conn = self._conn()
+        try:
+            return _json(200, {"status": gov_service.status_summary(conn)})
+        finally:
+            conn.close()
+
+    def api_gov_seed(self):
+        conn = self._conn()
+        try:
+            created = gov_service.seed_demo_data(conn, actor="api")
+        finally:
+            conn.close()
+        return _json(200, {"created": created})
+
+    def api_gov_create_check(self, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                check = gov_service.create_check(
+                    conn, str(data.get("name", "")).strip(),
+                    str(data.get("subsystem", "db")).strip(),
+                    str(data.get("kind", "liveness")).strip(),
+                    str(data.get("probe", "db_reachable")).strip(),
+                    data.get("params") or {},
+                    float(data.get("warn_threshold", 0)),
+                    float(data.get("fail_threshold", 0)),
+                    str(data.get("description", "")).strip(),
+                    actor=str(data.get("actor", "api")).strip() or "api")
+            except (gov_service.GovError, ValueError, TypeError) as exc:
+                return self._p05_error(exc) if isinstance(exc, gov_service.GovError) \
+                    else _json(422, _error_envelope("validation_failed", str(exc)))
+        finally:
+            conn.close()
+        return _json(201, {"check": check})
+
+    def api_gov_list_checks(self):
+        conn = self._conn()
+        try:
+            return _json(200, {"checks": gov_service.list_checks(conn)})
+        finally:
+            conn.close()
+
+    def api_gov_get_check(self, check_id: str):
+        conn = self._conn()
+        try:
+            try:
+                return _json(200, {"check": gov_service.get_check(conn, int(check_id))})
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+
+    def api_gov_run_check(self, check_id: str, environ: dict):
+        conn = self._conn()
+        try:
+            try:
+                run = gov_service.run_check(conn, int(check_id), actor="api")
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"run": run})
+
+    def api_gov_list_runs(self, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            check_id = int(query["check_id"]) if query.get("check_id") else None
+            runs = gov_service.list_check_runs(conn, check_id)
+        finally:
+            conn.close()
+        return _json(200, {"runs": runs})
+
+    def api_gov_list_policies(self, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            policies = gov_service.list_policies(
+                conn, include_superseded=query.get("all") == "1")
+        finally:
+            conn.close()
+        return _json(200, {"policies": policies})
+
+    def api_gov_create_policy(self, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                policy = gov_service.create_policy(
+                    conn, str(data.get("name", "")).strip(),
+                    max_attempts=int(data.get("max_attempts", 5)),
+                    backoff_base_s=float(data.get("backoff_base_s", 30)),
+                    backoff_cap_s=float(data.get("backoff_cap_s", 3600)),
+                    jitter_max_s=float(data.get("jitter_max_s", 0)),
+                    dead_letter_after=(int(data["dead_letter_after"])
+                                       if data.get("dead_letter_after") is not None else None),
+                    description=str(data.get("description", "")).strip(),
+                    actor=str(data.get("actor", "api")).strip() or "api")
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+            except (ValueError, TypeError) as exc:
+                return _json(422, _error_envelope("validation_failed", str(exc)))
+        finally:
+            conn.close()
+        return _json(201, {"policy": policy})
+
+    def api_gov_supersede_policy(self, policy_id: str, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                current = gov_service.get_policy(conn, int(policy_id))
+                policy = gov_service.supersede_policy(
+                    conn, current["name"],
+                    max_attempts=int(data.get("max_attempts", 5)),
+                    backoff_base_s=float(data.get("backoff_base_s", 30)),
+                    backoff_cap_s=float(data.get("backoff_cap_s", 3600)),
+                    jitter_max_s=float(data.get("jitter_max_s", 0)),
+                    dead_letter_after=(int(data["dead_letter_after"])
+                                       if data.get("dead_letter_after") is not None else None),
+                    description=str(data.get("description", "")).strip(),
+                    actor=str(data.get("actor", "api")).strip() or "api")
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+            except (ValueError, TypeError) as exc:
+                return _json(422, _error_envelope("validation_failed", str(exc)))
+        finally:
+            conn.close()
+        return _json(200, {"policy": policy})
+
+    def api_gov_list_jobs(self, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            try:
+                jobs = gov_service.list_jobs(conn, status=query.get("status") or None)
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"jobs": jobs})
+
+    def api_gov_create_job(self, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                job = gov_service.create_job(
+                    conn, str(data.get("name", "")).strip(),
+                    int(data.get("policy_id", 0)),
+                    payload=data.get("payload") or {},
+                    actor=str(data.get("actor", "api")).strip() or "api")
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+            except (ValueError, TypeError) as exc:
+                return _json(422, _error_envelope("validation_failed", str(exc)))
+        finally:
+            conn.close()
+        return _json(201, {"job": job})
+
+    def api_gov_attempt_job(self, job_id: str, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                job = gov_service.attempt_job(
+                    conn, int(job_id), str(data.get("outcome", "")).strip(),
+                    error=str(data.get("error", "")),
+                    actor=str(data.get("actor", "api")).strip() or "api")
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"job": job})
+
+    def api_gov_list_dead_letters(self, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            try:
+                dead = gov_service.list_dead_letters(
+                    conn, status=query.get("status") or None)
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"dead_letters": dead})
+
+    def api_gov_replay_dead_letter(self, dead_letter_id: str, environ: dict):
+        conn = self._conn()
+        try:
+            try:
+                job = gov_service.replay_dead_letter(
+                    conn, int(dead_letter_id), actor="api")
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+        return _json(201, {"job": job})
+
+    def api_gov_list_rules(self):
+        conn = self._conn()
+        try:
+            return _json(200, {"rules": gov_service.list_rules(conn)})
+        finally:
+            conn.close()
+
+    def api_gov_create_rule(self, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                rule = gov_service.create_rule(
+                    conn, str(data.get("name", "")).strip(),
+                    (str(data.get("check_name", "")).strip() or None),
+                    str(data.get("metric", "value")).strip(),
+                    str(data.get("operator", "gt")).strip(),
+                    data.get("threshold", 0),
+                    str(data.get("severity", "medium")).strip(),
+                    owner=str(data.get("owner", "on-call")).strip(),
+                    dedup_window_s=int(data.get("dedup_window_s", 3600)),
+                    actor=str(data.get("actor", "api")).strip() or "api")
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+            except (ValueError, TypeError) as exc:
+                return _json(422, _error_envelope("validation_failed", str(exc)))
+        finally:
+            conn.close()
+        return _json(201, {"rule": rule})
+
+    def api_gov_silence_rule(self, rule_id: str, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                rule = gov_service.silence_rule(
+                    conn, int(rule_id), str(data.get("until", "")).strip(),
+                    actor=str(data.get("actor", "api")).strip() or "api")
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"rule": rule})
+
+    def api_gov_list_alerts(self, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            try:
+                alerts = gov_service.list_alerts(conn, status=query.get("status") or None)
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"alerts": alerts})
+
+    def api_gov_get_alert(self, alert_id: str):
+        conn = self._conn()
+        try:
+            try:
+                return _json(200, {"alert": gov_service.get_alert(conn, int(alert_id))})
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+
+    def api_gov_ack_alert(self, alert_id: str, environ: dict):
+        conn = self._conn()
+        try:
+            try:
+                alert = gov_service.ack_alert(conn, int(alert_id), actor="api")
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"alert": alert})
+
+    def api_gov_resolve_alert(self, alert_id: str, environ: dict):
+        conn = self._conn()
+        try:
+            try:
+                alert = gov_service.resolve_alert(conn, int(alert_id), actor="api")
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"alert": alert})
+
+    def api_gov_list_runbooks(self, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            runbooks = gov_service.list_runbooks(
+                conn, include_superseded=query.get("all") == "1")
+        finally:
+            conn.close()
+        return _json(200, {"runbooks": runbooks})
+
+    def api_gov_create_runbook(self, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                rb = gov_service.create_runbook(
+                    conn, str(data.get("name", "")).strip(),
+                    str(data.get("alert_key", "")).strip(),
+                    data.get("steps"), actor=str(data.get("actor", "api")).strip() or "api")
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+        return _json(201, {"runbook": rb})
+
+    def api_gov_get_runbook(self, runbook_id: str):
+        conn = self._conn()
+        try:
+            try:
+                return _json(200, {"runbook": gov_service.get_runbook(conn, int(runbook_id))})
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+
+    def api_gov_supersede_runbook(self, runbook_id: str, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                current = gov_service.get_runbook(conn, int(runbook_id))
+                rb = gov_service.supersede_runbook(
+                    conn, current["name"],
+                    str(data.get("alert_key", "")).strip(),
+                    data.get("steps"), actor=str(data.get("actor", "api")).strip() or "api")
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"runbook": rb})
+
+    def api_gov_walkthrough(self, runbook_id: str, environ: dict):
+        conn = self._conn()
+        try:
+            try:
+                result = gov_service.walkthrough(conn, int(runbook_id))
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"walkthrough": result})
+
+    def api_gov_list_incidents(self, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            try:
+                incidents = gov_service.list_incidents(
+                    conn, status=query.get("status") or None)
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"incidents": incidents})
+
+    def api_gov_create_incident(self, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                inc = gov_service.create_incident(
+                    conn, str(data.get("title", "")).strip(),
+                    str(data.get("severity", "medium")).strip(),
+                    source_alert_id=(int(data["source_alert_id"])
+                                     if data.get("source_alert_id") is not None else None),
+                    actor=str(data.get("actor", "api")).strip() or "api")
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+            except (ValueError, TypeError) as exc:
+                return _json(422, _error_envelope("validation_failed", str(exc)))
+        finally:
+            conn.close()
+        return _json(201, {"incident": inc})
+
+    def api_gov_get_incident(self, incident_id: str):
+        conn = self._conn()
+        try:
+            try:
+                return _json(200, {"incident": gov_service.get_incident(conn, int(incident_id))})
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+
+    def api_gov_transition_incident(self, incident_id: str, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                inc = gov_service.transition_incident(
+                    conn, int(incident_id),
+                    str(data.get("to_status", "")).strip(),
+                    actor=str(data.get("actor", "api")).strip() or "api",
+                    note=str(data.get("note", "")))
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"incident": inc})
+
+    def api_gov_add_incident_note(self, incident_id: str, environ: dict):
+        data = self._read_json(environ)
+        conn = self._conn()
+        try:
+            try:
+                inc = gov_service.add_incident_note(
+                    conn, int(incident_id), str(data.get("note", "")),
+                    actor=str(data.get("actor", "api")).strip() or "api")
+            except gov_service.GovError as exc:
+                return self._p05_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"incident": inc})
+
     def hub(self):
         body = """
 <p>Production-style AI automation projects built by Mavenu. Each project is a
@@ -7627,7 +8953,14 @@ execution is recorded, and snapshots report current vs. stale.</p>
 <p><a href="/project04">Open the project</a> · <a href="/project04/queries">Queries</a> ·
 <a href="/project04/runs">Runs</a> · <a href="/project04/compare">Compare periods</a></p></div>
 <div class="card"><h2>Project 05 — Automation Reliability &amp; Governance Center</h2>
-<p><strong>Status:</strong> planned</p></div>
+<p><strong>Status:</strong> implemented + tested (Gate E)</p>
+<p>Health checks (liveness/readiness probes over the local synthetic system),
+retry policies as data with exponential backoff and dead-letter routing,
+alerting rules that record — never send — alerts, versioned runbooks, and an
+incident lifecycle with an actor-stamped timeline. Every state change is
+audit-logged.</p>
+<p><a href="/project05">Open the project</a> · <a href="/project05/checks">Checks</a> ·
+<a href="/project05/alerts">Alerts</a> · <a href="/project05/incidents">Incidents</a></p></div>
 <div class="card"><h2>Q01 — AI Missed-Call Recovery Engine</h2>
 <p><strong>Status:</strong> implemented + tested</p>
 <p>Synthetic missed-call events (CSV or JSON webhook shape) are normalized,

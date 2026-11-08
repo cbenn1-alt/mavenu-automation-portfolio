@@ -168,3 +168,39 @@ DOC_TRANSITIONS: dict[str, set[str]] = {
 
 DOC_WORKFLOW = Workflow(DOC_TRANSITIONS)
 TERMINAL_DOC_STATES = {"accepted", "rejected"}
+
+
+# Project P05 — governance incident lifecycle.
+#   open:       raised (manually or from an alert); not yet worked
+#   triaged:    a human has acknowledged and scoped it
+#   mitigating: a fix or workaround is being applied
+#   resolved:   the cause is fixed; a resolution note is required
+#   closed:     reviewed and closed (terminal, unless reopened)
+# Reopen is allowed from resolved (the fix did not hold) and from closed
+# (the issue recurred). Every transition is actor-stamped on the timeline.
+INCIDENT_TRANSITIONS: dict[str, set[str]] = {
+    "open": {"triaged"},
+    "triaged": {"mitigating"},
+    "mitigating": {"resolved"},
+    "resolved": {"closed", "open"},
+    "closed": {"open"},
+}
+
+INCIDENT_WORKFLOW = Workflow(INCIDENT_TRANSITIONS)
+TERMINAL_INCIDENT_STATES = {"closed"}
+
+
+# Project P05 — alert lifecycle.
+#   open:     firing; nobody has acknowledged it yet
+#   acked:    a human has acknowledged it and owns it
+#   resolved: the underlying condition is fixed (manual; P05 never
+#             auto-resolves — a rule that stops firing is not proof
+#             the condition is fixed, only that it is not observed)
+ALERT_TRANSITIONS: dict[str, set[str]] = {
+    "open": {"acked", "resolved"},
+    "acked": {"resolved"},
+    "resolved": set(),
+}
+
+ALERT_WORKFLOW = Workflow(ALERT_TRANSITIONS)
+TERMINAL_ALERT_STATES = {"resolved"}

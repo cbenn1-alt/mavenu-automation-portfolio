@@ -16,7 +16,7 @@ planned. Nothing here is a mockup presented as software.
 | 02 | [Enterprise Request & Approval Automation](projects/project02/README.md) — request intake, role-based multi-step approvals, SLA escalation, audit trail, ops dashboard | **Implemented + tested (Gate B ✓)** |
 | 03 | [AI Document Intelligence & Exception Management](projects/project03/README.md) — deterministic rule-based document ingestion, field extraction with confidence + provenance, validation, human-gated exception queue | **Implemented + tested (Gate C ✓)** |
 | 04 | [SQL Operations Intelligence](projects/project04/README.md) — versioned saved queries over operational data (allow-list compiler, no raw SQL), drill-down lineage, period comparison, snapshots, audit log | **Implemented + tested (Gate D ✓)** |
-| 05 | Automation Reliability & Governance Center | Planned |
+| 05 | [Automation Reliability & Governance Center](projects/project05/README.md) — health checks, retry policies as data, recorded-only alerting, versioned runbooks, incident lifecycle | **Implemented + tested (Gate E ✓)** |
 
 ## Quickstart (reviewer path, ~3 minutes)
 
