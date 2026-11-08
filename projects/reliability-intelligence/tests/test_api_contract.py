@@ -35,6 +35,7 @@ class V4APIContractTests(unittest.TestCase):
             ("/api/v1/status", "status"),
             ("/api/v1/scope", "scope"),
             ("/api/v1/cases", "cases"),
+            ("/api/v1/demo", "demo"),
             ("/api/v1/contract", "contract"),
         ]:
             with self.subTest(path=path):
@@ -44,7 +45,7 @@ class V4APIContractTests(unittest.TestCase):
                 self.assertEqual(int(headers["Content-Length"]), len(body))
                 doc = json.loads(body)
                 self.assertEqual(doc["api_version"], "v1")
-                self.assertEqual(doc["schema_version"], "1.1.0")
+                self.assertEqual(doc["schema_version"], "1.2.0")
                 self.assertEqual(doc["resource"], resource)
                 self.assertIsInstance(doc["data"], dict)
 
@@ -63,7 +64,7 @@ class V4APIContractTests(unittest.TestCase):
     def test_service_status_explicitly_not_operational(self):
         _, _, body = request("/api/v1/status")
         data = json.loads(body)["data"]
-        self.assertEqual(data["increment"], "V5")
+        self.assertEqual(data["increment"], "V6")
         self.assertIs(data["synthetic_fixtures_available"], True)
         self.assertEqual(data["business_approval"], "pending")
         self.assertFalse(data["validated_customer_problem"])

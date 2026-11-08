@@ -1,52 +1,59 @@
-# Mavenu Reliability Intelligence — V5
+# Mavenu Reliability Intelligence — V6
 
-**State:** Synthetic-only sample maintenance records in a local-only read-only UI and versioned API. No customer data, client engagement, predictions, production authorization or measured operational effects.
+**State:** a reproducible, read-only, *synthetic-only* maintenance-review workflow replay. No customer, Minn-Dak, real operator, production, or predictive-maintenance readiness is claimed.
 
-## Increment register (Mavenu Development Architecture V4, p.42)
+**Standard:** Mavenu AI SaaS Platform Development Architecture V4, p.42. V6 objective = implement end-to-end business workflow; proof = reproducible demo trace.
 
-| Version | Objective | Evidence | Human approval |
-|---|---|---|---|
-| V1 | Repository/CI/environment | Separate local package | Git history not imported |
-| V2 | User, pain point and outcome | Candidate problem charter | Pending |
-| V3 | Minimal user interface/navigation | Four-page shell and smoke tests | Pending |
-| V4 | Versioned API/service boundary | API v1 contract tests | Pending |
-| **V5** | **Representative synthetic fixtures** | **Provenance manifest, 12 fabricated cases, checksums, negative-case tests** | **Pending** |
-| V6 | End-to-end workflow | Not implemented | Pending |
+The separate V1 Git history is not imported. V2–V5 human acceptance and G1/V30, G2/V60 remain pending.
 
-G1/V30 and G2/V60 are not passed.
+## Local use
 
-## Start (Python 3.11+, standard library only)
+Python 3.11+; no third-party runtime dependencies. From the repository root:
 
 ~~~~bash
 cd projects/reliability-intelligence
 PYTHONPATH=src python -m reliability_intelligence validate --json
 PYTHONPATH=src python -m unittest discover -s tests -v
+PYTHONPATH=src python -m reliability_intelligence demo --json
 PYTHONPATH=src python -m reliability_intelligence serve --port 8765
 ~~~~
 
-Browse http://127.0.0.1:8765/ on the same machine. The server binds ONLY to 127.0.0.1 and must not be exposed to the internet.
+Open http://127.0.0.1:8765/ on the same device. The local server binds only 127.0.0.1 and must not be publicly hosted.
 
-UI: / (Overview), /workbench (12 fabricated maintenance records), /evaluation (unmeasured design), /governance (safety restrictions).
+## Synthetic workflow
 
-API: /api/v1/status, /api/v1/scope, /api/v1/cases, /api/v1/contract. GET and HEAD only. Additive schema version **1.1.0**; no new write routes.
+1. Load the 12 verified V5 fabricated case records (six fictional assets).
+2. Check existence of made-up evidence-reference IDs (not actual evidence documents).
+3. Apply transparent, chronological rules: absent reference ID; same asset/failure event within preceding 30 elapsed days. A flag is not an equipment diagnosis or maintenance priority.
+4. Apply four fabricated reviewer-role dispositions from pinned demo_review_script.json; eight cases remain without dispositions. No real person approves or reviews anything.
+5. Emit a deterministic in-memory trace, ordered events and SHA-256 checksum. No file write, database transaction, control command or external work order.
 
-~~~~bash
-curl -i http://127.0.0.1:8765/api/v1/cases
-curl -i http://127.0.0.1:8765/api/v1/contract
-~~~~
+The trace hash demonstrates deterministic reproducibility for fixed code and inputs, not cryptographic signing or an immutable audit history. Reference labels in reference_labels.json are kept separate from workflow code and never exposed through HTTP; this is not a true blinded evaluation.
 
-## Provenance and testing
+## UI and API
 
-- fixtures/cases.json — six invented assets and twelve fabricated work-order-like events.
-- fixtures/reference_labels.json — seeded **illustrative** annotation for internal tests only; never sent in UI or API.
-- fixtures/manifest.json — authorship, date, methods, counts, synthetic-only declarations and Git blob SHA-1 content identifiers.
-- fixtures/README.md — detailed provenance/fields/limits; fixtures.py — integrity and schema validation.
-- tests/test_fixtures.py — 23 new tests for integrity, references, negative cases, and non-disclosure.
+Local UI paths: /, /workbench, **/workflow**, /evaluation, /governance.
 
-Expected aggregate tests: **71** = 12 (V2) + 19 (V3) + 17 (V4) + 23 (V5). Confirm actual CI result before claiming verification.
+Read-only GET/HEAD endpoints:
+- /api/v1/status — software readiness only, not machine health
+- /api/v1/scope — unapproved buyer/problem/outcome hypothesis
+- /api/v1/cases — 12 fabricated maintenance records
+- **/api/v1/demo** — ordered synthetic intake/evidence/rules/scripted disposition/export trace
+- /api/v1/contract — API version and required fields
 
-Git blob SHA-1 identifiers are Git object checksums, not signed attestations. Fixtures are hand authored, are **not statistically representative**, have not undergone independent domain review, and support no savings or reliability inference.
+Schema version 1.2.0. Unknown versions reject with 404; mutating methods reject with 405; invalid pinned inputs fail closed with sanitized 503. No customer/industrial interface exists.
 
-**No live data, personal information, Dynamics 365, Levridge, CMMS/ERP, PLC/SCADA or OT connections; no model, work-order writes, autonomous ranking or production readiness.**
+## Verification and evidence
 
-See docs/DEMO_V5.md, docs/releases/V5.md and docs/API_CONTRACT_V1.md. V6 next: end-to-end synthetic review trace, not a production integration.
+- src/reliability_intelligence/workflow.py — deterministic, side-effect-free replay and trace checksum
+- fixtures/demo_review_script.json + updated manifest — pinned, invented dispositions; no real user actions
+- tests/test_workflow.py — 27 V6 tests, including temporal rules, deterministic trace, invalid scripts, API/CLI/UI behavior
+- docs/WORKFLOW_V6.md — functional contract and non-goals
+- docs/DEMO_V6.md — reviewer reproduction
+- docs/releases/V6.md — six-part release packet
+
+Expected suite: 98 tests (71 earlier plus 27 new). Verify actual GitHub Actions results before asserting passage.
+
+No real maintenance records, payroll data, Dynamics 365/Levridge/Power BI/CMMS/ERP/historian, PLC/SCADA/OT, trained AI, real human sign-off, write-back, downtime measurement, value attribution, ROI or customer authorization.
+
+**V7 next:** structured failure and diagnostic logging, subject to review and release controls.

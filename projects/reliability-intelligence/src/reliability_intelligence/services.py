@@ -1,4 +1,4 @@
-"""V5 read-only service boundary with verified local synthetic fixtures.
+"""V6 read-only services with a deterministic synthetic workflow replay.
 
 No customer connectors, operational data, inference, network calls, mutations,
 or operational decisions. Fixed repository fixtures are validated on read.
@@ -8,23 +8,26 @@ from __future__ import annotations
 
 from typing import Any
 
-from .fixtures import load_fixture_set
+from .fixtures import load_fixture_set, load_demo_review_script
+from .workflow import run_demo
 
-SERVICE_VERSION = "0.5.0"
+SERVICE_VERSION = "0.6.0"
 
 
 def status(charter: dict[str, Any]) -> dict[str, Any]:
     """Return non-sensitive, declarative capabilities, not plant health."""
-    load_fixture_set()  # Fail closed if synthetic fixture integrity is invalid.
+    load_fixture_set()  # Fail closed if fixture integrity is invalid.
+    load_demo_review_script()  # Fail closed if scripted inputs are invalid.
     return {
         "product": charter["product"],
-        "increment": "V5",
+        "increment": "V6",
         "business_approval": "pending",
         "validated_customer_problem": False,
         "mode": "synthetic_only",
         "production_ready": False,
         "operational_data_loaded": False,
         "synthetic_fixtures_available": True,
+        "synthetic_workflow_replay_available": True,
         "model_present": False,
         "external_integrations_enabled": False,
         "ot_or_cmms_writes_enabled": False,
@@ -73,3 +76,8 @@ def cases(charter: dict[str, Any]) -> dict[str, Any]:
         "source": "versioned_local_synthetic_fixture",
         "human_review_enabled": False,
     }
+
+
+def demo(charter: dict[str, Any]) -> dict[str, Any]:
+    """Run V6 in-memory replay, never a plant action or actual approval."""
+    return run_demo(charter)

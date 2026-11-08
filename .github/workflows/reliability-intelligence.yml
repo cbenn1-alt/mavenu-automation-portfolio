@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Validate charter and run V2-V4 contract and UI tests
+      - name: Validate charter and run V2-V6 synthetic workflow regression
         working-directory: projects/reliability-intelligence
         env:
           PYTHONPATH: src

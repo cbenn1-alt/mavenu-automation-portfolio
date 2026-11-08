@@ -1,0 +1,32 @@
+{
+  "fixture_set_id": "SYN-RI-V5-20261107-A",
+  "scripted_only": true,
+  "human_execution": false,
+  "purpose": "Deterministic imitation of a human review role for V6 end-to-end smoke only; not an actual approval",
+  "entries": [
+    {
+      "case_id": "SYN-CASE-001",
+      "reviewer_id": "SYN-REVIEWER-001",
+      "disposition": "acknowledge",
+      "reason_code": "routine_synthetic_review"
+    },
+    {
+      "case_id": "SYN-CASE-004",
+      "reviewer_id": "SYN-REVIEWER-001",
+      "disposition": "investigate_history",
+      "reason_code": "repeat_history_flag"
+    },
+    {
+      "case_id": "SYN-CASE-009",
+      "reviewer_id": "SYN-REVIEWER-001",
+      "disposition": "request_evidence",
+      "reason_code": "missing_evidence_reference"
+    },
+    {
+      "case_id": "SYN-CASE-010",
+      "reviewer_id": "SYN-REVIEWER-001",
+      "disposition": "defer",
+      "reason_code": "further_demo_review"
+    }
+  ]
+}

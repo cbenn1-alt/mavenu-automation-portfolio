@@ -1,4 +1,4 @@
-# Reliability Intelligence API v1 — V5 additive fixture contract
+# Reliability Intelligence API v1 — V6 synthetic workflow addition
 
 **Contract ID:** reliability-intelligence.api.v1
 **Approval:** Technical candidate for local evaluation only. Customer data and external deployment prohibited.
@@ -73,3 +73,12 @@ The API route list and GET/HEAD methods remain unchanged. The versioned cases co
 Status adds synthetic_fixtures_available=true while retaining operational_data_loaded=false, model_present=false and production_ready=false. The v1 contract limits set case_fixtures_loaded=true. Fixture integrity errors return 503 with error.code=fixture_invalid and a non-sensitive message. This is an additive v1 schema update, not a new endpoint or authorization to ingest production data.
 
 The reference_labels.json file is never loaded into user-facing service methods and is not exposed in HTTP responses or the workbench. See fixtures/README.md for file fields, limitations and provenance. No autonomous decision or work-order mutation exists.
+
+
+## V6 additive contract revision — schema 1.2.0
+
+New read-only GET/HEAD /api/v1/demo endpoint returns the deterministic, wholly fictional synthetic workflow trace with resource=demo; the existing endpoints keep their routes and representation envelopes. Software status adds synthetic_workflow_replay_available=true while operational_data_loaded=false and production_ready=false stay unchanged.
+
+The demo response includes run_id, fixture_set_id, rule_version, case_count, scripted_disposition_count, not_dispositioned_count, synthetic_flag_counts, cases, events, event_count, trace_sha256, trace_checksum_kind, trace_persisted=false, real_human_review_performed=false, actual_customer_data_used=false, operational_approval_granted=false, real_work_orders_written=false, external_actions_executed=false, measured_business_outcome=false, and explanation.
+
+The checksum is for repeatability of canonical in-memory event JSON only. The four scripted dispositions are not human decisions and eight cases remain undispositioned. Missing/bad fixture or script yields sanitized HTTP 503 with error.code=fixture_invalid; POST and other unsafe verbs still return 405. No production case actions or external writes are available. Future clients must not treat this synthetic replay as an operational event log.
