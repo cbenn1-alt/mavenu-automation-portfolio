@@ -1,0 +1,516 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V13",
+  "objective": "Reject impossible, null, and out-of-range values",
+  "required_proof": "Negative-case fixtures",
+  "corpus_status": "SYNTHETIC_NEGATIVE_CONTROLS_NOT_CUSTOMER_APPROVED",
+  "source_baseline_commit": "704123eca45628bf504594af39a66036cc0451c5",
+  "source_dictionary": "docs/data/SOURCE_FIELD_DICTIONARY_V11.json",
+  "schema_contract": "docs/data/SCHEMA_CONTRACT_V12.json",
+  "source_fixture_set_id": "SYN-RI-V5-20261107-A",
+  "expected_negative_count": 29,
+  "expected_boundary_control_count": 7,
+  "governance": {
+    "formal_phase_02_approved": false,
+    "v10_formal_decision": "PENDING_HUMAN_SIGNOFF",
+    "v10_promotion_recommendation": "BLOCKED",
+    "v11_dictionary_approved": false,
+    "v12_schema_owner_approved": false,
+    "customer_data_authorized": false,
+    "production_approved": false,
+    "reviewer_name": null,
+    "reviewer_signature": null
+  },
+  "non_goals": [
+    "No real customer/plant data, no PII or live integration.",
+    "Numeric limits (0-240 hours; 0-1000000 USD) are synthetic fixture constraints not engineering safety thresholds.",
+    "Dates validate Gregorian calendar feasibility but do not prove plant clock accuracy or event provenance.",
+    "A zero duration or zero cost is allowed per existing V11 contract; no unsupported physics or economics is invented.",
+    "No changes to V10 frozen V9 source, existing V11 dictionary or V12 contract."
+  ],
+  "negative_cases": [
+    {
+      "case_id": "NULL-CASE-ID",
+      "category": "null",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "case_id"
+      },
+      "mutation": {
+        "action": "set",
+        "value": null
+      },
+      "expected_error": "null_required_field"
+    },
+    {
+      "case_id": "NULL-EVENT-UTC",
+      "category": "null",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "mutation": {
+        "action": "set",
+        "value": null
+      },
+      "expected_error": "null_required_field"
+    },
+    {
+      "case_id": "NULL-DOWNTIME",
+      "category": "null",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "downtime_hours"
+      },
+      "mutation": {
+        "action": "set",
+        "value": null
+      },
+      "expected_error": "null_required_field"
+    },
+    {
+      "case_id": "NULL-REPAIR-COST",
+      "category": "null",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "repair_cost_usd"
+      },
+      "mutation": {
+        "action": "set",
+        "value": null
+      },
+      "expected_error": "null_required_field"
+    },
+    {
+      "case_id": "NULL-EVIDENCE-LIST",
+      "category": "null",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "evidence_refs"
+      },
+      "mutation": {
+        "action": "set",
+        "value": null
+      },
+      "expected_error": "null_required_field"
+    },
+    {
+      "case_id": "NULL-ASSET-ORIGIN",
+      "category": "null",
+      "target": {
+        "dataset": "asset_records",
+        "row_index": 0,
+        "field": "synthetic"
+      },
+      "mutation": {
+        "action": "set",
+        "value": null
+      },
+      "expected_error": "null_required_field"
+    },
+    {
+      "case_id": "NULL-REVIEW-ACTION",
+      "category": "null",
+      "target": {
+        "dataset": "scripted_review_entries",
+        "row_index": 0,
+        "field": "disposition"
+      },
+      "mutation": {
+        "action": "set",
+        "value": null
+      },
+      "expected_error": "null_required_field"
+    },
+    {
+      "case_id": "NULL-SEEDED-LABEL",
+      "category": "null",
+      "target": {
+        "dataset": "seeded_reference_labels",
+        "row_index": 0,
+        "field": "expected_review_label"
+      },
+      "mutation": {
+        "action": "set",
+        "value": null
+      },
+      "expected_error": "null_required_field"
+    },
+    {
+      "case_id": "RANGE-NEGATIVE-DOWNTIME",
+      "category": "out_of_range",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "downtime_hours"
+      },
+      "mutation": {
+        "action": "set",
+        "value": -0.1
+      },
+      "expected_error": "numeric_out_of_range"
+    },
+    {
+      "case_id": "RANGE-EXCESS-DOWNTIME",
+      "category": "out_of_range",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "downtime_hours"
+      },
+      "mutation": {
+        "action": "set",
+        "value": 240.01
+      },
+      "expected_error": "numeric_out_of_range"
+    },
+    {
+      "case_id": "RANGE-NEGATIVE-COST",
+      "category": "out_of_range",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "repair_cost_usd"
+      },
+      "mutation": {
+        "action": "set",
+        "value": -0.01
+      },
+      "expected_error": "numeric_out_of_range"
+    },
+    {
+      "case_id": "RANGE-EXCESS-COST",
+      "category": "out_of_range",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "repair_cost_usd"
+      },
+      "mutation": {
+        "action": "set",
+        "value": 1000000.01
+      },
+      "expected_error": "numeric_out_of_range"
+    },
+    {
+      "case_id": "NONFINITE-NAN-COST",
+      "category": "nonfinite",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "repair_cost_usd"
+      },
+      "mutation": {
+        "action": "special",
+        "value": "nan"
+      },
+      "expected_error": "nonfinite_numeric"
+    },
+    {
+      "case_id": "NONFINITE-INF-DOWNTIME",
+      "category": "nonfinite",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "downtime_hours"
+      },
+      "mutation": {
+        "action": "special",
+        "value": "positive_infinity"
+      },
+      "expected_error": "nonfinite_numeric"
+    },
+    {
+      "case_id": "NONFINITE-MINUS-INF-COST",
+      "category": "nonfinite",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "repair_cost_usd"
+      },
+      "mutation": {
+        "action": "special",
+        "value": "negative_infinity"
+      },
+      "expected_error": "nonfinite_numeric"
+    },
+    {
+      "case_id": "DATE-NONLEAP-FEB29",
+      "category": "impossible",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "mutation": {
+        "action": "set",
+        "value": "2026-02-29T10:00:00Z"
+      },
+      "expected_error": "impossible_calendar_timestamp"
+    },
+    {
+      "case_id": "DATE-FEB30",
+      "category": "impossible",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "mutation": {
+        "action": "set",
+        "value": "2026-02-30T10:00:00Z"
+      },
+      "expected_error": "impossible_calendar_timestamp"
+    },
+    {
+      "case_id": "DATE-MONTH13",
+      "category": "impossible",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "mutation": {
+        "action": "set",
+        "value": "2026-13-01T10:00:00Z"
+      },
+      "expected_error": "impossible_calendar_timestamp"
+    },
+    {
+      "case_id": "DATE-HOUR25",
+      "category": "impossible",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "mutation": {
+        "action": "set",
+        "value": "2026-01-05T25:00:00Z"
+      },
+      "expected_error": "impossible_calendar_timestamp"
+    },
+    {
+      "case_id": "DUPLICATE-ASSET-ID",
+      "category": "impossible",
+      "target": {
+        "dataset": "asset_records",
+        "row_index": 1,
+        "field": "asset_id"
+      },
+      "mutation": {
+        "action": "copy",
+        "source_row_index": 0
+      },
+      "expected_error": "duplicate_asset_id"
+    },
+    {
+      "case_id": "DUPLICATE-CASE-ID",
+      "category": "impossible",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 1,
+        "field": "case_id"
+      },
+      "mutation": {
+        "action": "copy",
+        "source_row_index": 0
+      },
+      "expected_error": "duplicate_case_id"
+    },
+    {
+      "case_id": "DUPLICATE-WORK-ORDER",
+      "category": "impossible",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 1,
+        "field": "work_order_ref"
+      },
+      "mutation": {
+        "action": "copy",
+        "source_row_index": 0
+      },
+      "expected_error": "duplicate_work_order_reference"
+    },
+    {
+      "case_id": "UNKNOWN-CASE-ASSET",
+      "category": "impossible",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "asset_id"
+      },
+      "mutation": {
+        "action": "set",
+        "value": "SYN-ASSET-999"
+      },
+      "expected_error": "unknown_asset_reference"
+    },
+    {
+      "case_id": "UNKNOWN-SCRIPT-CASE",
+      "category": "impossible",
+      "target": {
+        "dataset": "scripted_review_entries",
+        "row_index": 0,
+        "field": "case_id"
+      },
+      "mutation": {
+        "action": "set",
+        "value": "SYN-CASE-999"
+      },
+      "expected_error": "unknown_case_reference"
+    },
+    {
+      "case_id": "UNKNOWN-LABEL-CASE",
+      "category": "impossible",
+      "target": {
+        "dataset": "seeded_reference_labels",
+        "row_index": 0,
+        "field": "case_id"
+      },
+      "mutation": {
+        "action": "set",
+        "value": "SYN-CASE-999"
+      },
+      "expected_error": "unknown_case_reference"
+    },
+    {
+      "case_id": "DUPLICATE-SCRIPT-CASE",
+      "category": "impossible",
+      "target": {
+        "dataset": "scripted_review_entries",
+        "row_index": 1,
+        "field": "case_id"
+      },
+      "mutation": {
+        "action": "copy",
+        "source_row_index": 0
+      },
+      "expected_error": "duplicate_review_case"
+    },
+    {
+      "case_id": "DUPLICATE-LABEL-CASE",
+      "category": "impossible",
+      "target": {
+        "dataset": "seeded_reference_labels",
+        "row_index": 1,
+        "field": "case_id"
+      },
+      "mutation": {
+        "action": "copy",
+        "source_row_index": 0
+      },
+      "expected_error": "duplicate_label_case"
+    },
+    {
+      "case_id": "DUPLICATE-EVIDENCE-REF",
+      "category": "impossible",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "evidence_refs"
+      },
+      "mutation": {
+        "action": "set",
+        "value": [
+          "SYN-EV-001",
+          "SYN-EV-001"
+        ]
+      },
+      "expected_error": "duplicate_evidence_reference"
+    },
+    {
+      "case_id": "TOO-MANY-EVIDENCE-REFS",
+      "category": "out_of_range",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "evidence_refs"
+      },
+      "mutation": {
+        "action": "set",
+        "value": [
+          "SYN-EV-001",
+          "SYN-EV-002",
+          "SYN-EV-003",
+          "SYN-EV-004"
+        ]
+      },
+      "expected_error": "evidence_ref_count_out_of_range"
+    }
+  ],
+  "valid_boundary_controls": [
+    {
+      "case_id": "BOUNDARY-ZERO-DOWNTIME",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "downtime_hours"
+      },
+      "value": 0
+    },
+    {
+      "case_id": "BOUNDARY-MAX-DOWNTIME",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "downtime_hours"
+      },
+      "value": 240
+    },
+    {
+      "case_id": "BOUNDARY-ZERO-COST",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "repair_cost_usd"
+      },
+      "value": 0
+    },
+    {
+      "case_id": "BOUNDARY-MAX-COST",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "repair_cost_usd"
+      },
+      "value": 1000000
+    },
+    {
+      "case_id": "VALID-LEAP-DAY",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "occurred_at_utc"
+      },
+      "value": "2028-02-29T12:30:00Z"
+    },
+    {
+      "case_id": "EMPTY-EVIDENCE-ALLOWED",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "evidence_refs"
+      },
+      "value": []
+    },
+    {
+      "case_id": "THREE-UNIQUE-REFS-ALLOWED",
+      "target": {
+        "dataset": "case_records",
+        "row_index": 0,
+        "field": "evidence_refs"
+      },
+      "value": [
+        "SYN-EV-001",
+        "SYN-EV-002",
+        "SYN-EV-003"
+      ]
+    }
+  ]
+}
