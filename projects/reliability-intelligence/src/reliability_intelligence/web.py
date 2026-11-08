@@ -1,4 +1,4 @@
-"""V6 local-only read-only UI and versioned API transport."""
+"""V7 read-only UI and API with sanitized diagnostic failure handling."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from pathlib import Path
 from wsgiref.simple_server import make_server
 
 from .charter import InvalidCharter, load_charter
-from . import api_v1
+from . import api_v1, diagnostics
 from .fixtures import InvalidFixture, load_fixture_set
 from .workflow import run_demo
 
@@ -36,6 +36,18 @@ def _response(start_response, status: str, mime: str, body: bytes, method: str, 
     return [] if method == "HEAD" else [body]
 
 
+def _failure_response(start_response, status: str, mime: str, body: bytes,
+                      method: str, *, code: str, stage: str, surface: str, extra=()):
+    """Record allowlisted failure metadata; never derive logs from request text."""
+    info = diagnostics.emit(code, stage=stage, surface=surface)
+    safe_headers = (
+        ("X-Diagnostic-Code", info["code"]),
+        ("X-Diagnostic-ID", info["diagnostic_id"]),
+        *extra,
+    )
+    return _response(start_response, status, mime, body, method, safe_headers)
+
+
 def _navigation(active: str) -> str:
     items = []
     for path, name in ROUTES:
@@ -52,7 +64,7 @@ def _page_content(path: str, charter: dict) -> str:
     goal = escape(str(charter["primary_metric"]["proposed_relative_improvement_pct"]))
     if path == "/":
         return f"""<section class="hero">
-          <p class="eyebrow">V6 / Prototype foundation</p>
+          <p class="eyebrow">V7 / Prototype foundation</p>
           <h1>Maintenance intelligence that keeps people in control.</h1>
           <p class="lead">A proposed, source-traceable review workspace for industrial maintenance teams. This shell contains no customer records, predictions, or production connections.</p>
           <a class="text-link" href="/workbench">Open synthetic case workspace</a>
@@ -162,7 +174,7 @@ def render_page(path: str, charter: dict) -> bytes:
   <div class="app-layout">
     <nav class="sidebar" aria-label="Primary navigation"><p class="nav-label">Workspace</p>{_navigation(path)}</nav>
     <main id="main-content" tabindex="-1">{main}
-      <footer><p>V6 synthetic replay. No live integrations, real reviewer authorization, operational recommendations, measured savings, or Minn-Dak endorsement.</p></footer>
+      <footer><p>V7 safe diagnostics. No live integrations, real reviewer authorization, operational recommendations, measured savings, or Minn-Dak endorsement.</p></footer>
     </main>
   </div>
 </body>
@@ -170,61 +182,100 @@ def render_page(path: str, charter: dict) -> bytes:
 
 
 def app(environ, start_response):
-    """WSGI application; fixed GET/HEAD pages, no user-input mutation path."""
+    """Read-only WSGI transport; failed requests emit metadata-only JSON logs."""
     method = environ.get("REQUEST_METHOD", "GET").upper()
     path = environ.get("PATH_INFO", "/")
     if path.startswith("/api/"):
         if method not in ("GET", "HEAD"):
-            return _response(start_response, "405 Method Not Allowed", api_v1.API_MEDIA_TYPE,
-                             api_v1.serialize(api_v1.error("method_not_allowed", "GET or HEAD only.")),
-                             method, (("Allow", "GET, HEAD"),))
+            return _failure_response(
+                start_response, "405 Method Not Allowed", api_v1.API_MEDIA_TYPE,
+                api_v1.serialize(api_v1.error("method_not_allowed", "GET or HEAD only.")), method,
+                code="method_not_allowed", stage="routing", surface="api",
+                extra=(("Allow", "GET, HEAD"),),
+            )
         if path not in api_v1.ROUTE_DESCRIPTIONS:
-            return _response(start_response, "404 Not Found", api_v1.API_MEDIA_TYPE,
-                             api_v1.serialize(api_v1.error("not_found", "Unknown API resource or version.")),
-                             method)
+            return _failure_response(
+                start_response, "404 Not Found", api_v1.API_MEDIA_TYPE,
+                api_v1.serialize(api_v1.error("not_found", "Unknown API resource or version.")), method,
+                code="not_found", stage="routing", surface="api",
+            )
         try:
             charter = load_charter()
         except InvalidCharter:
-            return _response(start_response, "503 Service Unavailable", api_v1.API_MEDIA_TYPE,
-                             api_v1.serialize(api_v1.error("charter_invalid", "Requirements contract unavailable.")),
-                             method)
+            return _failure_response(
+                start_response, "503 Service Unavailable", api_v1.API_MEDIA_TYPE,
+                api_v1.serialize(api_v1.error("charter_invalid", "Requirements contract unavailable.")), method,
+                code="charter_invalid", stage="charter", surface="api",
+            )
         try:
             payload = api_v1.data_for_path(path, charter)
         except InvalidFixture:
-            return _response(start_response, "503 Service Unavailable", api_v1.API_MEDIA_TYPE,
-                             api_v1.serialize(api_v1.error("fixture_invalid", "Synthetic fixture unavailable.")),
-                             method)
+            return _failure_response(
+                start_response, "503 Service Unavailable", api_v1.API_MEDIA_TYPE,
+                api_v1.serialize(api_v1.error("fixture_invalid", "Synthetic fixture unavailable.")), method,
+                code="fixture_invalid", stage="fixture", surface="api",
+            )
         except (KeyError, ValueError, TypeError):
-            return _response(start_response, "503 Service Unavailable", api_v1.API_MEDIA_TYPE,
-                             api_v1.serialize(api_v1.error("contract_failure", "Versioned response unavailable.")),
-                             method)
+            return _failure_response(
+                start_response, "503 Service Unavailable", api_v1.API_MEDIA_TYPE,
+                api_v1.serialize(api_v1.error("contract_failure", "Versioned response unavailable.")), method,
+                code="contract_failure", stage="contract", surface="api",
+            )
+        except Exception:  # unexpected failures must never expose exceptions to clients
+            return _failure_response(
+                start_response, "500 Internal Server Error", api_v1.API_MEDIA_TYPE,
+                api_v1.serialize(api_v1.error("internal_failure", "Prototype request failed safely.")), method,
+                code="internal_failure", stage="render", surface="api",
+            )
         return _response(start_response, "200 OK", api_v1.API_MEDIA_TYPE,
                          api_v1.serialize(payload), method)
     if method not in ("GET", "HEAD"):
-        return _response(start_response, "405 Method Not Allowed", "text/plain; charset=utf-8",
-                         b"Read-only interface. GET or HEAD only.\n", method, (("Allow", "GET, HEAD"),))
+        return _failure_response(
+            start_response, "405 Method Not Allowed", "text/plain; charset=utf-8",
+            b"Read-only interface. GET or HEAD only.\n", method,
+            code="ui_method_not_allowed", stage="routing", surface="ui",
+            extra=(("Allow", "GET, HEAD"),),
+        )
     if path == "/assets/style.css":
         try:
             data = CSS_PATH.read_bytes()
         except OSError:
-            return _response(start_response, "503 Service Unavailable", "text/plain; charset=utf-8",
-                             b"Stylesheet unavailable.\n", method)
+            return _failure_response(
+                start_response, "503 Service Unavailable", "text/plain; charset=utf-8",
+                b"Stylesheet unavailable.\n", method,
+                code="stylesheet_unavailable", stage="render", surface="static",
+            )
         return _response(start_response, "200 OK", "text/css; charset=utf-8", data, method)
     if path not in dict(ROUTES):
-        return _response(start_response, "404 Not Found", "text/plain; charset=utf-8", b"Not found.\n", method)
+        return _failure_response(
+            start_response, "404 Not Found", "text/plain; charset=utf-8",
+            b"Not found.\n", method,
+            code="ui_route_not_found", stage="routing", surface="ui",
+        )
     try:
         charter = load_charter()
     except InvalidCharter:
-        return _response(start_response, "503 Service Unavailable", "text/plain; charset=utf-8",
-                         b"Requirements contract invalid. Interface unavailable.\n", method)
+        return _failure_response(
+            start_response, "503 Service Unavailable", "text/plain; charset=utf-8",
+            b"Requirements contract invalid. Interface unavailable.\n", method,
+            code="charter_invalid", stage="charter", surface="ui",
+        )
     try:
         body = render_page(path, charter)
     except InvalidFixture:
-        return _response(start_response, "503 Service Unavailable", "text/plain; charset=utf-8",
-                         b"Synthetic fixture unavailable.\n", method)
+        return _failure_response(
+            start_response, "503 Service Unavailable", "text/plain; charset=utf-8",
+            b"Synthetic fixture unavailable.\n", method,
+            code="fixture_invalid", stage="fixture", surface="ui",
+        )
+    except Exception:
+        return _failure_response(
+            start_response, "500 Internal Server Error", "text/plain; charset=utf-8",
+            b"Prototype request failed safely.\n", method,
+            code="internal_failure", stage="render", surface="ui",
+        )
     return _response(start_response, "200 OK", "text/html; charset=utf-8",
                      body, method)
-
 
 def serve_local(port: int = 8765):
     """Only loopback binding is allowed. No configurable public host."""
