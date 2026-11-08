@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V9
+# Mavenu Reliability Intelligence — V10 (prototype baseline freeze)
 
-**State:** Local synthetic-only prototype with setup, demo and exclusions documented for a clean-checkout independent reviewer. Automated local-socket replay is implemented, but independent HUMAN acceptance has not occurred. No production or customer authorization is implied.
+**State:** V10 pins the unchanged V9 synthetic application source and opens a governed 11-item risk register and unsigned prototype decision. Automated technical verification is separate from human approval. **Formal phase promotion is recommended BLOCKED and remains PENDING human sign-off.** No customer, production or industrial authorization is implied.
 
-**Standard (Architecture V4, page 42):** V9 = Document setup, demo steps and exclusions. Proof = Independent reviewer replay. V8 source-coverage regression remains enforced.
+**Standard (Architecture V4, page 42):** V10 = Freeze prototype baseline and open risk list. Proof = Prototype decision record. The frozen V9 runtime remains 0.9.0; its API contract remains v1/schema 1.3.0. V8 source coverage and V9 automated replay continue in CI.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -13,6 +13,7 @@ cd projects/reliability-intelligence
 python -m pip install -r requirements-dev.txt
 PYTHONPATH=src python scripts/verify_v8.py
 PYTHONPATH=src python scripts/replay_v9.py
+PYTHONPATH=src python scripts/verify_v10.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -61,3 +62,23 @@ All case data and reviewer roles are invented. No real Minn-Dak data, industrial
 GitHub Actions runs the regression suite and the new socket replay from a clean Git-archived source snapshot and uploads temporary evidence. This is a technical demonstration, NOT the required independent human reviewer sign-off. A reviewer must personally execute the documented instructions, inspect the actual pages and record the result before V9 formal acceptance.
 
 Earlier V2–V8 owner approvals, original V1 Git history consolidation and customer/industrial permissions remain outstanding. V10 baseline decision is the next scheduled increment once prerequisites are reviewed. No real personnel/customer records, financial results, system writes, OT access or actual AI predictive model are involved.
+
+
+## V10 frozen source and decision gate
+
+The V10 codebase deliberately keeps the **V9 application runtime unchanged**. The governed V10 increment is the evidence set and decision control, not new API/industrial functionality.
+
+- docs/releases/V10_BASELINE.json: 18 checked-in Git blob IDs pinning V9 Python source, CSS, synthetic fixtures, charter, test dependency, V9 demo and V8 coverage baseline.
+- docs/RISK_REGISTER_V10.json: 11 OPEN risks (two critical), proposed but unassigned owner roles and null remediation dates.
+- docs/releases/V10_DECISION.json: DRAFT_UNAPPROVED decision, promotion recommendation BLOCKED, formal decision PENDING_HUMAN_SIGNOFF, no invented approver.
+- scripts/verify_v10.py: integrity and governance invariant checker; writes evidence/V10/verification.json on successful local inspection.
+- tests/test_decision_v10.py: 23 negative and baseline integrity checks.
+- docs/DECISION_V10.md, docs/RISK_REGISTER_V10.md, docs/DEMO_V10.md and docs/releases/V10.md: rationale, review procedure, technical limits and six-part evidence packet.
+
+GitHub Actions executes the inherited V8 regression, V9 local-socket replay and V10 decision integrity check from an isolated clean source snapshot. The V8 84.5% combined coverage floor stays enforced. The V10 suite is expected to contain 176 tests, subject to actual CI verification.
+
+### Result interpretation
+
+**Technical source freeze:** machine-verifiable after CI. **Human approval:** not established. Earlier V2 requirements approval, V3–V8 releases and V9 independent reviewer acceptance remain open. The separately held V1 Git history has not been imported. Formal V10-to-V11 phase promotion remains blocked, while **exploratory synthetic-only V11 data correctness work** can be drafted as explicitly non-promoted R&D.
+
+No customer/Minn-Dak data, real maintenance orders, OT/PLC/SCADA controls, models, measured ROI, tenant security or production pilot is available or authorized.
