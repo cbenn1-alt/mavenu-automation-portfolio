@@ -1,0 +1,179 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V17",
+  "objective": "Define golden/reference calculations",
+  "required_proof": "Expected-output fixtures",
+  "reference_status": "AUTHORED_SYNTHETIC_EXPECTATIONS_NOT_DOMAIN_VALIDATED",
+  "fixture_set_id": "SYN-RI-V5-20261107-A",
+  "source_baseline_commit": "704123eca45628bf504594af39a66036cc0451c5",
+  "source_files": [
+    "fixtures/cases.json"
+  ],
+  "calculation_contract": {
+    "source_view": "V16 validated synthetic canonical record view (no production integration)",
+    "sort_rule": "events UTC ascending, case ID tie-breaker",
+    "asset_event_history": "prior count within selected fictional fixture cohort; not a reliability prediction",
+    "evidence_rule": "length(evidence_refs)>0 means invented reference IDs exist, NOT authenticated documents",
+    "money_rule": "Decimal USD exact cents (no FX; not actual GL accounting)",
+    "duration_rule": "Decimal hours exact (not measured plant downtime)",
+    "median_rule": "median of all 12 fabricated durations using exact Decimal arithmetic",
+    "output_numeric_encoding": "all decimal aggregate values are ASCII strings; cost fixed two decimal digits",
+    "rounding": "no rounding; no division-based money allocation",
+    "no_customer_ground_truth": true
+  },
+  "expected_summary": {
+    "case_count": 12,
+    "asset_count": 6,
+    "total_downtime_hours": "45.5",
+    "total_repair_cost_usd": "12735.00",
+    "median_case_downtime_hours": "3",
+    "missing_evidence_case_count": 1,
+    "repeat_asset_event_count": 6
+  },
+  "expected_asset_aggregates": [
+    {
+      "asset_id": "SYN-ASSET-001",
+      "case_count": 2,
+      "total_downtime_hours": "6",
+      "total_repair_cost_usd": "1820.00",
+      "missing_evidence_case_count": 0
+    },
+    {
+      "asset_id": "SYN-ASSET-002",
+      "case_count": 2,
+      "total_downtime_hours": "5",
+      "total_repair_cost_usd": "1210.00",
+      "missing_evidence_case_count": 0
+    },
+    {
+      "asset_id": "SYN-ASSET-003",
+      "case_count": 2,
+      "total_downtime_hours": "10",
+      "total_repair_cost_usd": "2950.00",
+      "missing_evidence_case_count": 0
+    },
+    {
+      "asset_id": "SYN-ASSET-004",
+      "case_count": 2,
+      "total_downtime_hours": "2",
+      "total_repair_cost_usd": "365.00",
+      "missing_evidence_case_count": 0
+    },
+    {
+      "asset_id": "SYN-ASSET-005",
+      "case_count": 2,
+      "total_downtime_hours": "18",
+      "total_repair_cost_usd": "5600.00",
+      "missing_evidence_case_count": 0
+    },
+    {
+      "asset_id": "SYN-ASSET-006",
+      "case_count": 2,
+      "total_downtime_hours": "4.5",
+      "total_repair_cost_usd": "790.00",
+      "missing_evidence_case_count": 1
+    }
+  ],
+  "expected_case_history": [
+    {
+      "case_id": "SYN-CASE-001",
+      "asset_id": "SYN-ASSET-001",
+      "prior_asset_case_count": 0,
+      "asset_occurrence_index": 1,
+      "has_example_evidence_refs": true
+    },
+    {
+      "case_id": "SYN-CASE-002",
+      "asset_id": "SYN-ASSET-002",
+      "prior_asset_case_count": 0,
+      "asset_occurrence_index": 1,
+      "has_example_evidence_refs": true
+    },
+    {
+      "case_id": "SYN-CASE-003",
+      "asset_id": "SYN-ASSET-003",
+      "prior_asset_case_count": 0,
+      "asset_occurrence_index": 1,
+      "has_example_evidence_refs": true
+    },
+    {
+      "case_id": "SYN-CASE-004",
+      "asset_id": "SYN-ASSET-003",
+      "prior_asset_case_count": 1,
+      "asset_occurrence_index": 2,
+      "has_example_evidence_refs": true
+    },
+    {
+      "case_id": "SYN-CASE-005",
+      "asset_id": "SYN-ASSET-004",
+      "prior_asset_case_count": 0,
+      "asset_occurrence_index": 1,
+      "has_example_evidence_refs": true
+    },
+    {
+      "case_id": "SYN-CASE-006",
+      "asset_id": "SYN-ASSET-005",
+      "prior_asset_case_count": 0,
+      "asset_occurrence_index": 1,
+      "has_example_evidence_refs": true
+    },
+    {
+      "case_id": "SYN-CASE-007",
+      "asset_id": "SYN-ASSET-001",
+      "prior_asset_case_count": 1,
+      "asset_occurrence_index": 2,
+      "has_example_evidence_refs": true
+    },
+    {
+      "case_id": "SYN-CASE-008",
+      "asset_id": "SYN-ASSET-002",
+      "prior_asset_case_count": 1,
+      "asset_occurrence_index": 2,
+      "has_example_evidence_refs": true
+    },
+    {
+      "case_id": "SYN-CASE-009",
+      "asset_id": "SYN-ASSET-006",
+      "prior_asset_case_count": 0,
+      "asset_occurrence_index": 1,
+      "has_example_evidence_refs": false
+    },
+    {
+      "case_id": "SYN-CASE-010",
+      "asset_id": "SYN-ASSET-005",
+      "prior_asset_case_count": 1,
+      "asset_occurrence_index": 2,
+      "has_example_evidence_refs": true
+    },
+    {
+      "case_id": "SYN-CASE-011",
+      "asset_id": "SYN-ASSET-004",
+      "prior_asset_case_count": 1,
+      "asset_occurrence_index": 2,
+      "has_example_evidence_refs": true
+    },
+    {
+      "case_id": "SYN-CASE-012",
+      "asset_id": "SYN-ASSET-006",
+      "prior_asset_case_count": 1,
+      "asset_occurrence_index": 2,
+      "has_example_evidence_refs": true
+    }
+  ],
+  "approval": {
+    "customer_data_authorized": false,
+    "independent_domain_ground_truth": false,
+    "human_reference_approval": false,
+    "v10_formal_phase_promotion": false,
+    "v11_source_dictionary_approved": false,
+    "v12_schema_approved": false,
+    "v17_release_approved": false,
+    "named_owner": null,
+    "approval_signature": null
+  },
+  "scope_exclusions": [
+    "These are precomputed authored expectations of invented fixture arithmetic, not an independent industrial truth set.",
+    "No real downtime, monetary savings, recurrence prediction, equipment risk or observed customer work-order state.",
+    "No customer data, OT/CMMS/ERP writes, external system connector or deployed scoring model."
+  ]
+}

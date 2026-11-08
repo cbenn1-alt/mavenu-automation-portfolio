@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V16 (exploratory source and transform lineage)
+# Mavenu Reliability Intelligence — V17 (exploratory golden/reference calculations)
 
-**State:** V16 reconstructs source-file/record and V15 transformation lineage for fabricated data. **No actual customer ingest event was observed.** V10 formal phase promotion remains BLOCKED/PENDING human sign-off and V11/V12 source approvals remain unsigned. No production or plant integration is authorized.
+**State:** V17 adds precomputed expected-output fixtures and an exact Decimal comparison against validated fabricated maintenance records. No real customer data, independent domain ground truth or production runtime changes. V10 formal promotion remains BLOCKED/PENDING human decision, and V11/V12 source approvals remain unsigned.
 
-**Standard (Architecture V4, page 42):** V16 = Capture ingestion origin and transform lineage. Proof = Record-level trace sample. The V9 runtime remains frozen at 0.9.0; API v1/schema 1.3.0.
+**Standard (Architecture V4, page 42):** V17 = Define golden/reference calculations. Proof = Expected-output fixtures. V9 application runtime remains frozen at 0.9.0, API v1/schema 1.3.0.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -20,6 +20,7 @@ PYTHONPATH=src python scripts/verify_v13.py
 PYTHONPATH=src python scripts/verify_v14.py
 PYTHONPATH=src python scripts/verify_v15.py
 PYTHONPATH=src python scripts/verify_v16.py
+PYTHONPATH=src python scripts/verify_v17.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -147,3 +148,14 @@ The 84.5% combined coverage floor and prior V8-V14 controls remain in force. Gre
 V16 adds docs/data/LINEAGE_CONTRACT_V16.json, scripts/lineage_v16.py and scripts/verify_v16.py, plus tests/test_lineage_v16.py. The verifier reports all 34 synthetic record origins, 36 V15 conversion steps, and a five-record sample with six transformation steps. Record origins are deterministic *reconstructions from committed fictional files*, NOT observations of a customer ingestion event. It writes evidence/V16/lineage_verification.json, evidence/V16/record_level_trace_sample.json and evidence/V16/synthetic_record_lineage.json.
 
 V16 adds 115 tests to the inherited 429, yielding **544 expected** tests (verify actual hosted CI). Docs/LINEAGE_V16.md, docs/DEMO_V16.md and docs/releases/V16.md describe source hashing, replay, limitations and human review. The V9 application runtime remains unchanged, and formal V10 approval and V11/V12 sign-offs are still outstanding.
+
+
+## V17 authored golden outputs
+
+- fixtures/expected_outputs_v17.json: 7 summary expected metrics, 6 synthetic asset aggregates, and 12 synthetic case-history records (25 expected units of comparison).
+- scripts/calculations_v17.py: exact Decimal counts, durations, example USD sums, median and prior-fabricated-asset event counts; strictly no savings, risk model, validated maintenance diagnosis or customer ground truth.
+- scripts/verify_v17.py: checks frozen V10 source, V11–V16 technical evidence, original file immutability and exact reference comparison twice; writes evidence/V17/golden_reference_report.json and evidence/V17/expected_output_comparison.json.
+- tests/test_golden_v17.py: 59 added regression tests; expected complete suite **603** including the inherited 544, subject to GitHub Actions verification.
+- docs/GOLDEN_REFERENCES_V17.md, docs/DEMO_V17.md, docs/releases/V17.md: controls, human review and release packet.
+
+Synthetic summary expectations: 12 cases, 6 example assets, 45.5 invented downtime hours, USD 12,735.00 illustrative cost, median case duration 3 hours, one record without an example evidence-reference ID, and six later occurrences of previously seen fictitious asset IDs. These are authored test assertions, NOT measured plant activity, savings, customer business value, failure forecasts or independently verified labels. V10 phase advancement remains formally unapproved.
