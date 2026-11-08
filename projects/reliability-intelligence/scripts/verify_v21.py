@@ -100,7 +100,8 @@ def generate(*, require_v20_report: bool = False) -> dict[str, Any]:
                 preview["v16_conversion_steps"] == 36,
                 "entity_schema_preview_mismatch")
         databases = db.execute("PRAGMA database_list").fetchall()
-        require(len(databases) == 1 and databases[0][2] == "",
+        require(any(item[1] == "main" for item in databases) and
+                all(item[2] == "" for item in databases),
                 "unapproved_persistent_storage_used")
     finally:
         db.close()
