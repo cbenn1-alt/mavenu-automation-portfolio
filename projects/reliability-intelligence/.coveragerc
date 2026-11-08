@@ -1,0 +1,12 @@
+[run]
+branch = True
+source = src/reliability_intelligence
+relative_files = True
+data_file = .coverage
+
+[report]
+show_missing = True
+skip_empty = True
+
+[json]
+pretty_print = True
