@@ -1,0 +1,231 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V20",
+  "architecture_source": "Mavenu AI SaaS Platform Development Architecture V4, p.42",
+  "objective": "Approve data correctness test baseline",
+  "required_proof": "Data quality sign-off",
+  "stage": "Data correctness (V11-V20); exploratory synthetic work, NOT formally approved",
+  "data_classification": "FABRICATED_SYNTHETIC_ONLY",
+  "fixture_set_id": "SYN-RI-V5-20261107-A",
+  "pinned_v9_source_commit": "704123eca45628bf504594af39a66036cc0451c5",
+  "governance_decision_path": "docs/releases/V10_DECISION.json",
+  "v11_dictionary_path": "docs/data/SOURCE_FIELD_DICTIONARY_V11.json",
+  "v12_schema_path": "docs/data/SCHEMA_CONTRACT_V12.json",
+  "evidence_policy": {
+    "required_stages": [
+      {
+        "increment": "V11",
+        "proof": "Approved source/field dictionary",
+        "evidence_path": "evidence/V11/verification.json",
+        "expected_result": "technical_dictionary_verified_approval_pending",
+        "checks": {
+          "dataset_count": 4,
+          "owner_approval_obtained": false,
+          "customer_data_authorized": false
+        }
+      },
+      {
+        "increment": "V12",
+        "proof": "Schema validation test report",
+        "evidence_path": "evidence/V12/schema_validation_report.json",
+        "expected_result": "synthetic_schema_validated_approval_pending",
+        "checks": {
+          "frozen_source_files_verified": 18,
+          "human_approval_completed": false
+        }
+      },
+      {
+        "increment": "V13",
+        "proof": "Negative-case fixtures",
+        "evidence_path": "evidence/V13/negative_case_report.json",
+        "expected_result": "synthetic_negative_cases_passed_governance_pending",
+        "checks": {
+          "case_execution.negative_cases_rejected": 29,
+          "case_execution.valid_boundary_cases_accepted": 7
+        }
+      },
+      {
+        "increment": "V14",
+        "proof": "Repeated-ingest comparison",
+        "evidence_path": "evidence/V14/repeated_ingest_comparison.json",
+        "expected_result": "synthetic_idempotency_verified_formal_approval_pending",
+        "checks": {
+          "comparison.replayed_duplicate_count": 34,
+          "comparison.scenario_count": 16,
+          "customer_data_used": false
+        }
+      },
+      {
+        "increment": "V15",
+        "proof": "Conversion reference tests",
+        "evidence_path": "evidence/V15/conversion_reference_report.json",
+        "expected_result": "synthetic_conversions_verified_formal_approval_pending",
+        "checks": {
+          "accepted_reference_tests": 27,
+          "rejected_reference_tests": 24,
+          "customer_data_used": false
+        }
+      },
+      {
+        "increment": "V16",
+        "proof": "Record-level trace sample",
+        "evidence_path": "evidence/V16/lineage_verification.json",
+        "expected_result": "synthetic_reconstructed_lineage_verified_human_approval_pending",
+        "checks": {
+          "source_records": 34,
+          "transforms_replayed": 36,
+          "sample_record_count": 5,
+          "actual_ingest_event_observed": false
+        }
+      },
+      {
+        "increment": "V17",
+        "proof": "Expected-output fixtures",
+        "evidence_path": "evidence/V17/golden_reference_report.json",
+        "expected_result": "authored_synthetic_reference_outputs_matched_approval_pending",
+        "checks": {
+          "verified_output_counts.total_synthetic_reference_values_verified": 25,
+          "independent_domain_ground_truth": false
+        }
+      },
+      {
+        "increment": "V18",
+        "proof": "Adverse-case regression suite",
+        "evidence_path": "evidence/V18/adverse_regression_report.json",
+        "expected_result": "synthetic_adverse_cases_verified_human_approval_pending",
+        "checks": {
+          "adverse_results.negative_cases": 44,
+          "adverse_results.positive_controls": 5,
+          "customer_data_used": false
+        }
+      },
+      {
+        "increment": "V19",
+        "proof": "Independent computation results",
+        "evidence_path": "evidence/V19/independent_reconciliation_report.json",
+        "expected_result": "independent_synthetic_computation_reconciled_signoff_pending",
+        "checks": {
+          "reconciliation.reconciled_output_units": 25,
+          "adverse_comparison_count": 16,
+          "v19_reconciliation_approved": false
+        }
+      }
+    ],
+    "supporting_evidence": [
+      {
+        "increment": "V8",
+        "evidence_path": "evidence/V8/verification.json",
+        "checks": {
+          "coverage_floor_passed": true,
+          "test_count_floor_passed": true
+        }
+      },
+      {
+        "increment": "V10",
+        "evidence_path": "evidence/V10/verification.json",
+        "checks": {
+          "next_phase_formally_approved": false,
+          "frozen_snapshot.frozen_files_verified": 18
+        }
+      }
+    ],
+    "minimum_total_regression_tests": 754,
+    "minimum_combined_coverage_percent": 84.5,
+    "expected_v10_frozen_paths": 18,
+    "source_digest_algorithm": "SHA-256",
+    "evidence_digest_algorithm": "SHA-256",
+    "require_each_stage_distinct": true,
+    "require_all_report_checks": true
+  },
+  "gate_policy": {
+    "technical_evidence_state": "CAN_PASS_WITHOUT_HUMAN_SIGNATURE",
+    "human_approval_state": "BLOCKED_PENDING_HUMAN_SIGNOFF",
+    "recommended_decision": "DO_NOT_PROMOTE",
+    "future_phase_v21_authorized": false,
+    "production_ingestion_authorized": false,
+    "customer_data_authorized": false,
+    "ot_or_cmms_write_authorized": false,
+    "passing_ci_is_not_signoff": true,
+    "blocking_items": [
+      {
+        "id": "G20-01",
+        "kind": "PREREQUISITE",
+        "owner_role": "Product Owner",
+        "issue": "V2 requirement approval and V3-V8 human acceptance not recorded",
+        "resolution_proof": "Signed requirements and release acceptance records for V2-V8"
+      },
+      {
+        "id": "G20-02",
+        "kind": "PREREQUISITE",
+        "owner_role": "Independent Technical Reviewer",
+        "issue": "V9 independent human replay and V10 formal phase promotion remain blocked",
+        "resolution_proof": "Independent V9 replay and signed V10 promotion decision"
+      },
+      {
+        "id": "G20-03",
+        "kind": "SOURCE_GOVERNANCE",
+        "owner_role": "Customer Data Owner",
+        "issue": "V11 source/field dictionary has no assigned accountable owner or signature",
+        "resolution_proof": "Signed customer source inventory and field dictionary"
+      },
+      {
+        "id": "G20-04",
+        "kind": "SOURCE_GOVERNANCE",
+        "owner_role": "Customer Data Steward",
+        "issue": "V12 schema and allowed value semantics not approved for real data",
+        "resolution_proof": "Dated approved customer schema/field constraints"
+      },
+      {
+        "id": "G20-05",
+        "kind": "DOMAIN_VALIDATION",
+        "owner_role": "Maintenance Domain Reviewer",
+        "issue": "V13-V18 synthetic thresholds, clock semantics and missing-data policy not domain approved",
+        "resolution_proof": "Independent SME adjudication and signed real source quality acceptance criteria"
+      },
+      {
+        "id": "G20-06",
+        "kind": "REFERENCE_VALIDATION",
+        "owner_role": "Operations and Finance Reviewers",
+        "issue": "V17-V19 reference arithmetic is based on fabricated, non-adjudicated source values",
+        "resolution_proof": "Independently sourced/gold-validated customer reference and aggregate reconciliation with denominators"
+      },
+      {
+        "id": "G20-07",
+        "kind": "LEGAL_SECURITY",
+        "owner_role": "Customer Security and OT Representative",
+        "issue": "Data rights, privacy, source custody, security and OT interfaces have no authorization",
+        "resolution_proof": "Written data access authorization, threat review and integration boundaries"
+      },
+      {
+        "id": "G20-08",
+        "kind": "DECISION",
+        "owner_role": "Product Owner and Independent Reviewer",
+        "issue": "V20 data quality sign-off has no named decision makers, review meeting or signatures",
+        "resolution_proof": "Signed data quality decision with evidence SHA, residual risks, scope and date"
+      }
+    ]
+  },
+  "signature_template": {
+    "record_state": "UNSIGNED_DRAFT_DO_NOT_USE_AS_APPROVAL",
+    "phase_signoff_granted": false,
+    "named_product_owner": null,
+    "named_customer_data_owner": null,
+    "named_independent_reviewer": null,
+    "named_security_ot_reviewer": null,
+    "decision_date_utc": null,
+    "evidence_commit": null,
+    "approved_scope": null,
+    "owner_signature": null,
+    "independent_reviewer_signature": null,
+    "customer_source_approval_signature": null,
+    "security_ot_review_signature": null,
+    "residual_risks_accepted": false,
+    "formal_v10_gate_resolved": false
+  },
+  "limitations": [
+    "This quality baseline combines verification of synthetic code and data only, not a signed customer source-quality baseline.",
+    "No real customer or Minn-Dak data, no source systems, no approved asset/clock/finance/OT definitions, no production integration.",
+    "V10 is still BLOCKED/PENDING human approval, so V11-V20 experimentation does not constitute formally accepted Phase 02.",
+    "An exact-head green CI proves technical replay only; it cannot furnish a named signatory or independently validate real operational outcomes."
+  ]
+}

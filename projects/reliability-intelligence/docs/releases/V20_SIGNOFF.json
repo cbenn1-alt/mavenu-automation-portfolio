@@ -1,0 +1,32 @@
+{
+  "increment": "V20",
+  "required_proof": "Data quality sign-off",
+  "record_state": "UNSIGNED_DRAFT_DO_NOT_USE_AS_APPROVAL",
+  "phase_signoff_granted": false,
+  "named_product_owner": null,
+  "named_customer_data_owner": null,
+  "named_independent_reviewer": null,
+  "named_security_ot_reviewer": null,
+  "decision_date_utc": null,
+  "evidence_commit": null,
+  "approved_scope": null,
+  "owner_signature": null,
+  "independent_reviewer_signature": null,
+  "customer_source_approval_signature": null,
+  "security_ot_review_signature": null,
+  "residual_risks_accepted": false,
+  "formal_v10_gate_resolved": false,
+  "blocking_ids": [
+    "G20-01",
+    "G20-02",
+    "G20-03",
+    "G20-04",
+    "G20-05",
+    "G20-06",
+    "G20-07",
+    "G20-08"
+  ],
+  "decision": "BLOCKED_PENDING_HUMAN_SIGNOFF",
+  "authorization_to_advance": false,
+  "technically_verified_only": true
+}

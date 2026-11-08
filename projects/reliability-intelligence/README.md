@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V19 (independent synthetic metric reconciliation)
+# Mavenu Reliability Intelligence — V20 (synthetic baseline review, human sign-off blocked)
 
-**State:** V19 independently reconciles fabricated maintenance aggregates with SQLite and integer seconds/cents against precomputed V17 expected-output fixtures. This is NOT independent customer-domain validation. V10 Phase 02 promotion remains BLOCKED/PENDING human sign-off, V11/V12 source approvals unsigned, and no production integration authorized.
+**State:** V20 compiles V11–V19 technical evidence into an unsigned data-quality review packet. Technical checks may pass, but the required human sign-off remains BLOCKED/PENDING. V10 formal phase promotion and V11/V12 source approvals are outstanding; no customer data, production ingestion or Phase 03/V21 authorization is implied.
 
-**Standard (Architecture V4, page 42):** V19 = Reconcile aggregates and operational metrics. Proof = Independent computation results. Frozen V9 application runtime stays at 0.9.0 and the read-only API remains v1/schema 1.3.0.
+**Standard (Architecture V4, page 42):** V20 = Approve data correctness test baseline. Proof = Data quality sign-off. Current deliverable is an UNSIGNED packet, not actual formal acceptance. Frozen V9 runtime stays 0.9.0; read-only API remains v1/schema 1.3.0.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -23,6 +23,7 @@ PYTHONPATH=src python scripts/verify_v16.py
 PYTHONPATH=src python scripts/verify_v17.py
 PYTHONPATH=src python scripts/verify_v18.py
 PYTHONPATH=src python scripts/verify_v19.py
+PYTHONPATH=src python scripts/verify_v20.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -179,3 +180,10 @@ The new tests/test_adverse_v18.py supplies **74 tests**, expected complete **677
 - docs/RECONCILIATION_V19.md, docs/DEMO_V19.md, docs/releases/V19.md: reproducibility, exclusions and pending human review.
 
 The code intentionally excludes real equipment uptime denominators, availability, MTBF, MTTR, OEE, savings, ROI, predictive risk and customer-system financial records. Independence refers to the computation code path, not to independent data collection or SME approval. V10 formal promotion and V11/V12 source contract sign-offs remain outstanding.
+
+
+## V20 data quality review gate (unsigned)
+
+The V20 controlled register at docs/data/DATA_QUALITY_BASELINE_V20.json requires **9** Data Correctness evidence reports (V11–V19), plus **2** prior technical prerequisites (V8 and V10). scripts/gate_v20.py validates status and numerical invariants, rejects forged approvals and missing evidence, and compiles a reproducible SHA-256 report manifest. scripts/verify_v20.py writes evidence/V20/verification.json, evidence_manifest.json and data_quality_signoff_packet.json. The separate docs/releases/V20_SIGNOFF.json remains **blank and unsigned**.
+
+V20 adds **65 gate tests**, making **819 expected** total (754 inherited). The V8 combined 84.5% source coverage floor and V10 18-file freeze remain enforced; actual GitHub Actions output controls test counts. See docs/DATA_QUALITY_GATE_V20.md, docs/DEMO_V20.md and docs/releases/V20.md. **Technical PASS is not Data quality sign-off.** Eight human approvals remain blocked, V10 formal promotion remains unapproved, and no customer, production, CMMS/OT or V21 activity is authorized.
