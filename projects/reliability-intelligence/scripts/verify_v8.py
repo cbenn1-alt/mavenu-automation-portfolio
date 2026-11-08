@@ -107,10 +107,28 @@ def main() -> int:
             raise ValueError("Invalid coverage policy floor")
         if int(minimum_count) < MINIMUM_TESTS:
             raise ValueError("Insufficient regression test floor")
-        if len(tests) < minimum_count:
+        if type(minimum_count) is not int or len(tests) < minimum_count:
             raise ValueError("Regression inventory shrank below frozen baseline")
+        minimum_by_module = baseline["minimum_tests_by_module"]
+        if not isinstance(minimum_by_module, dict) or not minimum_by_module:
+            raise ValueError("Missing per-module test-count floor")
+        for module_name, required_count in minimum_by_module.items():
+            if (type(required_count) is not int or required_count < 1
+                or by_module.get(module_name, 0) < required_count):
+                raise ValueError("Historical test-module regression")
+        required_sources = baseline["required_source_files"]
+        if (not isinstance(required_sources, list)
+            or not required_sources
+            or not all(isinstance(x, str) for x in required_sources)
+            or not set(required_sources).issubset(modules)):
+            raise ValueError("Historical production source module disappeared")
         if percent + 1e-8 < floor:
             raise ValueError(f"Coverage regression: {percent:.2f}% < {floor:.2f}%")
+        snapshot["required_test_modules_passed"] = True
+        snapshot["required_source_files_passed"] = True
+        snapshot["baseline_reference_commit"] = baseline["source_commit_sha"]
+        snapshot["baseline_reference_run_id"] = baseline["source_workflow_run_id"]
+        snapshot["observed_baseline_coverage_total_percent"] = baseline["observed_coverage_total_percent"]
         snapshot["baseline_state"] = "frozen_measured_pending_human_signoff"
         snapshot["coverage_policy_floor_percent"] = floor
         snapshot["test_count_policy_floor"] = minimum_count

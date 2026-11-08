@@ -8,7 +8,7 @@ python -m pip install -r requirements-dev.txt
 PYTHONPATH=src python scripts/verify_v8.py
 ~~~~
 
-3. Inspect generated evidence/V8/verification.json and coverage.json. Confirm at least 140 distinct tests, seven historical/current test modules, actual statement/branch coverage, source-module inventory and passing coverage policy after the measured baseline has been frozen. A candidate-unfrozen report is **not** a frozen baseline.
+3. Inspect generated evidence/V8/verification.json and coverage.json. Confirm 140 or more distinct tests, seven historical/current test modules, combined coverage at least 84.5%, nine required source modules and the reported frozen_measured_pending_human_signoff state. The initial measured baseline (84.951%, 140 tests) originated in GitHub Actions run 42486809082; independent acceptance and owner sign-off remain pending.
 4. Confirm the smoke matrix: all five UI and API routes, read-only HTTP controls, 12 fictional cases, V6 deterministic replay, explicitly simulated reviewer dispositions, V7 sanitized failure paths, no seeded-label leakage, and absence of real data and OT writes.
 5. Confirm GitHub Actions for the exact commit completed successfully, download its V8 evidence artifact, compare coverage, record reviewer identity, date, untested paths, exceptions and owner release decision.
 

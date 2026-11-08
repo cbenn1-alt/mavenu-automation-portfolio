@@ -14,9 +14,9 @@ python -m pip install -r requirements-dev.txt
 PYTHONPATH=src python scripts/verify_v8.py
 ~~~~
 
-The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces a checked-in coverage floor once established. GitHub Actions uploads these files as an artifact retained for 30 days.
+The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
 
-Expected inventory: **140 tests**, comprising 125 V2–V7 regressions and 15 new V8 cross-layer smoke tests, subject to actual CI verification. Coverage is a software execution metric, not an industrial safety or business value measure.
+Measured initial baseline: **140/140 passing tests**, **84.951% combined statement/branch coverage**, **9 production source modules**. First successful GitHub Actions run: 42486809082, source commit c75254e. The reviewable policy floor is **84.5%**, with at least 140 tests and per-module minima. This is software execution evidence, not an industrial safety or business value measure.
 
 ## Application smoke
 
