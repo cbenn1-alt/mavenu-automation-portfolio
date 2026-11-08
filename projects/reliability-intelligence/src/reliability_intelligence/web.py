@@ -1,4 +1,4 @@
-"""V3 local-only, read-only UI shell; no customer data or external services."""
+"""V4 local-only read-only UI and versioned API transport."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from pathlib import Path
 from wsgiref.simple_server import make_server
 
 from .charter import InvalidCharter, load_charter
+from . import api_v1
 
 ROUTES = (
     ("/", "Overview"),
@@ -127,6 +128,29 @@ def app(environ, start_response):
     """WSGI application; fixed GET/HEAD pages, no user-input mutation path."""
     method = environ.get("REQUEST_METHOD", "GET").upper()
     path = environ.get("PATH_INFO", "/")
+    if path.startswith("/api/"):
+        if method not in ("GET", "HEAD"):
+            return _response(start_response, "405 Method Not Allowed", api_v1.API_MEDIA_TYPE,
+                             api_v1.serialize(api_v1.error("method_not_allowed", "GET or HEAD only.")),
+                             method, (("Allow", "GET, HEAD"),))
+        if path not in api_v1.ROUTE_DESCRIPTIONS:
+            return _response(start_response, "404 Not Found", api_v1.API_MEDIA_TYPE,
+                             api_v1.serialize(api_v1.error("not_found", "Unknown API resource or version.")),
+                             method)
+        try:
+            charter = load_charter()
+        except InvalidCharter:
+            return _response(start_response, "503 Service Unavailable", api_v1.API_MEDIA_TYPE,
+                             api_v1.serialize(api_v1.error("charter_invalid", "Requirements contract unavailable.")),
+                             method)
+        try:
+            payload = api_v1.data_for_path(path, charter)
+        except (KeyError, ValueError, TypeError):
+            return _response(start_response, "503 Service Unavailable", api_v1.API_MEDIA_TYPE,
+                             api_v1.serialize(api_v1.error("contract_failure", "Versioned response unavailable.")),
+                             method)
+        return _response(start_response, "200 OK", api_v1.API_MEDIA_TYPE,
+                         api_v1.serialize(payload), method)
     if method not in ("GET", "HEAD"):
         return _response(start_response, "405 Method Not Allowed", "text/plain; charset=utf-8",
                          b"Read-only interface. GET or HEAD only.\n", method, (("Allow", "GET, HEAD"),))
