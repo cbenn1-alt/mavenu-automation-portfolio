@@ -30,6 +30,7 @@ from . import router as wh_router
 from . import delivery as wh_delivery
 from . import reconcile as recon_service
 from . import matching as match_service
+from . import docintel as di_service
 from . import entity_resolution as er_service
 from . import firewall as fw_service
 from . import netsec as ns_service
@@ -110,7 +111,9 @@ def _page(title: str, body: str) -> bytes:
 <title>{title} — Mavenu Portfolio</title><style>{CSS}</style></head>
 <body>{BANNER}<nav><a href="/">Hub</a><a href="/project01">Project 01</a>
 <a href="/project01/dashboard">P01 Dashboard</a><a href="/project02">Project 02</a>
-<a href="/project02/dashboard">P02 Dashboard</a><a href="/project_q01">Q01</a>
+<a href="/project02/dashboard">P02 Dashboard</a><a href="/project03">P03</a>
+<a href="/project03/documents">P03 Documents</a><a href="/project03/exceptions">P03 Exceptions</a>
+<a href="/project03/reports">P03 Reports</a><a href="/project_q01">Q01</a>
 <a href="/project_q01/queue">Q01 Queue</a><a href="/project_q01/dashboard">Q01 Dashboard</a>
 <a href="/project_q02">Q02</a><a href="/project_q02/outbox">Q02 Outbox</a>
 <a href="/project_q02/reports">Q02 Reports</a><a href="/project_q03">Q03</a>
@@ -478,6 +481,57 @@ class App:
         mqet = re.fullmatch(r"/api/reconciliation/exceptions/([0-9]+)/transition", path or "")
         if mqet and method == "POST":
             return self.api_recon_exception_transition(mqet.group(1), environ)
+        # ---- P03: AI document intelligence & exception management ------------
+        if method == "GET" and path == "/project03":
+            return self.p03_upload_page()
+        if method == "POST" and path == "/project03/upload":
+            return self.p03_upload_submit(environ)
+        if method == "POST" and path == "/project03/extract":
+            return self.p03_extract_submit(environ)
+        if method == "GET" and path == "/project03/documents":
+            return self.p03_documents_page()
+        md = re.fullmatch(r"/project03/documents/([A-Za-z0-9\-_]+)", path or "")
+        if md and method == "GET":
+            return self.p03_document_detail(md.group(1))
+        if md and method == "POST":
+            return self.p03_document_form(md.group(1), environ)
+        mdf = re.fullmatch(r"/project03/documents/([A-Za-z0-9\-_]+)/fields/([a-z_]+)", path or "")
+        if mdf and method == "POST":
+            return self.p03_field_form(mdf.group(1), mdf.group(2), environ)
+        if method == "GET" and path == "/project03/exceptions":
+            return self.p03_exceptions_page()
+        mqe3 = re.fullmatch(r"/project03/exceptions/([0-9]+)", path or "")
+        if mqe3 and method == "GET":
+            return self.p03_exception_detail(mqe3.group(1))
+        if mqe3 and method == "POST":
+            return self.p03_exception_form(mqe3.group(1), environ)
+        if method == "GET" and path == "/project03/reports":
+            return self.p03_reports_page()
+        if method == "POST" and path == "/api/docintel/upload":
+            return self.api_di_upload(environ)
+        if method == "POST" and path == "/api/docintel/extract":
+            return self.api_di_extract(environ)
+        if method == "GET" and path == "/api/docintel/summary":
+            return self.api_di_summary()
+        if method == "GET" and path == "/api/docintel/documents":
+            return self.api_di_documents(environ)
+        mdapi = re.fullmatch(r"/api/docintel/documents/([A-Za-z0-9\-_]+)", path or "")
+        if mdapi and method == "GET":
+            return self.api_di_document_get(mdapi.group(1))
+        mdapif = re.fullmatch(r"/api/docintel/documents/([A-Za-z0-9\-_]+)/fields/([a-z_]+)/review", path or "")
+        if mdapif and method == "POST":
+            return self.api_di_field_review(mdapif.group(1), mdapif.group(2), environ)
+        mdapir = re.fullmatch(r"/api/docintel/documents/([A-Za-z0-9\-_]+)/reject", path or "")
+        if mdapir and method == "POST":
+            return self.api_di_document_reject(mdapir.group(1), environ)
+        if method == "GET" and path == "/api/docintel/exceptions":
+            return self.api_di_exceptions(environ)
+        mqe3a = re.fullmatch(r"/api/docintel/exceptions/([0-9]+)", path or "")
+        if mqe3a and method == "GET":
+            return self.api_di_exception_get(mqe3a.group(1))
+        mqe3t = re.fullmatch(r"/api/docintel/exceptions/([0-9]+)/transition", path or "")
+        if mqe3t and method == "POST":
+            return self.api_di_exception_transition(mqe3t.group(1), environ)
         # ---- Q06: data quality & entity resolution ---------------------------
         if method == "GET" and path == "/project_q06":
             return self.q06_page()
@@ -2171,6 +2225,539 @@ outstanding − overpaid == invoiced − matched-paid
                     conn, int(exc_id), to_state, actor=actor, detail=detail)
             except (InvalidTransition, ValueError, KeyError) as exc:
                 return self._q05_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"exception": result})
+
+    # ---- P03: AI document intelligence & exception management ---------------
+    def _p03_error(self, exc: Exception) -> tuple[int, list, bytes]:
+        if isinstance(exc, KeyError):
+            return _json(404, _error_envelope("not_found", str(exc)))
+        if isinstance(exc, (InvalidTransition, ValueError)):
+            return _json(409, _error_envelope("action_rejected", str(exc)))
+        if isinstance(exc, ValidationError):
+            return _json(422, _error_envelope("validation_failed",
+                                             "The submission failed validation.",
+                                             exc.field_errors))
+        raise exc
+
+    def p03_upload_page(self, errors: Optional[dict] = None):
+        conn = self._conn()
+        try:
+            summary = di_service.extraction_summary(conn)
+        finally:
+            conn.close()
+        err_html = ""
+        if errors:
+            items = "".join(f"<li><strong>{k}</strong>: {v}</li>" for k, v in errors.items())
+            err_html = f'<div class="error-list"><ul>{items}</ul></div>'
+        body = f"""
+<div class="card"><h2>P03 — AI Document Intelligence &amp; Exception Management</h2>
+<p><strong>Synthetic data only.</strong> Ingest documents (invoices,
+receipts, contracts) as JSON, CSV, or single text, then run the
+deterministic rule-based extractor. Every extracted field carries its
+confidence, the rule that fired, its source line, and the raw matched
+text. Fields below the 0.80 confidence threshold are <strong>never
+auto-accepted</strong> — they wait for human review. Extraction is
+rule-based, not a trained model.</p>
+{err_html}
+<h3>Upload documents</h3>
+<form method="post" action="/project03/upload">
+<label>Format
+<select name="format"><option value="json">JSON array</option>
+<option value="csv">CSV</option>
+<option value="text">Single text document</option></select></label>
+<label>Your name (actor stamp) <input name="actor" placeholder="operator"></label>
+<label>For JSON: array of {{"doc_id", "doc_type", "text"}} (doc_type:
+invoice | receipt | contract). For CSV: columns doc_id, doc_type, text.
+For single text: also fill Doc ID and Doc type below.</label>
+<label>Doc ID (single text only) <input name="doc_id" placeholder="DOC-001"></label>
+<label>Doc type (single text only)
+<select name="doc_type"><option value="invoice">invoice</option>
+<option value="receipt">receipt</option>
+<option value="contract">contract</option></select></label>
+<label>Paste documents
+<textarea name="payload" rows="8" placeholder='[{{"doc_id": "DOC-INV-001", "doc_type": "invoice", "text": "Vendor: ..."}}]'></textarea></label>
+<p><button type="submit">Ingest documents</button></p>
+</form>
+<h3>Run extraction</h3>
+<form method="post" action="/project03/extract">
+<label>Your name (actor stamp) <input name="actor" placeholder="operator"></label>
+<p><button type="submit">Extract all ingested documents</button></p>
+</form></div>
+<div class="card"><h3>Current extraction snapshot</h3>
+<table>
+<tr><th>Documents</th><td>{summary["document_count"]} ({summary["documents_by_state"] or "none"})</td></tr>
+<tr><th>Fields</th><td>{summary["fields_total"]} ({summary["fields_by_status"] or "none"})</td></tr>
+<tr><th>Accepted money total</th><td><strong>{summary["accepted_money"]}</strong></td></tr>
+<tr><th>Exceptions</th><td>{summary["exceptions_by_state"] or "none"}</td></tr>
+</table>
+<p><a href="/project03/documents">Documents →</a> ·
+<a href="/project03/exceptions">Exception queue →</a> ·
+<a href="/project03/reports">Reports →</a></p></div>
+"""
+        return _html(200, "P03 — Document Intelligence", body)
+
+    def p03_upload_submit(self, environ: dict):
+        data = dict(parse_qsl(self._read_body(environ).decode("utf-8"), keep_blank_values=True))
+        fmt = (data.get("format") or "").strip()
+        payload = data.get("payload") or ""
+        actor = (data.get("actor") or "public-form").strip() or "public-form"
+        conn = self._conn()
+        try:
+            if fmt == "json":
+                result = di_service.ingest_json(conn, payload, actor=actor)
+            elif fmt == "csv":
+                result = di_service.ingest_csv(conn, payload, actor=actor)
+            elif fmt == "text":
+                result = di_service.ingest_text(
+                    conn, (data.get("doc_id") or "").strip(),
+                    (data.get("doc_type") or "").strip(), payload, actor=actor)
+            else:
+                return _html(422, "P03 — Upload",
+                              "<p>Choose <code>json</code>, <code>csv</code>, or <code>text</code>.</p>")
+        finally:
+            conn.close()
+        if result["errors"]:
+            return self.p03_upload_page(errors={"rows": f"{len(result['errors'])} row(s) rejected; "
+                                                         f"{result['inserted']} inserted."})
+        return 303, [("Location", "/project03/documents")], b""
+
+    def p03_extract_submit(self, environ: dict):
+        data = dict(parse_qsl(self._read_body(environ).decode("utf-8"), keep_blank_values=True))
+        actor = (data.get("actor") or "public-form").strip() or "public-form"
+        conn = self._conn()
+        try:
+            di_service.extract_all(conn, actor=actor)
+        finally:
+            conn.close()
+        return 303, [("Location", "/project03/documents")], b""
+
+    def p03_documents_page(self):
+        conn = self._conn()
+        try:
+            docs = di_service.list_documents(conn)
+        finally:
+            conn.close()
+        rows = "".join(
+            f"<tr><td><a href=\"/project03/documents/{html.escape(d['doc_id'])}\">{html.escape(d['doc_id'])}</a></td>"
+            f"<td>{html.escape(d['doc_type'])}</td>"
+            f"<td><span class='state'>{d['state']}</span></td>"
+            f"<td>{d['doc_confidence'] or '—'}</td>"
+            f"<td>{html.escape(d['actor'])}</td>"
+            f"<td>{html.escape(d['created_at'])}</td></tr>"
+            for d in docs
+        ) or "<tr><td colspan=\"6\"><em>No documents yet — ingest JSON, CSV, or text above.</em></td></tr>"
+        body = f"""
+<div class="card"><h2>P03 — Documents</h2>
+<p>States: <code>ingested → needs_review | accepted | rejected</code>.
+A document becomes <code>accepted</code> only when every field is
+accepted — extraction proposes, a human disposes.</p>
+<table><tr><th>Doc ID</th><th>Type</th><th>State</th>
+<th>Confidence</th><th>Last actor</th><th>Ingested</th></tr>{rows}</table>
+<p><a href="/project03">← Upload / extract</a> ·
+<a href="/project03/exceptions">Exception queue →</a> ·
+<a href="/project03/reports">Reports →</a></p></div>
+"""
+        return _html(200, "P03 — Documents", body)
+
+    def p03_document_detail(self, doc_id: str):
+        conn = self._conn()
+        try:
+            doc = di_service.get_document(conn, doc_id)
+            history = di_service.doc_history(conn, doc_id)
+            # Accepted fields are locked — except when an open
+            # validation_failed exception flags that very field (the
+            # correction escape hatch). Those fields get a Correct form.
+            flagged = {
+                e["field_name"]
+                for e in di_service.list_exceptions(
+                    conn, state="open", kind="validation_failed")
+                if e["ref_public_id"] == doc_id and e["field_name"]
+            }
+        finally:
+            conn.close()
+        field_rows = ""
+        for f in doc["fields"]:
+            if f["status"] == "accepted" and f["field_name"] in flagged:
+                form = f"""
+<form method="post" action="/project03/documents/{html.escape(doc_id)}/fields/{f['field_name']}" style="display:inline">
+<input type="hidden" name="action" value="correct">
+<input name="corrected_value" size="12" placeholder="corrected value">
+<button type="submit">Correct</button></form>
+<em>flagged invalid — correction allowed</em>"""
+            elif f["status"] in ("proposed", "missing", "rejected"):
+                form = f"""
+<form method="post" action="/project03/documents/{html.escape(doc_id)}/fields/{f['field_name']}" style="display:inline">
+<input type="hidden" name="action" value="accept"><button type="submit" {'disabled' if f['status'] != 'proposed' else ''}>Accept</button></form>
+<form method="post" action="/project03/documents/{html.escape(doc_id)}/fields/{f['field_name']}" style="display:inline">
+<input type="hidden" name="action" value="reject"><button type="submit" {'disabled' if f['status'] != 'proposed' else ''}>Reject</button></form>
+<form method="post" action="/project03/documents/{html.escape(doc_id)}/fields/{f['field_name']}" style="display:inline">
+<input type="hidden" name="action" value="correct">
+<input name="corrected_value" size="12" placeholder="corrected value">
+<button type="submit">Correct</button></form>"""
+            else:
+                form = "<em>locked (accepted)</em>"
+            field_rows += (
+                f"<tr><td>{html.escape(f['field_name'])}</td>"
+                f"<td>{html.escape(f['value_text'] or '—')}</td>"
+                f"<td>{f['confidence'] or '—'}</td>"
+                f"<td>{html.escape(f['rule_id'] or '—')}</td>"
+                f"<td>{f['source_line'] or '—'}</td>"
+                f"<td><span class='state'>{f['status']}</span>"
+                f"{' (corrected)' if f['corrected'] else ''}</td>"
+                f"<td>{form}</td></tr>"
+            )
+        hist_rows = "".join(
+            f"<tr><td>{h['from_state'] or '—'}</td><td>{h['to_state']}</td>"
+            f"<td>{html.escape(h['actor'])}</td>"
+            f"<td>{html.escape(h['detail'])}</td><td>{h['created_at']}</td></tr>"
+            for h in history
+        )
+        reject_form = ""
+        if doc["state"] in ("ingested", "needs_review"):
+            reject_form = f"""
+<form method="post" action="/project03/documents/{html.escape(doc_id)}">
+<input type="hidden" name="action" value="reject_document">
+<button type="submit">Reject this document</button></form>"""
+        else:
+            reject_form = "<em>Terminal state — no further transitions.</em>"
+        body = f"""
+<div class="card"><h2>P03 — Document {html.escape(doc_id)}</h2>
+<table>
+<tr><th>Type</th><td>{html.escape(doc['doc_type'])}</td></tr>
+<tr><th>State</th><td><span class="state">{doc['state']}</span></td></tr>
+<tr><th>Confidence</th><td>{doc['doc_confidence'] or '—'}</td></tr>
+<tr><th>Last actor</th><td>{html.escape(doc['actor'])}</td></tr>
+</table>
+<h3>Fields (with provenance)</h3>
+<table><tr><th>Field</th><th>Value</th><th>Confidence</th><th>Rule</th>
+<th>Line</th><th>Status</th><th>Review</th></tr>{field_rows}</table>
+<h3>Reject document</h3>
+<p>{reject_form}</p>
+<h3>History (actor-stamped audit trail)</h3>
+<table><tr><th>From</th><th>To</th><th>Actor</th><th>Detail</th><th>At</th></tr>
+{hist_rows}</table>
+<p><a href="/project03/documents">← Back to documents</a> ·
+<a href="/project03/exceptions">Exception queue →</a></p></div>
+"""
+        return _html(200, f"P03 — Document {html.escape(doc_id)}", body)
+
+    def p03_document_form(self, doc_id: str, environ: dict):
+        data = dict(parse_qsl(self._read_body(environ).decode("utf-8"), keep_blank_values=True))
+        action = (data.get("action") or "").strip()
+        actor = (data.get("actor") or "public-form").strip() or "public-form"
+        conn = self._conn()
+        try:
+            try:
+                if action == "reject_document":
+                    di_service.reject_document(conn, doc_id, actor=actor, detail="web form")
+                else:
+                    return _html(422, "P03 — Document",
+                                  "<p>Unknown document action.</p>")
+            except (InvalidTransition, ValueError, KeyError) as exc:
+                return _html(409, "P03 — Action rejected",
+                             f"<p>{html.escape(str(exc))}</p>"
+                             f"<p><a href=\"/project03/documents/{html.escape(doc_id)}\">← Back</a></p>")
+        finally:
+            conn.close()
+        return 303, [("Location", f"/project03/documents/{doc_id}")], b""
+
+    def p03_field_form(self, doc_id: str, field_name: str, environ: dict):
+        data = dict(parse_qsl(self._read_body(environ).decode("utf-8"), keep_blank_values=True))
+        action = (data.get("action") or "").strip()
+        corrected = (data.get("corrected_value") or "").strip() or None
+        actor = (data.get("actor") or "public-form").strip() or "public-form"
+        conn = self._conn()
+        try:
+            try:
+                di_service.review_field(conn, doc_id, field_name, action,
+                                        actor=actor, corrected_value=corrected)
+            except (InvalidTransition, ValueError, KeyError) as exc:
+                return _html(409, "P03 — Review rejected",
+                             f"<p>{html.escape(str(exc))}</p>"
+                             f"<p><a href=\"/project03/documents/{html.escape(doc_id)}\">← Back</a></p>")
+        finally:
+            conn.close()
+        return 303, [("Location", f"/project03/documents/{doc_id}")], b""
+
+    def p03_exceptions_page(self):
+        conn = self._conn()
+        try:
+            excs = di_service.list_exceptions(conn)
+        finally:
+            conn.close()
+        rows = "".join(
+            f"<tr><td><a href=\"/project03/exceptions/{e['id']}\">{e['id']}</a></td>"
+            f"<td>{html.escape(e['kind'])}</td>"
+            f"<td>{html.escape(e['ref_public_id'])}</td>"
+            f"<td>{html.escape(e['field_name'] or '—')}</td>"
+            f"<td><span class='state'>{e['state']}</span></td>"
+            f"<td>{html.escape(e['actor'])}</td>"
+            f"<td>{html.escape(e['created_at'])}</td></tr>"
+            for e in excs
+        ) or "<tr><td colspan=\"7\"><em>Queue is empty — ingest documents and run extraction.</em></td></tr>"
+        body = f"""
+<div class="card"><h2>P03 — Exception queue</h2>
+<p>Every exception carries a suggested next action (see the detail view).
+States: <code>open → investigating → resolved | written_off</code> —
+enforced in code; illegal moves are rejected.</p>
+<table><tr><th>ID</th><th>Kind</th><th>Document</th><th>Field</th><th>State</th>
+<th>Last actor</th><th>Raised</th></tr>{rows}</table>
+<p><a href="/project03/documents">← Documents</a> ·
+<a href="/project03/reports">Reports →</a></p></div>
+"""
+        return _html(200, "P03 — Exception queue", body)
+
+    def p03_exception_detail(self, exc_id: str):
+        conn = self._conn()
+        try:
+            excs = di_service.list_exceptions(conn)
+            exc = next((e for e in excs if e["id"] == int(exc_id)), None)
+            if exc is None:
+                raise KeyError(f"No exception with id {exc_id}.")
+            history = di_service.exception_history(conn, exc["id"])
+        finally:
+            conn.close()
+        allowed = sorted(EXCEPTION_WORKFLOW.allowed_from(exc["state"]))
+        buttons = "".join(
+            f"""<form method="post" action="/project03/exceptions/{exc['id']}"
+style="display:inline"><input type="hidden" name="to_state" value="{s}">
+<button type="submit">{s}</button></form> """
+            for s in allowed
+        ) or "<em>Terminal state — no further transitions.</em>"
+        hist_rows = "".join(
+            f"<tr><td>{h['from_state'] or '—'}</td><td>{h['to_state']}</td>"
+            f"<td>{html.escape(h['actor'])}</td>"
+            f"<td>{html.escape(h['detail'])}</td><td>{h['created_at']}</td></tr>"
+            for h in history
+        )
+        detail_pretty = html.escape(json.dumps(exc["detail"], indent=2, sort_keys=True))
+        body = f"""
+<div class="card"><h2>P03 — Exception #{exc['id']}</h2>
+<table>
+<tr><th>Kind</th><td>{html.escape(exc['kind'])}</td></tr>
+<tr><th>Document</th><td>{html.escape(exc['ref_public_id'])} ({exc['ref_type']})</td></tr>
+<tr><th>Field</th><td>{html.escape(exc['field_name'] or '—')}</td></tr>
+<tr><th>State</th><td><span class="state">{exc['state']}</span></td></tr>
+<tr><th>Last actor</th><td>{html.escape(exc['actor'])}</td></tr>
+</table>
+<h3>Suggested next action</h3>
+<p><strong>{html.escape(exc['suggested_action'])}</strong></p>
+<h3>Details</h3>
+<pre>{detail_pretty}</pre>
+<h3>Transition</h3>
+<p>{buttons}</p>
+<h3>History (actor-stamped audit trail)</h3>
+<table><tr><th>From</th><th>To</th><th>Actor</th><th>Detail</th><th>At</th></tr>
+{hist_rows}</table>
+<p><a href="/project03/exceptions">← Back to queue</a></p></div>
+"""
+        return _html(200, f"P03 — Exception {exc['id']}", body)
+
+    def p03_exception_form(self, exc_id: str, environ: dict):
+        data = dict(parse_qsl(self._read_body(environ).decode("utf-8"), keep_blank_values=True))
+        to_state = (data.get("to_state") or "").strip()
+        actor = (data.get("actor") or "public-form").strip() or "public-form"
+        conn = self._conn()
+        try:
+            try:
+                di_service.transition_exception(conn, int(exc_id), to_state,
+                                                actor=actor, detail="web form")
+            except (InvalidTransition, ValueError, KeyError) as exc:
+                return _html(409, "P03 — Transition rejected",
+                             f"<p>Illegal transition: {html.escape(str(exc))}</p>"
+                             f"<p><a href=\"/project03/exceptions/{exc_id}\">← Back</a></p>")
+        finally:
+            conn.close()
+        return 303, [("Location", f"/project03/exceptions/{exc_id}")], b""
+
+    def p03_reports_page(self):
+        conn = self._conn()
+        try:
+            summary = di_service.extraction_summary(conn)
+            aging = di_service.exception_aging(conn)
+            backlog = di_service.review_backlog(conn)
+        finally:
+            conn.close()
+        exc_rows = "".join(
+            f"<tr><td>{b}</td><td>{v['exception_count']}</td>"
+            f"<td>{html.escape(json.dumps(v['kinds']))}</td></tr>"
+            for b, v in aging["buckets"].items()
+        )
+        backlog_rows = "".join(
+            f"<tr><td><a href=\"/project03/documents/{html.escape(b['doc_id'])}\">{html.escape(b['doc_id'])}</a></td>"
+            f"<td>{html.escape(b['doc_type'])}</td>"
+            f"<td>{b['doc_confidence'] or '—'}</td>"
+            f"<td>{html.escape(', '.join(b['unresolved_fields']))}</td>"
+            f"<td>{html.escape(', '.join(b['open_exception_kinds']))}</td></tr>"
+            for b in backlog
+        ) or "<tr><td colspan=\"5\"><em>Review backlog is empty.</em></td></tr>"
+        fields_total = summary["fields_total"]
+        by_status = summary["fields_by_status"]
+        identity = (by_status.get("accepted", 0) + by_status.get("proposed", 0)
+                    + by_status.get("rejected", 0) + by_status.get("missing", 0))
+        body = f"""
+<div class="card"><h2>P03 — Extraction reports</h2>
+<p>Every total below is computed from source rows. Field identity:
+accepted + proposed + rejected + missing == fields total
+({identity} == {fields_total}). Accepted money is the sum over
+<em>accepted</em> money fields only — proposed values are never counted.</p>
+<h3>Summary</h3>
+<table>
+<tr><th>Documents</th><td>{summary['document_count']} ({summary['documents_by_state']})</td></tr>
+<tr><th>By type</th><td>{summary['documents_by_type']}</td></tr>
+<tr><th>Fields</th><td>{fields_total} ({by_status})</td></tr>
+<tr><th>Accepted money total</th><td><strong>{summary['accepted_money']}</strong></td></tr>
+<tr><th>Exceptions</th><td>{summary['exceptions_by_state']} / {summary['exceptions_by_kind']}</td></tr>
+</table>
+<h3>Review backlog — documents in needs_review</h3>
+<table><tr><th>Doc ID</th><th>Type</th><th>Confidence</th>
+<th>Unresolved fields</th><th>Open exceptions</th></tr>{backlog_rows}</table>
+<h3>Exception aging — open/investigating by age</h3>
+<table><tr><th>Bucket</th><th>Exceptions</th><th>Kinds</th></tr>{exc_rows}</table>
+<p><a href="/project03">← Upload / extract</a> ·
+<a href="/project03/documents">Documents →</a></p></div>
+"""
+        return _html(200, "P03 — Reports", body)
+
+    # -- P03: JSON API -----------------------------------------------------------
+    def api_di_upload(self, environ: dict):
+        data = self._read_json(environ)
+        fmt = str(data.get("format", "")).strip()
+        payload = str(data.get("payload", ""))
+        actor = str(data.get("actor", "api")).strip() or "api"
+        conn = self._conn()
+        try:
+            try:
+                if fmt == "json":
+                    result = di_service.ingest_json(conn, payload, actor=actor)
+                elif fmt == "csv":
+                    result = di_service.ingest_csv(conn, payload, actor=actor)
+                elif fmt == "text":
+                    result = di_service.ingest_text(
+                        conn, str(data.get("doc_id", "")).strip(),
+                        str(data.get("doc_type", "")).strip(), payload, actor=actor)
+                else:
+                    raise ValidationError({"format": "format must be 'json', 'csv', or 'text'."})
+            except (InvalidTransition, ValueError) as exc:
+                return self._p03_error(exc)
+        finally:
+            conn.close()
+        return _json(201, result)
+
+    def api_di_extract(self, environ: dict):
+        data = self._read_json(environ)
+        actor = str(data.get("actor", "api")).strip() or "api"
+        conn = self._conn()
+        try:
+            stats = di_service.extract_all(conn, actor=actor)
+        finally:
+            conn.close()
+        return _json(200, stats)
+
+    def api_di_summary(self):
+        conn = self._conn()
+        try:
+            summary = di_service.extraction_summary(conn)
+            aging = di_service.exception_aging(conn)
+            backlog = di_service.review_backlog(conn)
+        finally:
+            conn.close()
+        payload = {k: (str(v) if isinstance(v, Decimal) else v)
+                   for k, v in summary.items()}
+        payload["exception_aging"] = aging["buckets"]
+        payload["review_backlog"] = backlog
+        return _json(200, payload)
+
+    def api_di_documents(self, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            docs = di_service.list_documents(
+                conn, state=query.get("state"), doc_type=query.get("doc_type"))
+        finally:
+            conn.close()
+        return _json(200, {"documents": docs})
+
+    def api_di_document_get(self, doc_id: str):
+        conn = self._conn()
+        try:
+            try:
+                doc = di_service.get_document(conn, doc_id)
+                history = di_service.doc_history(conn, doc_id)
+            except KeyError as exc:
+                return self._p03_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"document": doc, "history": history})
+
+    def api_di_field_review(self, doc_id: str, field_name: str, environ: dict):
+        data = self._read_json(environ)
+        action = str(data.get("action", "")).strip()
+        corrected = data.get("corrected_value")
+        actor = str(data.get("actor", "api")).strip() or "api"
+        conn = self._conn()
+        try:
+            try:
+                result = di_service.review_field(
+                    conn, doc_id, field_name, action, actor=actor,
+                    corrected_value=(str(corrected) if corrected is not None else None))
+            except (InvalidTransition, ValueError, KeyError) as exc:
+                return self._p03_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"field": result})
+
+    def api_di_document_reject(self, doc_id: str, environ: dict):
+        data = self._read_json(environ)
+        actor = str(data.get("actor", "api")).strip() or "api"
+        detail = str(data.get("detail", ""))
+        conn = self._conn()
+        try:
+            try:
+                result = di_service.reject_document(
+                    conn, doc_id, actor=actor, detail=detail)
+            except (InvalidTransition, ValueError, KeyError) as exc:
+                return self._p03_error(exc)
+        finally:
+            conn.close()
+        return _json(200, {"document": result})
+
+    def api_di_exceptions(self, environ: dict):
+        query = dict(parse_qsl(environ.get("QUERY_STRING", "")))
+        conn = self._conn()
+        try:
+            excs = di_service.list_exceptions(
+                conn, state=query.get("state"), kind=query.get("kind"))
+        finally:
+            conn.close()
+        return _json(200, {"exceptions": excs})
+
+    def api_di_exception_get(self, exc_id: str):
+        conn = self._conn()
+        try:
+            excs = di_service.list_exceptions(conn)
+            exc = next((e for e in excs if e["id"] == int(exc_id)), None)
+            if exc is None:
+                raise KeyError(f"No exception with id {exc_id}.")
+            history = di_service.exception_history(conn, exc["id"])
+        finally:
+            conn.close()
+        return _json(200, {"exception": exc, "history": history})
+
+    def api_di_exception_transition(self, exc_id: str, environ: dict):
+        data = self._read_json(environ)
+        to_state = str(data.get("to_state", "")).strip()
+        actor = str(data.get("actor", "api")).strip() or "api"
+        detail = str(data.get("detail", ""))
+        conn = self._conn()
+        try:
+            try:
+                result = di_service.transition_exception(
+                    conn, int(exc_id), to_state, actor=actor, detail=detail)
+            except (InvalidTransition, ValueError, KeyError) as exc:
+                return self._p03_error(exc)
         finally:
             conn.close()
         return _json(200, {"exception": result})
@@ -6378,8 +6965,16 @@ routing (manager → finance over a threshold), deterministic SLA-breach
 escalation, and an actor-stamped audit trail. A portfolio simulation on the
 custom Python stack — not a Power Platform implementation.</p>
 <p><a href="/project02">Open the project</a> · <a href="/project02/dashboard">Dashboard</a></p></div>
-<div class="card"><h2>Project 03 — AI Document Intelligence</h2>
-<p><strong>Status:</strong> planned</p></div>
+<div class="card"><h2>Project 03 — AI Document Intelligence &amp; Exception Management</h2>
+<p><strong>Status:</strong> implemented + tested (Gate C)</p>
+<p>Synthetic documents (invoices, receipts, contracts) are ingested as
+JSON/CSV/text, and a deterministic rule-based extractor pulls fields with
+per-field confidence and provenance (rule, source line, raw text).
+Fields below the 0.80 confidence threshold are never auto-accepted —
+they go to human review. Every discrepancy lands in an exception queue
+with a suggested next action, and every total reconciles to source rows.</p>
+<p><a href="/project03">Open the project</a> · <a href="/project03/documents">Documents</a> ·
+<a href="/project03/exceptions">Exception queue</a> · <a href="/project03/reports">Reports</a></p></div>
 <div class="card"><h2>Project 04 — SQL Operations Intelligence</h2>
 <p><strong>Status:</strong> planned</p></div>
 <div class="card"><h2>Project 05 — Automation Reliability &amp; Governance Center</h2>

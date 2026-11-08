@@ -143,3 +143,28 @@ EXCEPTION_TRANSITIONS: dict[str, set[str]] = {
 
 EXCEPTION_WORKFLOW = Workflow(EXCEPTION_TRANSITIONS)
 TERMINAL_EXCEPTION_STATES = {"resolved", "written_off"}
+
+
+# Project P03 — document lifecycle.
+#   ingested:     stored, not yet extracted
+#   needs_review: extracted, but at least one field is proposed, missing,
+#                 or rejected (or a validation rule failed) — a human must
+#                 resolve it; the document cannot become accepted while
+#                 any field is unresolved
+#   accepted:     every spec field is accepted (extracted at/above the
+#                 confidence threshold, or human-accepted/corrected) —
+#                 reached only through extraction or field review, never
+#                 by a direct transition
+#   rejected:     a human rejected the document (terminal)
+# The system never moves a document to accepted on its own authority:
+# extraction only proposes; below-threshold fields stay proposed until a
+# human acts. See docintel._recompute_doc_state.
+DOC_TRANSITIONS: dict[str, set[str]] = {
+    "ingested": {"needs_review", "accepted", "rejected"},
+    "needs_review": {"accepted", "rejected"},
+    "accepted": set(),
+    "rejected": set(),
+}
+
+DOC_WORKFLOW = Workflow(DOC_TRANSITIONS)
+TERMINAL_DOC_STATES = {"accepted", "rejected"}

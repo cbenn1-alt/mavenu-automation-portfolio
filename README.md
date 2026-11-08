@@ -14,7 +14,7 @@ planned. Nothing here is a mockup presented as software.
 |---|---------|--------|
 | 01 | [AI Revenue Operations Engine](projects/project01/README.md) — lead intake, validation, qualification, routing, booking, human review | **Implemented + tested (Gate A ✓)** |
 | 02 | [Enterprise Request & Approval Automation](projects/project02/README.md) — request intake, role-based multi-step approvals, SLA escalation, audit trail, ops dashboard | **Implemented + tested (Gate B ✓)** |
-| 03 | AI Document Intelligence & Exception Management | Planned |
+| 03 | [AI Document Intelligence & Exception Management](projects/project03/README.md) — deterministic rule-based document ingestion, field extraction with confidence + provenance, validation, human-gated exception queue | **Implemented + tested (Gate C ✓)** |
 | 04 | SQL Operations Intelligence Platform | Planned |
 | 05 | Automation Reliability & Governance Center | Planned |
 
