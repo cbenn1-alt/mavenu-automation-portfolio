@@ -1,0 +1,147 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V16",
+  "architecture": "Mavenu AI SaaS Platform Development Architecture V4, page 42",
+  "objective": "Capture ingestion origin and transform lineage",
+  "required_proof": "Record-level trace sample",
+  "contract_status": "SYNTHETIC_RECONSTRUCTED_LINEAGE_NOT_APPROVED",
+  "phase": "V11-V20 exploratory synthetic data correctness",
+  "source_baseline_commit": "704123eca45628bf504594af39a66036cc0451c5",
+  "source_fixture_set_id": "SYN-RI-V5-20261107-A",
+  "source_dictionary": "docs/data/SOURCE_FIELD_DICTIONARY_V11.json",
+  "schema_contract": "docs/data/SCHEMA_CONTRACT_V12.json",
+  "normalizer_reference": "scripts/normalize_v15.py",
+  "source_allowlist": [
+    "fixtures/cases.json",
+    "fixtures/demo_review_script.json",
+    "fixtures/reference_labels.json"
+  ],
+  "datasets": [
+    {
+      "id": "asset_records",
+      "file": "fixtures/cases.json",
+      "pointer": "assets",
+      "key": "asset_id",
+      "count": 6,
+      "mode": "identity_pass_through"
+    },
+    {
+      "id": "case_records",
+      "file": "fixtures/cases.json",
+      "pointer": "records",
+      "key": "case_id",
+      "count": 12,
+      "mode": "v15_canonical_case_view"
+    },
+    {
+      "id": "scripted_review_entries",
+      "file": "fixtures/demo_review_script.json",
+      "pointer": "entries",
+      "key": "case_id",
+      "count": 4,
+      "mode": "identity_pass_through"
+    },
+    {
+      "id": "seeded_reference_labels",
+      "file": "fixtures/reference_labels.json",
+      "pointer": "records",
+      "key": "case_id",
+      "count": 12,
+      "mode": "identity_pass_through"
+    }
+  ],
+  "normalization_steps": [
+    {
+      "field": "occurred_at_utc",
+      "rule_id": "V15_UTC_EXPLICIT",
+      "unit": "UTC",
+      "locale": "en-US",
+      "output_type": "string",
+      "canonical_format": "YYYY-MM-DDTHH:MM:SSZ"
+    },
+    {
+      "field": "downtime_hours",
+      "rule_id": "V15_HOURS_EXACT",
+      "unit": "hours",
+      "locale": "en-US",
+      "output_type": "string",
+      "canonical_format": "ASCII decimal hours"
+    },
+    {
+      "field": "repair_cost_usd",
+      "rule_id": "V15_USD_EXACT_CENTS",
+      "unit": "USD",
+      "locale": "en-US",
+      "output_type": "string",
+      "canonical_format": "ASCII decimal USD 2dp"
+    }
+  ],
+  "trace_rules": {
+    "origin_capture_method": "deterministic_reconstruction_from_committed_fabricated_files",
+    "original_ingest_event_observed": false,
+    "external_source_or_connector_observed": false,
+    "record_ingested_at_utc": null,
+    "source_custodian_identity": null,
+    "source_document_sha256": "SHA-256 over exact source file bytes",
+    "source_record_sha256": "SHA-256 over canonical JSON object",
+    "origin_pointer": "JSON pointer to the row in the committed fixture file",
+    "transform_value_sha256": "SHA-256 over canonical JSON scalar",
+    "normalized_record_sha256": "SHA-256 over complete derived, canonicalized record",
+    "conversion_inputs": "Field-level V15 function and fixed parameters, no implicit locale, timezone, FX or rounding",
+    "trace_id": "Stable synthetic dataset+primary-key identifier",
+    "digest_algorithm": "SHA-256",
+    "canonical_encoding": "UTF-8 JSON with keys sorted, compact separators and no nonfinite values",
+    "derived_output_persisted": false,
+    "v9_runtime_integrated": false,
+    "real_source_provenance_established": false,
+    "audit_signature_established": false
+  },
+  "expected_source_document_count": 3,
+  "expected_record_count": 34,
+  "expected_case_record_count": 12,
+  "expected_case_transform_steps": 36,
+  "expected_passthrough_record_count": 22,
+  "expected_sample_record_count": 5,
+  "sample_cases": [
+    {
+      "dataset": "asset_records",
+      "record_id": "SYN-ASSET-001"
+    },
+    {
+      "dataset": "case_records",
+      "record_id": "SYN-CASE-001"
+    },
+    {
+      "dataset": "case_records",
+      "record_id": "SYN-CASE-009"
+    },
+    {
+      "dataset": "scripted_review_entries",
+      "record_id": "SYN-CASE-001"
+    },
+    {
+      "dataset": "seeded_reference_labels",
+      "record_id": "SYN-CASE-001"
+    }
+  ],
+  "approval": {
+    "v10_formal_promotion_authorized": false,
+    "v11_source_dictionary_approved": false,
+    "v12_schema_approved": false,
+    "v16_lineage_owner_approved": false,
+    "customer_data_authorized": false,
+    "production_integration_authorized": false,
+    "ot_writes_permitted": false,
+    "named_product_owner": null,
+    "named_customer_data_steward": null,
+    "independent_reviewer": null,
+    "approval_signature": null,
+    "approval_date_utc": null
+  },
+  "scope_limits": [
+    "Source provenance references committed artificial JSON fixtures, not a real customer-origin CMMS/ERP ingest event.",
+    "No live ingestion timestamp, network connector, actual chain of custody, immutable audit store or customer authorization.",
+    "Derived canonical values are strings and do not replace typed V11 source fields or the unchanged V9 API.",
+    "32/64-bit encoding, accounting currency, actual plant timezones, identity semantics and retention remain unapproved."
+  ]
+}
