@@ -59,7 +59,8 @@ class V3InterfaceTests(unittest.TestCase):
         html = body.decode()
         self.assertIn('href="#main-content"', html)
         self.assertIn('id="main-content"', html)
-        self.assertIn('role="status"', html)
+        self.assertIn("<caption>V5 fictional example records", html)
+        self.assertIn('scope="col"', html)
         self.assertIn('<html lang="en">', html)
 
     def test_workspace_shows_only_labeled_synthetic_fixtures(self):
