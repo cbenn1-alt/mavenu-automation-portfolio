@@ -20,7 +20,7 @@ def status(charter: dict[str, Any]) -> dict[str, Any]:
     load_demo_review_script()  # Fail closed if scripted inputs are invalid.
     return {
         "product": charter["product"],
-        "increment": "V8",
+        "increment": "V9",
         "business_approval": "pending",
         "validated_customer_problem": False,
         "mode": "synthetic_only",

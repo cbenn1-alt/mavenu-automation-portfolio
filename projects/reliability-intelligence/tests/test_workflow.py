@@ -229,7 +229,7 @@ class V6WorkflowTests(unittest.TestCase):
         with contextlib.redirect_stdout(output):
             self.assertEqual(main(["status", "--json"]), 0)
         data = json.loads(output.getvalue())
-        self.assertEqual(data["increment"], "V8")
+        self.assertEqual(data["increment"], "V9")
         self.assertEqual(data["api_schema_version"], "1.3.0")
         self.assertFalse(data["production_ready"])
         self.assertFalse(data["ot_writes_enabled"])

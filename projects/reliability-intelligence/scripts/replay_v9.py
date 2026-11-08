@@ -130,7 +130,7 @@ def main() -> int:
     checks.append("charter_cli")
 
     status = _cli_json("status", env)
-    require(status["increment"] == "V8", "runtime_code_baseline_remains_v8")
+    require(status["increment"] == "V9", "runtime_increment_v9")
     for name in ("business_approved", "production_ready", "customer_data_authorized",
                  "external_integrations_enabled", "ot_writes_enabled", "measured_effectiveness"):
         require(status[name] is False, "status_" + name)

@@ -64,7 +64,7 @@ def _page_content(path: str, charter: dict) -> str:
     goal = escape(str(charter["primary_metric"]["proposed_relative_improvement_pct"]))
     if path == "/":
         return f"""<section class="hero">
-          <p class="eyebrow">V8 / Prototype foundation</p>
+          <p class="eyebrow">V9 / Prototype foundation</p>
           <h1>Maintenance intelligence that keeps people in control.</h1>
           <p class="lead">A proposed, source-traceable review workspace for industrial maintenance teams. This shell contains no customer records, predictions, or production connections.</p>
           <a class="text-link" href="/workbench">Open synthetic case workspace</a>
@@ -174,7 +174,7 @@ def render_page(path: str, charter: dict) -> bytes:
   <div class="app-layout">
     <nav class="sidebar" aria-label="Primary navigation"><p class="nav-label">Workspace</p>{_navigation(path)}</nav>
     <main id="main-content" tabindex="-1">{main}
-      <footer><p>V8 regression baseline. No live integrations, real reviewer authorization, operational recommendations, measured savings, or Minn-Dak endorsement.</p></footer>
+      <footer><p>V9 reviewer replay documentation. No live integrations, real reviewer authorization, operational recommendations, measured savings, or Minn-Dak endorsement.</p></footer>
     </main>
   </div>
 </body>
