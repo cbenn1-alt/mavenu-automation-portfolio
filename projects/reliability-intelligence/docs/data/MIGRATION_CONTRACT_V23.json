@@ -1,0 +1,119 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V23",
+  "source": "Mavenu AI SaaS Platform Development Architecture V4, p.43",
+  "objective": "Implement reversible schema migration path",
+  "required_proof": "Up/down migration evidence",
+  "state": "SYNTHETIC_TECHNICAL_MIGRATION_CANDIDATE_UNREVIEWED",
+  "baseline_branch": "feature/reliability-intelligence-v22",
+  "design": {
+    "engine": "SQLite",
+    "allowed_storage": "disposable temporary SQLite files only",
+    "file_prefixes": [
+      "mavenu-v23-",
+      "mavenu-v24-"
+    ],
+    "allowed_filenames": [
+      "v23_synthetic.sqlite3",
+      "v24_synthetic.sqlite3"
+    ],
+    "source_v21": "docs/data/SCHEMA_DESIGN_V21.sql",
+    "source_v24": "scripts/persist_v24.py:DDL",
+    "schema_versioning": "PRAGMA user_version; integer 0/1/2, committed within each DDL transaction",
+    "upgrade_chain": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "downgrade_chain": [
+      [
+        2,
+        1
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "migration_sql_runner": "sqlite3.complete_statement with individual execute calls inside BEGIN IMMEDIATE",
+    "foreign_keys_enabled": true,
+    "transactional_ddl": true,
+    "destructive_down_migrations_require_empty_affected_tables": true,
+    "nonempty_v21_data_retained_across_v1_to_v2_to_v1": true,
+    "failure_injection": [
+      "up_v1_after_3_tables",
+      "up_v2_after_1_ledger",
+      "down_v2_after_1_drop",
+      "down_v1_after_4_drops"
+    ],
+    "fail_closed_on_unknown_versions": true,
+    "fail_closed_on_unexpected_schema": true,
+    "no_real_customer_data": true,
+    "no_production_upgrade": true,
+    "no_OT_or_CMMS_write": true,
+    "manual_human_approval_pending": true
+  },
+  "stages": [
+    {
+      "version": 1,
+      "from": 0,
+      "to": 1,
+      "kind": "V21 canonical schema",
+      "expected_tables": 10,
+      "expected_triggers": 0,
+      "data_policy": "empty new database only"
+    },
+    {
+      "version": 2,
+      "from": 1,
+      "to": 2,
+      "kind": "V24 synthetic ledger extension",
+      "expected_tables": 13,
+      "expected_triggers": 6,
+      "data_policy": "retain any valid V21 base records"
+    }
+  ],
+  "expected": {
+    "v0_tables": 0,
+    "v1_tables": 10,
+    "v2_tables": 13,
+    "v2_triggers": 6,
+    "up_steps": 2,
+    "down_steps": 2,
+    "injected_rollback_cases": 4,
+    "data_preserving_roundtrips": 1,
+    "rejected_destructive_downgrades": 2,
+    "source_fixture_rows": 120,
+    "source_documents": 3,
+    "retained_rows_after_v2_to_v1": 120,
+    "actual_customer_records": 0
+  },
+  "decision": {
+    "v10_formal_promotion": false,
+    "v20_data_quality_signoff": false,
+    "v21_entity_schema_human_review": false,
+    "v22_identity_human_review": false,
+    "v23_migration_human_review": false,
+    "v24_persistence_human_review": false,
+    "customer_data_access_authorized": false,
+    "production_schema_change_authorized": false,
+    "named_data_architect": null,
+    "named_database_administrator": null,
+    "named_security_reviewer": null,
+    "reviewed_at_utc": null,
+    "approval_signature": null
+  },
+  "limitations": [
+    "Tests cover SQLite transactional DDL in automatically deleted temporary files, not customer deployments.",
+    "Downgrade refuses to drop any nonempty V24 ledger or V21 entity tables; populated production rollback is not implemented.",
+    "Within one multistep request, each adjacent migration is separately committed; cross-version request atomicity is not claimed.",
+    "SQLite physical durability and application backup/restore or crash recovery are not proven by injected exceptions.",
+    "V10 and V20 approval gates remain blocked; V21 and V22 reviews remain pending.",
+    "V24 previously existed on this branch before V23 backfill; this implementation does not rewrite historical Git commits."
+  ]
+}
