@@ -200,7 +200,7 @@ def validate_policy(p: dict[str, Any]) -> None:
 
 
 def _controlled_path(path: Path) -> Path:
-    require(type(path) is Path and path.name == NAME and not path.is_symlink(),
+    require(isinstance(path, Path) and path.name == NAME and not path.is_symlink(),
             "unapproved_test_database_path")
     parent = path.parent.resolve()
     require(parent.parent == Path(tempfile.gettempdir()).resolve() and
