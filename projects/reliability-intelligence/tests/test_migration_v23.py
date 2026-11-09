@@ -79,7 +79,7 @@ class V23ReversibleMigrationTests(unittest.TestCase):
     def test_06_existing_v24_is_the_branch_baseline(self):
         self.assertEqual(self.contract["baseline_branch"],
                          "feature/reliability-intelligence-v22")
-        self.assertIn("already",self.contract["limitations"][-1])
+        self.assertIn("before V23 backfill",self.contract["limitations"][-1])
 
     def test_07_initial_v0_empty(self):
         state=mig.validate_version(self.db,0)
