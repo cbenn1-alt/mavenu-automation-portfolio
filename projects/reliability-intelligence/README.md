@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V25 candidate index profiling
+# Mavenu Reliability Intelligence — V26 tenant boundary and data rights candidate
 
-**State:** V25 builds four query-oriented candidate indexes against a disposable 9,301-row SQLite synthetic benchmark, recording actual EXPLAIN QUERY PLAN selection, result equivalence, and latency thresholds. V23/V24.1 remain integrated on the current V22 baseline; V25 indexes are NOT a production versioned migration. V10/V20 phase approvals remain blocked, human reviews pending.
+**State:** V26 documents a provisional synthetic tenant/site scoping model, 3 production isolation design alternatives, four data classes and unresolved data ownership/rights, plus a 48-combination fabricated actor/scope/operation test. No real authentication, database RLS, signed customer rights or production security is implied. V10/V20 formal signoffs remain blocked and V21–V26 human approvals pending.
 
-**Standard (Mavenu AI SaaS Development Architecture V4 p.43):** V25 = Add indexes and performance profiling. Proof = Query-plan and threshold report. Frozen V9 runtime 0.9.0 and read-only API v1/schema 1.3.0 remain unchanged.
+**Standard (Mavenu AI SaaS Development Architecture V4, page 43):** V26 = Document tenant boundaries and data rights. Proof = Isolation design decision. This design is PROPOSED_NOT_RATIFIED; frozen V9 runtime and read-only API unchanged.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -30,6 +30,7 @@ PYTHONPATH=src python scripts/verify_v23.py
 PYTHONPATH=src python scripts/verify_v24.py
 PYTHONPATH=src python scripts/verify_v24_1.py
 PYTHONPATH=src python scripts/verify_v25.py
+PYTHONPATH=src python scripts/verify_v26.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -239,3 +240,12 @@ Historical V24 release metadata accurately says V23 was unavailable at its origi
 V25 adds docs/data/INDEX_PROFILE_CONTRACT_V25.json, docs/data/INDEX_DESIGN_V25.sql, scripts/index_v25.py, scripts/verify_v25.py and tests/test_index_performance_v25.py. Four candidate indexes support site chronology, asset chronology, failure-code chronology and reverse evidence-reference lookups in a fabricated SQLite version-2 test database. The benchmark contains **9,301 invented rows**, separate from the frozen 12-case source fixtures. The profiler verifies expected index selection and avoidance of temp sorting through EXPLAIN QUERY PLAN, compares exact result sets and hashes, records five warmups and 37 timed runs per query/state and enforces median <=80ms / P95 <=200ms. The index-DDL transaction is tested for complete rollback after two statements. No minimum speedup ratio is required.
 
 V25 adds **54 tests**, expected combined **1,270** pending hosted CI. The technical output is evidence/V25/query_plan_threshold_report.json, evidence/V25/indexed_vs_baseline_profile.json and evidence/V25/unsigned_index_review.json. The reports contain **observed**, not projected, SQLite timing; they are not production SLAs. Indexes exist only in automatically deleted performance copies and are not integrated into a V23 migration, production storage, customer access or read-only application. Prior approval and domain-validation restrictions remain unchanged. See docs/INDEX_AND_PROFILE_V25.md and docs/DEMO_V25.md.
+
+
+## V26 — Synthetic isolation-design decision and data-rights inventory
+
+docs/data/ISOLATION_DECISION_V26.json defines a **proposed, unratified** logical tenant/site-scoping test model. It explicitly evaluates pooled-table, database-per-tenant, and schema-per-tenant alternatives; the production architecture is UNDECIDED. The project has no confirmed customer legal source rights, production identity, DPA, retention/deletion/export permissions, RLS or approved tenant access.
+
+scripts/isolation_v26.py builds an automatically deleted SQLite version-2 fixture: **2 fictional tenants, 4 overlapping sites, 8 assets, 12 cases and 12 fake evidence references (38 fabricated records)**. The same case ID repeats across all four scopes. Six fictional actors carry fixed in-code test grants for two read-only tenant/site-scoped query shapes. A 48-case matrix expects 8 permitted and 40 denied operations; ten additional malformed probes are uniformly denied. **Direct unrestricted SQL still bypasses the guard**, explicitly confirming it is not database-level security.
+
+scripts/verify_v26.py writes evidence/V26/isolation_design_decision.json, synthetic_access_probe_matrix.json and unsigned_data_rights_review.json. tests/test_isolation_v26.py adds **118 new tests**, expected full suite **1,388** (1,270 inherited), subject to actual GitHub CI. V10 frozen 18-file source and earlier technical regressions remain. Formal V10/V20 gates and all data-owner/legal/security reviews remain missing. See docs/ISOLATION_AND_RIGHTS_V26.md and docs/DEMO_V26.md.
