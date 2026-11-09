@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V24 (synthetic transactional persistence; V23 absent)
+# Mavenu Reliability Intelligence — V23 schema migrations and V24 synthetic persistence
 
-**State:** V24 tests atomic snapshot/event persistence in an automatically deleted temporary SQLite file. There is no V23 reversible migration implementation or evidence; V24 is an isolated synthetic candidate, not formal Phase 03 advancement or production persistence. V10/V20 formal signoffs blocked; V21/V22 human reviews and V24 reviewer acceptance pending.
+**State:** V23 now provides a tested synthetic-only reversible schema path (SQLite user_version 0/1/2) across V21's ten entities and V24's experimental ledger. V24 was already merged into this baseline before the V23 backfill and retains its historical temporary-database bootstrap; the new migrator is NOT yet wired into V24 runtime. V10/V20 formal signoffs remain BLOCKED and V21–V24 human reviews are pending.
 
-**Standard (Architecture V4, page 43):** V24 = Persist validated records and events. Proof = Transactional integrity tests. No V23 migration is claimed. V9 runtime stays frozen at 0.9.0, read-only API v1/schema 1.3.0.
+**Standard (Architecture V4, p.43):** V23 = Implement reversible schema migration path; proof = Up/down migration evidence. V24 = Persist validated records and events; proof = Transactional integrity tests. Both are technical synthetic-only candidates, not production data authorization or a human-reviewed schema change.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -26,6 +26,7 @@ PYTHONPATH=src python scripts/verify_v19.py
 PYTHONPATH=src python scripts/verify_v20.py
 PYTHONPATH=src python scripts/verify_v21.py
 PYTHONPATH=src python scripts/verify_v22.py
+PYTHONPATH=src python scripts/verify_v23.py
 PYTHONPATH=src python scripts/verify_v24.py
 ~~~~
 
@@ -213,3 +214,10 @@ The verifier produces evidence/V22/identity_reference_validation.json, evidence/
 docs/data/PERSISTENCE_CONTRACT_V24.json and scripts/persist_v24.py introduce **test-only file-backed SQLite transactions** created under automatically deleted mavenu-v24-* temporary directories. All source rows are first validated in V21 :memory: stage and V22 identity/link checks. One BEGIN IMMEDIATE / COMMIT imports **120 fictional entity records** and creates **12 fabricated case events, 1 batch, 1 receipt**, 134 rows total. Exact source/snapshot SHA-256, event hash chain, receipt, foreign keys and uniqueness are independently checked on reopen. Same-source replay adds 0 rows; injected failure after the entity copy or fourth event rolls everything back. This is NOT a demonstration of actual sudden power-loss tolerance or production HA.
 
 scripts/verify_v24.py writes evidence/V24/transactional_integrity_report.json, rollback_reopen_matrix.json and unsigned_persistence_review.json. tests/test_persistence_v24.py adds **82** tests, expected full suite **1,088** (1,006 inherited) subject to current hosted CI. Prior 84.5% V8 combined coverage floor and V10 18-file freeze remain. The V9 application runtime, API and frozen files are unchanged; the experiment adds no customer data, credentials, live CMMS/ERP/OT integration, permanent database or approved V23 migration. V10/V20 human signoff and V21/V22 reviews remain outstanding. See docs/PERSISTENCE_V24.md, docs/DEMO_V24.md and docs/releases/V24.md.
+
+
+## V23 — Reversible schema migrations (synthetic-only backfill)
+
+V23 introduces docs/data/MIGRATION_CONTRACT_V23.json, scripts/migrate_v23.py, scripts/verify_v23.py and tests/test_migration_v23.py. It transactionally migrates disposable SQLite test schemas version 0 (empty) → 1 (10 V21 entity tables) → 2 (13 tables including the V24 ledger and six immutability triggers), then tests 2→1→0. It verifies that 120 populated V21 synthetic records survive 1→2→1, refuses destructive rollback of the 120 V21 records or a 134-row committed V24 ledger, and injects four rollback failures to prove no partial schema change or version-marker drift. It contributes **74 tests**, expected cumulative **1,162** (1,088 inherited), subject to GitHub Actions. Reports: evidence/V23/up_down_migration_report.json, migration_failure_matrix.json and unsigned_migration_review.json.
+
+The V24 code was already merged before V23 and retains its original temporary bootstrap. It is **not yet integrated with the V23 migrator**, so the tests do not establish a production upgrade path. Human V23 review and prior V10/V20/V21/V22 signoffs are still missing; there is no customer-data permission or production schema authorization. See docs/MIGRATION_V23.md, docs/DEMO_V23.md, and docs/releases/V23.md.
