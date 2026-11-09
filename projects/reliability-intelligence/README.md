@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V21 (canonical entity schema candidate)
+# Mavenu Reliability Intelligence — V22 (synthetic identity and reference-data rules)
 
-**State:** V21 designs synthetic tenant/site, maintenance, evidence, review and source-lineage relationships. This schema is technically testable in an ephemeral in-memory SQLite database only. Human schema review is PENDING; V10 formal promotion and V20 data-quality sign-off remain BLOCKED. No durable storage, customer source access or production authorization is implied.
+**State:** V22 adds strict synthetic canonical IDs, controlled reference-data values, scoped uniqueness and link checks against V21 in-memory SQLite. This is a human-review PENDING design candidate; V10 phase promotion and V20 data quality sign-off remain BLOCKED and V21 entity review remains unsigned. No customer data, tenant authorization, production persistence, or V23 migration is approved.
 
-**Standard (Architecture V4, Appendix V21–V40):** V21 = Design canonical entities and relationships. Proof = Reviewed entity schema. Current output is an UNSIGNED review candidate, not completed human review. Frozen V9 runtime remains 0.9.0; read-only API stays v1/schema 1.3.0.
+**Standard (Architecture V4, Storage Data Model):** V22 = Define identity and reference-data rules. Proof = Uniqueness and link tests. Frozen V9 application runtime remains 0.9.0 and the read-only API is unchanged (v1/schema 1.3.0).
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -25,6 +25,7 @@ PYTHONPATH=src python scripts/verify_v18.py
 PYTHONPATH=src python scripts/verify_v19.py
 PYTHONPATH=src python scripts/verify_v20.py
 PYTHONPATH=src python scripts/verify_v21.py
+PYTHONPATH=src python scripts/verify_v22.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -197,3 +198,10 @@ The V21 design includes ten draft entities (tenant, site, asset, maintenance_cas
 scripts/entity_v21.py creates a temporary **SQLite :memory:** schema, checks table/primary-key/FK catalog and reconstructs the existing V16 synthetic trace into a 120-row preview (six assets, twelve cases, eleven example evidence IDs, four nonexecuted scripted reviews, twelve authored labels, three source fixture files, 34 record origins and 36 conversion steps). scripts/verify_v21.py generates evidence/V21/schema_review_validation.json, entity_relationship_catalog.json and unsigned_entity_schema_review.json. tests/test_entity_schema_v21.py adds relational checks and negative provenance/approval tests; actual suite count follows hosted CI.
 
 **Formal proof status:** technical candidate, human Reviewed entity schema PENDING. V10 and V20 signoffs remain blocked. V22 identity policies, V23 migrations, V24 durable persistence, customer data access and OT/CMMS/SCADA writes are not authorized or implemented. See docs/ENTITY_SCHEMA_V21.md, docs/DEMO_V21.md and docs/releases/V21.md.
+
+
+## V22 synthetic canonical identity and reference governance
+
+V22 adds docs/data/IDENTITY_REFERENCE_POLICY_V22.json, scripts/identity_v22.py, scripts/verify_v22.py and tests/test_identity_v22.py. It defines **9 strict ASCII identifier token patterns**, **10 allowlisted synthetic reference categories**, **13 scoped uniqueness rules**, and **9 parent-child link checks** over V21's ten-table SQLite :memory: schema. The negative suite tests 25 deliberate invalid copies, including duplicates, orphaned links, unexpected values and false approval. **102 new tests** bring the expected total to **1006** pending hosted CI verification.
+
+The verifier produces evidence/V22/identity_reference_validation.json, evidence/V22/uniqueness_link_matrix.json and evidence/V22/unsigned_identity_review.json. Human identity/reference-data review is PENDING; the earlier V10 and V20 signoff blockers remain unresolved. Synthetic foreign keys do **not** constitute real customer site/tenant authorization; no external identity resolution or persistent storage/migration (V23) is enabled. See docs/IDENTITY_REFERENCE_V22.md and docs/DEMO_V22.md.

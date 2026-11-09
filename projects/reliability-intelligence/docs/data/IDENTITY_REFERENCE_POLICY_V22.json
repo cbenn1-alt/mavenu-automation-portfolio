@@ -1,0 +1,438 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V22",
+  "architecture_source": "Mavenu AI SaaS Platform Development Architecture V4, Appendix V21–V40",
+  "objective": "Define identity and reference-data rules",
+  "required_proof": "Uniqueness and link tests",
+  "review_status": "CANDIDATE_IDENTITY_POLICY_HUMAN_REVIEW_PENDING",
+  "source_fixture_set_id": "SYN-RI-V5-20261107-A",
+  "source_commit": "704123eca45628bf504594af39a66036cc0451c5",
+  "parent_schema": "docs/data/ENTITY_MODEL_V21.json",
+  "identity_strategy": "strict ASCII case-sensitive exact-token, no silent trim/casefold/alias merge or external identity resolution",
+  "scope": {
+    "tenant_id": "SYN-TENANT-001",
+    "site_id": "SYN-SITE-001",
+    "persisted_database": false,
+    "authorization_enforced": false,
+    "real_customer_identities": false
+  },
+  "id_patterns": {
+    "tenant_id": "SYN-TENANT-[0-9]{3}",
+    "site_id": "SYN-SITE-[0-9]{3}",
+    "asset_id": "SYN-ASSET-[0-9]{3}",
+    "case_id": "SYN-CASE-[0-9]{3}",
+    "work_order_ref": "SYN-WO-[0-9]{3}",
+    "evidence_ref": "SYN-EV-[0-9]{3}",
+    "reviewer_id": "SYN-REVIEWER-[0-9]{3}",
+    "source_document_id": "SYN-DOC-[0-9]{3}",
+    "trace_id": "SYN-LINEAGE-(asset_records|case_records|scripted_review_entries|seeded_reference_labels)-SYN-(ASSET|CASE)-[0-9]{3}"
+  },
+  "uniqueness_keys": [
+    {
+      "name": "tenant",
+      "fields": [
+        "tenant_id"
+      ],
+      "meaning": "global synthetic tenant"
+    },
+    {
+      "name": "site",
+      "fields": [
+        "tenant_id",
+        "site_id"
+      ],
+      "meaning": "tenant-scoped site"
+    },
+    {
+      "name": "asset",
+      "fields": [
+        "tenant_id",
+        "site_id",
+        "asset_id"
+      ],
+      "meaning": "site-scoped synthetic equipment"
+    },
+    {
+      "name": "maintenance_case",
+      "fields": [
+        "tenant_id",
+        "site_id",
+        "case_id"
+      ],
+      "meaning": "site-scoped case identifier"
+    },
+    {
+      "name": "work_order_ref",
+      "fields": [
+        "tenant_id",
+        "site_id",
+        "work_order_ref"
+      ],
+      "meaning": "site-scoped fictional work-order reference; independent unique constraint"
+    },
+    {
+      "name": "evidence_reference",
+      "fields": [
+        "tenant_id",
+        "site_id",
+        "case_id",
+        "evidence_ref"
+      ],
+      "meaning": "case-scoped example identifier, not external document ID"
+    },
+    {
+      "name": "scripted_review",
+      "fields": [
+        "tenant_id",
+        "site_id",
+        "case_id",
+        "reviewer_id"
+      ],
+      "meaning": "case+invented reviewer ID; not authenticated identity"
+    },
+    {
+      "name": "reference_label",
+      "fields": [
+        "tenant_id",
+        "site_id",
+        "case_id"
+      ],
+      "meaning": "at most one authored label per case"
+    },
+    {
+      "name": "source_document",
+      "fields": [
+        "tenant_id",
+        "site_id",
+        "source_document_id"
+      ],
+      "meaning": "synthetic file identity"
+    },
+    {
+      "name": "source_document_path",
+      "fields": [
+        "tenant_id",
+        "site_id",
+        "fixture_path"
+      ],
+      "meaning": "synthetic file path unique within a site"
+    },
+    {
+      "name": "record_origin",
+      "fields": [
+        "tenant_id",
+        "site_id",
+        "trace_id"
+      ],
+      "meaning": "reconstructed record origin identity"
+    },
+    {
+      "name": "origin_source_tuple",
+      "fields": [
+        "tenant_id",
+        "site_id",
+        "source_document_id",
+        "source_dataset",
+        "source_record_id"
+      ],
+      "meaning": "no repeated source identity within one file/dataset"
+    },
+    {
+      "name": "transform_step",
+      "fields": [
+        "tenant_id",
+        "site_id",
+        "trace_id",
+        "step_ordinal"
+      ],
+      "meaning": "ordered transform steps for reconstructed origin"
+    }
+  ],
+  "reference_values": {
+    "asset_class": [
+      "bearing_drive",
+      "belt_conveyor",
+      "control_valve",
+      "electric_motor",
+      "sensor_module",
+      "transfer_pump"
+    ],
+    "cohort": [
+      "Assembly Test Line",
+      "Mock Workshop",
+      "Utility Test Zone"
+    ],
+    "failure_code": [
+      "bearing_wear",
+      "belt_slip",
+      "motor_trip",
+      "seal_leak",
+      "sensor_fault",
+      "valve_stick"
+    ],
+    "review_state": [
+      "fixture_only"
+    ],
+    "disposition": [
+      "acknowledge",
+      "defer",
+      "investigate_history",
+      "request_evidence"
+    ],
+    "reason_code": [
+      "further_demo_review",
+      "missing_evidence_reference",
+      "repeat_history_flag",
+      "routine_synthetic_review"
+    ],
+    "expected_review_label": [
+      "missing_evidence",
+      "repeat_history_candidate",
+      "single_event"
+    ],
+    "source_dataset": [
+      "asset_records",
+      "case_records",
+      "scripted_review_entries",
+      "seeded_reference_labels"
+    ],
+    "source_fixture": [
+      "fixtures/cases.json",
+      "fixtures/demo_review_script.json",
+      "fixtures/reference_labels.json"
+    ],
+    "transform_rule": [
+      "V15_HOURS_EXACT",
+      "V15_USD_EXACT_CENTS",
+      "V15_UTC_EXPLICIT"
+    ]
+  },
+  "foreign_key_links": [
+    {
+      "child": "site",
+      "parent": "tenant",
+      "scope": [
+        "tenant_id"
+      ],
+      "test": "foreign_key"
+    },
+    {
+      "child": "asset",
+      "parent": "site",
+      "scope": [
+        "tenant_id",
+        "site_id"
+      ],
+      "test": "foreign_key"
+    },
+    {
+      "child": "maintenance_case",
+      "parent": "asset",
+      "scope": [
+        "tenant_id",
+        "site_id",
+        "asset_id"
+      ],
+      "test": "foreign_key"
+    },
+    {
+      "child": "evidence_reference",
+      "parent": "maintenance_case",
+      "scope": [
+        "tenant_id",
+        "site_id",
+        "case_id"
+      ],
+      "test": "foreign_key"
+    },
+    {
+      "child": "scripted_review",
+      "parent": "maintenance_case",
+      "scope": [
+        "tenant_id",
+        "site_id",
+        "case_id"
+      ],
+      "test": "foreign_key"
+    },
+    {
+      "child": "reference_label",
+      "parent": "maintenance_case",
+      "scope": [
+        "tenant_id",
+        "site_id",
+        "case_id"
+      ],
+      "test": "foreign_key"
+    },
+    {
+      "child": "source_document",
+      "parent": "site",
+      "scope": [
+        "tenant_id",
+        "site_id"
+      ],
+      "test": "foreign_key"
+    },
+    {
+      "child": "record_origin",
+      "parent": "source_document",
+      "scope": [
+        "tenant_id",
+        "site_id",
+        "source_document_id"
+      ],
+      "test": "foreign_key"
+    },
+    {
+      "child": "transform_step",
+      "parent": "record_origin",
+      "scope": [
+        "tenant_id",
+        "site_id",
+        "trace_id"
+      ],
+      "test": "foreign_key"
+    }
+  ],
+  "expected": {
+    "entities": 10,
+    "relationships": 9,
+    "synthetic_rows": 120,
+    "source_records": 34,
+    "transform_steps": 36,
+    "unmatched_parent_links": 0,
+    "source_files": 3,
+    "case_rows": 12,
+    "asset_rows": 6,
+    "review_rows": 4,
+    "label_rows": 12,
+    "example_evidence_refs": 11,
+    "mutation_cases": 25
+  },
+  "adverse_cases": [
+    {
+      "id": "duplicate_asset_id",
+      "expected_error": "duplicate_asset_identifier"
+    },
+    {
+      "id": "duplicate_case_id",
+      "expected_error": "duplicate_case_identifier"
+    },
+    {
+      "id": "duplicate_work_order",
+      "expected_error": "duplicate_work_order_reference"
+    },
+    {
+      "id": "missing_case_asset",
+      "expected_error": "orphan_case_asset"
+    },
+    {
+      "id": "missing_review_case",
+      "expected_error": "orphan_scripted_review"
+    },
+    {
+      "id": "missing_label_case",
+      "expected_error": "orphan_reference_label"
+    },
+    {
+      "id": "duplicate_scripted_review",
+      "expected_error": "duplicate_scripted_review_key"
+    },
+    {
+      "id": "duplicate_label",
+      "expected_error": "duplicate_reference_label"
+    },
+    {
+      "id": "duplicate_evidence_ref",
+      "expected_error": "duplicate_case_evidence_reference"
+    },
+    {
+      "id": "invalid_evidence_ref",
+      "expected_error": "noncanonical_evidence_ref"
+    },
+    {
+      "id": "unknown_failure_code",
+      "expected_error": "unknown_failure_code"
+    },
+    {
+      "id": "unknown_asset_class",
+      "expected_error": "unknown_asset_class"
+    },
+    {
+      "id": "unknown_cohort",
+      "expected_error": "unknown_cohort"
+    },
+    {
+      "id": "unknown_label_enum",
+      "expected_error": "unknown_reference_label"
+    },
+    {
+      "id": "unknown_disposition",
+      "expected_error": "unknown_review_disposition"
+    },
+    {
+      "id": "unknown_reason_code",
+      "expected_error": "unknown_review_reason"
+    },
+    {
+      "id": "mixed_case_case_id",
+      "expected_error": "noncanonical_case_id"
+    },
+    {
+      "id": "whitespace_case_id",
+      "expected_error": "noncanonical_case_id"
+    },
+    {
+      "id": "unicode_case_id",
+      "expected_error": "noncanonical_case_id"
+    },
+    {
+      "id": "invalid_work_order",
+      "expected_error": "noncanonical_work_order_ref"
+    },
+    {
+      "id": "invalid_asset_id",
+      "expected_error": "noncanonical_asset_id"
+    },
+    {
+      "id": "non_synthetic_flag",
+      "expected_error": "non_synthetic_case"
+    },
+    {
+      "id": "unapproved_source_system",
+      "expected_error": "unauthorized_source_system"
+    },
+    {
+      "id": "unexpected_source_doc",
+      "expected_error": "unauthorized_source_document"
+    },
+    {
+      "id": "undeclared_case_field",
+      "expected_error": "unknown_case_field"
+    }
+  ],
+  "limitations": [
+    "Composite keys and foreign keys are only schema and test-integrity controls, not customer tenant authorization.",
+    "Source labels and classifications are invented examples, not domain-approved equipment taxonomies or diagnoses.",
+    "Canonical identity is not linked to real CMMS primary keys, external evidence documents or human directory identities.",
+    "Reference-data lifecycle, alias resolution, merge/split rules and true domain stewardship await owner review.",
+    "V10 promotion and V20 data-quality sign-off blocked, V21 human review pending; no formal V22 approval."
+  ],
+  "approvals": {
+    "v10_formal_promotion": false,
+    "v20_data_quality_signoff": false,
+    "v21_schema_review": false,
+    "v22_identity_review": false,
+    "customer_data_authorized": false,
+    "production_storage_authorized": false,
+    "v23_migration_approved": false,
+    "tenant_access_control_authorized": false,
+    "ot_or_cmms_write_permitted": false,
+    "named_data_architect": null,
+    "named_data_steward": null,
+    "named_security_reviewer": null,
+    "review_date_utc": null,
+    "signature": null
+  }
+}
