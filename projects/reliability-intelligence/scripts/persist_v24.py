@@ -3,8 +3,9 @@
 Mavenu architecture V4 p43: Persist validated records and events.
 Proof: Transactional integrity tests.
 
-V23 reversible migrations are missing; this is a new TEMPORARY bootstrap,
-not a migration. The 120-row V21 synthetic snapshot is loaded and validated
+V24.1 uses V23 reversible migrations to initialize a NEW TEMPORARY
+SQLite schema (or resume an empty V1 partial initialization). The 120-row
+V21 synthetic snapshot is loaded and validated
 in :memory: before it is copied with 12 fabricated case events to a file DB
 inside one transaction. No customer data, network, production database,
 runtime change, CMMS/ERP/OT write or real tenant authentication.
@@ -24,6 +25,7 @@ from typing import Any
 import entity_v21
 import identity_v22
 import lineage_v16
+import migrate_v23
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "docs/data/PERSISTENCE_CONTRACT_V24.json"
@@ -226,19 +228,34 @@ def connect(path: Path) -> sqlite3.Connection:
 
 
 def bootstrap(db: sqlite3.Connection) -> None:
-    """Explicitly NOT a V23 up/down migration. Empty database ONLY."""
-    found = {r[0] for r in db.execute(
-        "SELECT name FROM sqlite_master WHERE type='table'"
-    )}
-    require(not found, "existing_schema_bootstrap_denied")
-    # execscript is never called inside the V24 transaction, since SQLite's
-    # executescript can implicitly commit prior work.
-    db.executescript(entity_v21.DDL_PATH.read_text(encoding="utf-8"))
-    db.executescript(DDL)
+    """V24.1: initialize via V23 up-migrations, never raw executescript.
+
+    This accepts an empty V0 database or an EMPTY V1 schema left by a failed
+    1→2 upgrade. Any existing data, V2 schema, unexpected schema, outside-temp
+    database, or unknown version fails closed. The 0→1 and 1→2 steps commit
+    separately (V23 design); this does NOT establish all-or-nothing V0→V2.
+    """
+    before = migrate_v23.validate_version(db)
+    require(before["version"] in (0, 1),
+            "existing_schema_bootstrap_denied")
+    if before["version"] == 1:
+        require(all(
+            db.execute('SELECT COUNT(*) FROM "' + table + '"').fetchone()[0] == 0
+            for table in entity_v21.EXPECTED_COUNTS
+        ), "nonempty_v1_bootstrap_denied")
+    migrated = migrate_v23.migrate_to(db, 2)
+    require(migrated["applied_steps"] == 2 - before["version"] and
+            migrated["final_state"]["version"] == 2 and
+            migrated["final_state"]["tables"] == 13 and
+            migrated["final_state"]["triggers"] == 6,
+            "v23_migration_initialization_incomplete")
     check_structure(db)
 
 
 def check_structure(db: sqlite3.Connection) -> dict[str, Any]:
+    # V24.1 refuses legacy ad-hoc DDL with no committed V23 schema version.
+    require(db.execute("PRAGMA user_version").fetchone()[0] == 2,
+            "v23_schema_version_required")
     tables = {r[0] for r in db.execute(
         "SELECT name FROM sqlite_master WHERE type='table'"
     )}
