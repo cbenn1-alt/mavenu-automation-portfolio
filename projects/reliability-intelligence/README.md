@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V24.1 integrated synthetic migration and persistence
+# Mavenu Reliability Intelligence — V25 candidate index profiling
 
-**State:** V24.1 connects V23's reversible SQLite schema migrations to V24's temporary persistence bootstrap, using explicit schema version 2. The old V24 contract remains a historical record from before V23 existed. V10/V20 formal decisions blocked and V21–V24.1 human acceptance pending; no production storage or customer data authorization.
+**State:** V25 builds four query-oriented candidate indexes against a disposable 9,301-row SQLite synthetic benchmark, recording actual EXPLAIN QUERY PLAN selection, result equivalence, and latency thresholds. V23/V24.1 remain integrated on the current V22 baseline; V25 indexes are NOT a production versioned migration. V10/V20 phase approvals remain blocked, human reviews pending.
 
-**Standard:** Mavenu AI SaaS Platform Development Architecture V4 p.43: V23 reversible schema migration (up/down proof), V24 persist validated records/events (transactional integrity proof). V24.1 is a technical integration increment; V9 runtime 0.9.0 and read-only API v1/schema 1.3.0 remain unchanged.
+**Standard (Mavenu AI SaaS Development Architecture V4 p.43):** V25 = Add indexes and performance profiling. Proof = Query-plan and threshold report. Frozen V9 runtime 0.9.0 and read-only API v1/schema 1.3.0 remain unchanged.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -29,6 +29,7 @@ PYTHONPATH=src python scripts/verify_v22.py
 PYTHONPATH=src python scripts/verify_v23.py
 PYTHONPATH=src python scripts/verify_v24.py
 PYTHONPATH=src python scripts/verify_v24_1.py
+PYTHONPATH=src python scripts/verify_v25.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -231,3 +232,10 @@ scripts/persist_v24.py now calls migrate_v23.validate_version and migrate_v23.mi
 The original V24 134-row fabricated record/event transaction, SHA-256 receipts, reopen integrity, idempotent replay and failure rollback remain in force. V24.1 adds docs/data/MIGRATION_INTEGRATION_V24_1.json, scripts/verify_v24_1.py, tests/test_v24_1_migration_integration.py (**54 new tests**, expected full suite **1,216**, subject to CI), and three evidence/V24_1 JSON outputs. Eight synthetic integration scenarios exercise versioned startup, partial-upgrade recovery, strict refusal and unchanged receipts. See docs/MIGRATION_INTEGRATION_V24_1.md and docs/DEMO_V24_1.md.
 
 Historical V24 release metadata accurately says V23 was unavailable at its original release; the V24.1 addendum is authoritative for current bootstrap integration. Formal V10/V20 approvals and V21–V24.1 human reviews remain outstanding. No live data, production migration, backup, HA, tenancy authorization or OT/CMMS writes.
+
+
+## V25 — Synthetic query-plan and performance acceptance
+
+V25 adds docs/data/INDEX_PROFILE_CONTRACT_V25.json, docs/data/INDEX_DESIGN_V25.sql, scripts/index_v25.py, scripts/verify_v25.py and tests/test_index_performance_v25.py. Four candidate indexes support site chronology, asset chronology, failure-code chronology and reverse evidence-reference lookups in a fabricated SQLite version-2 test database. The benchmark contains **9,301 invented rows**, separate from the frozen 12-case source fixtures. The profiler verifies expected index selection and avoidance of temp sorting through EXPLAIN QUERY PLAN, compares exact result sets and hashes, records five warmups and 37 timed runs per query/state and enforces median <=80ms / P95 <=200ms. The index-DDL transaction is tested for complete rollback after two statements. No minimum speedup ratio is required.
+
+V25 adds **54 tests**, expected combined **1,270** pending hosted CI. The technical output is evidence/V25/query_plan_threshold_report.json, evidence/V25/indexed_vs_baseline_profile.json and evidence/V25/unsigned_index_review.json. The reports contain **observed**, not projected, SQLite timing; they are not production SLAs. Indexes exist only in automatically deleted performance copies and are not integrated into a V23 migration, production storage, customer access or read-only application. Prior approval and domain-validation restrictions remain unchanged. See docs/INDEX_AND_PROFILE_V25.md and docs/DEMO_V25.md.
