@@ -1,0 +1,283 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V26",
+  "standard": "Mavenu AI SaaS Platform Development Architecture V4, appendix page 43",
+  "objective": "Document tenant boundaries and data rights",
+  "required_proof": "Isolation design decision",
+  "design_state": "PROPOSED_NOT_RATIFIED",
+  "selected_for_synthetic_prototype": "logical_tenant_site_scoping",
+  "production_choice": "UNDECIDED_PENDING_CUSTOMER_AND_SECURITY_REVIEW",
+  "evidence_scope": "artificial actors and fabricated SQLite source rows only",
+  "design_options": [
+    {
+      "key": "logical_tenant_site_scoping",
+      "decision": "PROPOSED_SYNTHETIC_ONLY",
+      "benefits": [
+        "compatible with existing V21 composite FKs",
+        "minimal prototype footprint"
+      ],
+      "risks": [
+        "application SQL omission can expose another tenant",
+        "shared administrators and schema privileges bypass guard",
+        "no verified tenant authentication or database RLS"
+      ]
+    },
+    {
+      "key": "database_per_tenant",
+      "decision": "UNSELECTED_OPTION",
+      "benefits": [
+        "stronger physical isolation boundary possible",
+        "independent backup and lifecycle controls"
+      ],
+      "risks": [
+        "operational cost",
+        "migration orchestration complexity",
+        "still requires authentication and controls"
+      ]
+    },
+    {
+      "key": "schema_per_tenant",
+      "decision": "UNSELECTED_OPTION",
+      "benefits": [
+        "logical namespace separation",
+        "can support differentiated schema changes"
+      ],
+      "risks": [
+        "schema sprawl",
+        "permission and routing failures",
+        "not directly represented in current SQLite test schema"
+      ]
+    }
+  ],
+  "trust_boundaries": {
+    "external_actor_authentication": "NOT_IMPLEMENTED",
+    "caller_identity_provider": "NONE",
+    "principal_context_origin": "SYNTHETIC_SERVER_SIDE_TEST_FIXTURE_ONLY",
+    "tenant_resolution": "predeclared test-only actor grants; not request-owned authority",
+    "database_isolation": "single SQLite version-2 disposable file containing repeated case IDs across 2 tenants and 2 sites each",
+    "row_level_security": "NOT_IMPLEMENTED",
+    "application_authorization": "test-only allowlist and exact tenant/site-scoped SQL predicates",
+    "outbound_customer_data_transfer": "DISALLOWED",
+    "production_safety_claim": "NONE",
+    "unauthorized_response": "fixed scope_denied error, without existence disclosure"
+  },
+  "inventory": {
+    "tenants": 2,
+    "sites_per_tenant": 2,
+    "assets_per_site": 2,
+    "cases_per_site": 3,
+    "evidence_refs_per_case": 1,
+    "synthetic_rows": 38,
+    "case_rows": 12,
+    "evidence_rows": 12,
+    "actors": 6,
+    "granted_actor_scopes": 6,
+    "case_read_grants": 6,
+    "evidence_read_grants": 2,
+    "allowed_operations": [
+      "read_case_summary",
+      "read_evidence_reference"
+    ],
+    "denied_operations": [
+      "write_case",
+      "export_case",
+      "delete_case",
+      "read_source_document",
+      "send_ot_command"
+    ],
+    "baseline_schema_version": 2,
+    "source_files_unchanged": true
+  },
+  "synthetic_actors": [
+    {
+      "id": "SYN-ACTOR-001",
+      "role": "site_viewer",
+      "grants": [
+        {
+          "tenant_id": "SYN-TENANT-001",
+          "site_id": "SYN-SITE-001",
+          "operations": [
+            "read_case_summary"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SYN-ACTOR-002",
+      "role": "evidence_reviewer",
+      "grants": [
+        {
+          "tenant_id": "SYN-TENANT-001",
+          "site_id": "SYN-SITE-002",
+          "operations": [
+            "read_case_summary",
+            "read_evidence_reference"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SYN-ACTOR-003",
+      "role": "evidence_reviewer",
+      "grants": [
+        {
+          "tenant_id": "SYN-TENANT-002",
+          "site_id": "SYN-SITE-001",
+          "operations": [
+            "read_case_summary",
+            "read_evidence_reference"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SYN-ACTOR-004",
+      "role": "site_viewer",
+      "grants": [
+        {
+          "tenant_id": "SYN-TENANT-002",
+          "site_id": "SYN-SITE-002",
+          "operations": [
+            "read_case_summary"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SYN-ACTOR-005",
+      "role": "dual_site_viewer",
+      "grants": [
+        {
+          "tenant_id": "SYN-TENANT-001",
+          "site_id": "SYN-SITE-001",
+          "operations": [
+            "read_case_summary"
+          ]
+        },
+        {
+          "tenant_id": "SYN-TENANT-001",
+          "site_id": "SYN-SITE-002",
+          "operations": [
+            "read_case_summary"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SYN-ACTOR-006",
+      "role": "unassigned",
+      "grants": []
+    }
+  ],
+  "data_classes": [
+    {
+      "key": "case_summary",
+      "origin": "generated_fixture_only",
+      "readers": [
+        "site_viewer",
+        "evidence_reviewer",
+        "dual_site_viewer"
+      ],
+      "owner": "synthetic_test_team",
+      "customer_ownership": "UNDETERMINED"
+    },
+    {
+      "key": "evidence_reference",
+      "origin": "invented_reference_id_not_real_document",
+      "readers": [
+        "evidence_reviewer"
+      ],
+      "owner": "synthetic_test_team",
+      "customer_ownership": "UNDETERMINED"
+    },
+    {
+      "key": "raw_source_documents",
+      "origin": "V10_frozen_fabricated_files_only",
+      "readers": [],
+      "owner": "synthetic_test_team",
+      "customer_ownership": "UNDETERMINED"
+    },
+    {
+      "key": "scripted_reviews",
+      "origin": "nonexecuted_fake_operator_steps",
+      "readers": [],
+      "owner": "synthetic_test_team",
+      "customer_ownership": "UNDETERMINED"
+    }
+  ],
+  "rights_position": {
+    "proposed_controller": "customer_provided_legal_entity_only_if_contract_signed",
+    "proposed_processor": "Mavenu only if permitted by executed agreement",
+    "actual_controller_identified": false,
+    "actual_data_license_executed": false,
+    "purpose_limitation_approved": false,
+    "retention_period_approved": false,
+    "cross_border_transfer_approved": false,
+    "deletion_method_approved": false,
+    "individual_access_rights_workflow_approved": false,
+    "subprocessor_rights_approved": false,
+    "export_policy_approved": false,
+    "actual_customer_data_access": false,
+    "required_contracts": [
+      "data processing agreement",
+      "data ownership/source-rights schedule",
+      "access-role approvals",
+      "security and incident response agreement",
+      "retention/deletion/export schedule"
+    ]
+  },
+  "tests_required": {
+    "same_case_id_reused_in_each_site": true,
+    "cross_tenant_read_denied": true,
+    "cross_site_read_denied": true,
+    "role_based_evidence_denial": true,
+    "unassigned_actor_denied": true,
+    "unsupported_operation_denied": true,
+    "unknown_actor_denied": true,
+    "malformed_tenant_scope_denied": true,
+    "sql_predicates_always_scoped": true,
+    "foreign_keys_enforced": true,
+    "no_customer_data_used": true,
+    "nonproduction_schema_unchanged": true
+  },
+  "human_decision": {
+    "recommended_action": "REVIEW_ONLY",
+    "production_architecture_selected": false,
+    "owner": null,
+    "security_reviewer": null,
+    "data_steward": null,
+    "legal_reviewer": null,
+    "approved_at_utc": null,
+    "signature": null,
+    "required_evidence": [
+      "customer legal data-owner identification",
+      "production authn/authz and RLS or equivalent isolation design",
+      "tenant provisioning and offboarding",
+      "cross-tenant penetration testing",
+      "encryption/key and backup separation",
+      "customer DPA and source rights",
+      "retention/deletion/export rights",
+      "incident notification and subprocessor terms"
+    ],
+    "gate_status": {
+      "v10_promotion": false,
+      "v20_data_signoff": false,
+      "v21_entity_review": false,
+      "v22_identity_review": false,
+      "v23_migration_review": false,
+      "v24_storage_review": false,
+      "v24_1_integration_review": false,
+      "v25_index_review": false,
+      "v26_design_approved": false,
+      "production_customer_access": false
+    }
+  },
+  "limitations": [
+    "Actor IDs are fabricated strings and are not authenticated principal credentials.",
+    "An application-layer WHERE tenant_id/site_id guard is not database row-level security and can be bypassed by code with unrestricted SQL access.",
+    "Composite FKs prevent certain invalid references but do not prevent valid cross-tenant reads.",
+    "No approved customer owner, license, data-processing agreement, retention, deletion, export or subprocessor permissions exist.",
+    "V27–V30 backup, deletion, recovery and formal G1 gates remain future work.",
+    "All human review records and V10/V20 phase approvals remain unresolved."
+  ]
+}
