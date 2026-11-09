@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V20 (synthetic baseline review, human sign-off blocked)
+# Mavenu Reliability Intelligence — V21 (canonical entity schema candidate)
 
-**State:** V20 compiles V11–V19 technical evidence into an unsigned data-quality review packet. Technical checks may pass, but the required human sign-off remains BLOCKED/PENDING. V10 formal phase promotion and V11/V12 source approvals are outstanding; no customer data, production ingestion or Phase 03/V21 authorization is implied.
+**State:** V21 designs synthetic tenant/site, maintenance, evidence, review and source-lineage relationships. This schema is technically testable in an ephemeral in-memory SQLite database only. Human schema review is PENDING; V10 formal promotion and V20 data-quality sign-off remain BLOCKED. No durable storage, customer source access or production authorization is implied.
 
-**Standard (Architecture V4, page 42):** V20 = Approve data correctness test baseline. Proof = Data quality sign-off. Current deliverable is an UNSIGNED packet, not actual formal acceptance. Frozen V9 runtime stays 0.9.0; read-only API remains v1/schema 1.3.0.
+**Standard (Architecture V4, Appendix V21–V40):** V21 = Design canonical entities and relationships. Proof = Reviewed entity schema. Current output is an UNSIGNED review candidate, not completed human review. Frozen V9 runtime remains 0.9.0; read-only API stays v1/schema 1.3.0.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -24,6 +24,7 @@ PYTHONPATH=src python scripts/verify_v17.py
 PYTHONPATH=src python scripts/verify_v18.py
 PYTHONPATH=src python scripts/verify_v19.py
 PYTHONPATH=src python scripts/verify_v20.py
+PYTHONPATH=src python scripts/verify_v21.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -187,3 +188,12 @@ The code intentionally excludes real equipment uptime denominators, availability
 The V20 controlled register at docs/data/DATA_QUALITY_BASELINE_V20.json requires **9** Data Correctness evidence reports (V11–V19), plus **2** prior technical prerequisites (V8 and V10). scripts/gate_v20.py validates status and numerical invariants, rejects forged approvals and missing evidence, and compiles a reproducible SHA-256 report manifest. scripts/verify_v20.py writes evidence/V20/verification.json, evidence_manifest.json and data_quality_signoff_packet.json. The separate docs/releases/V20_SIGNOFF.json remains **blank and unsigned**.
 
 V20 adds **65 gate tests**, making **819 expected** total (754 inherited). The V8 combined 84.5% source coverage floor and V10 18-file freeze remain enforced; actual GitHub Actions output controls test counts. See docs/DATA_QUALITY_GATE_V20.md, docs/DEMO_V20.md and docs/releases/V20.md. **Technical PASS is not Data quality sign-off.** Eight human approvals remain blocked, V10 formal promotion remains unapproved, and no customer, production, CMMS/OT or V21 activity is authorized.
+
+
+## V21 canonical entity and relationship design (synthetic review only)
+
+The V21 design includes ten draft entities (tenant, site, asset, maintenance_case, evidence_reference, scripted_review, reference_label, source_document, record_origin, transform_step) linked by nine foreign-key relationships and composite tenant/site scoping. The model is specified in docs/data/ENTITY_MODEL_V21.json and the SQL draft in docs/data/SCHEMA_DESIGN_V21.sql. Neither document is an approved V23 migration, a physical production database, or real customer-tenant authorization.
+
+scripts/entity_v21.py creates a temporary **SQLite :memory:** schema, checks table/primary-key/FK catalog and reconstructs the existing V16 synthetic trace into a 120-row preview (six assets, twelve cases, eleven example evidence IDs, four nonexecuted scripted reviews, twelve authored labels, three source fixture files, 34 record origins and 36 conversion steps). scripts/verify_v21.py generates evidence/V21/schema_review_validation.json, entity_relationship_catalog.json and unsigned_entity_schema_review.json. tests/test_entity_schema_v21.py adds relational checks and negative provenance/approval tests; actual suite count follows hosted CI.
+
+**Formal proof status:** technical candidate, human Reviewed entity schema PENDING. V10 and V20 signoffs remain blocked. V22 identity policies, V23 migrations, V24 durable persistence, customer data access and OT/CMMS/SCADA writes are not authorized or implemented. See docs/ENTITY_SCHEMA_V21.md, docs/DEMO_V21.md and docs/releases/V21.md.
