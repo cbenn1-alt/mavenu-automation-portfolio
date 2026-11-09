@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V22 (synthetic identity and reference-data rules)
+# Mavenu Reliability Intelligence — V24 (synthetic transactional persistence; V23 absent)
 
-**State:** V22 adds strict synthetic canonical IDs, controlled reference-data values, scoped uniqueness and link checks against V21 in-memory SQLite. This is a human-review PENDING design candidate; V10 phase promotion and V20 data quality sign-off remain BLOCKED and V21 entity review remains unsigned. No customer data, tenant authorization, production persistence, or V23 migration is approved.
+**State:** V24 tests atomic snapshot/event persistence in an automatically deleted temporary SQLite file. There is no V23 reversible migration implementation or evidence; V24 is an isolated synthetic candidate, not formal Phase 03 advancement or production persistence. V10/V20 formal signoffs blocked; V21/V22 human reviews and V24 reviewer acceptance pending.
 
-**Standard (Architecture V4, Storage Data Model):** V22 = Define identity and reference-data rules. Proof = Uniqueness and link tests. Frozen V9 application runtime remains 0.9.0 and the read-only API is unchanged (v1/schema 1.3.0).
+**Standard (Architecture V4, page 43):** V24 = Persist validated records and events. Proof = Transactional integrity tests. No V23 migration is claimed. V9 runtime stays frozen at 0.9.0, read-only API v1/schema 1.3.0.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -26,6 +26,7 @@ PYTHONPATH=src python scripts/verify_v19.py
 PYTHONPATH=src python scripts/verify_v20.py
 PYTHONPATH=src python scripts/verify_v21.py
 PYTHONPATH=src python scripts/verify_v22.py
+PYTHONPATH=src python scripts/verify_v24.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -205,3 +206,10 @@ scripts/entity_v21.py creates a temporary **SQLite :memory:** schema, checks tab
 V22 adds docs/data/IDENTITY_REFERENCE_POLICY_V22.json, scripts/identity_v22.py, scripts/verify_v22.py and tests/test_identity_v22.py. It defines **9 strict ASCII identifier token patterns**, **10 allowlisted synthetic reference categories**, **13 scoped uniqueness rules**, and **9 parent-child link checks** over V21's ten-table SQLite :memory: schema. The negative suite tests 25 deliberate invalid copies, including duplicates, orphaned links, unexpected values and false approval. **102 new tests** bring the expected total to **1006** pending hosted CI verification.
 
 The verifier produces evidence/V22/identity_reference_validation.json, evidence/V22/uniqueness_link_matrix.json and evidence/V22/unsigned_identity_review.json. Human identity/reference-data review is PENDING; the earlier V10 and V20 signoff blockers remain unresolved. Synthetic foreign keys do **not** constitute real customer site/tenant authorization; no external identity resolution or persistent storage/migration (V23) is enabled. See docs/IDENTITY_REFERENCE_V22.md and docs/DEMO_V22.md.
+
+
+## V24 temporary transactional persistence (V23 migration NOT implemented)
+
+docs/data/PERSISTENCE_CONTRACT_V24.json and scripts/persist_v24.py introduce **test-only file-backed SQLite transactions** created under automatically deleted mavenu-v24-* temporary directories. All source rows are first validated in V21 :memory: stage and V22 identity/link checks. One BEGIN IMMEDIATE / COMMIT imports **120 fictional entity records** and creates **12 fabricated case events, 1 batch, 1 receipt**, 134 rows total. Exact source/snapshot SHA-256, event hash chain, receipt, foreign keys and uniqueness are independently checked on reopen. Same-source replay adds 0 rows; injected failure after the entity copy or fourth event rolls everything back. This is NOT a demonstration of actual sudden power-loss tolerance or production HA.
+
+scripts/verify_v24.py writes evidence/V24/transactional_integrity_report.json, rollback_reopen_matrix.json and unsigned_persistence_review.json. tests/test_persistence_v24.py adds **82** tests, expected full suite **1,088** (1,006 inherited) subject to current hosted CI. Prior 84.5% V8 combined coverage floor and V10 18-file freeze remain. The V9 application runtime, API and frozen files are unchanged; the experiment adds no customer data, credentials, live CMMS/ERP/OT integration, permanent database or approved V23 migration. V10/V20 human signoff and V21/V22 reviews remain outstanding. See docs/PERSISTENCE_V24.md, docs/DEMO_V24.md and docs/releases/V24.md.

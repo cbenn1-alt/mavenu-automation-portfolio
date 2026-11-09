@@ -25,7 +25,7 @@ jobs:
       - name: Install pinned test-only coverage tool
         working-directory: projects/reliability-intelligence
         run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
-      - name: Run V22 identity/reference integrity and V8-V21 regression in clean snapshot
+      - name: Run V24 temporary persistence transactions and V8-V22 regression in clean snapshot
         shell: bash
         env:
           PYTHONDONTWRITEBYTECODE: '1'
@@ -51,6 +51,7 @@ jobs:
           PYTHONPATH=src python scripts/verify_v20.py
           PYTHONPATH=src python scripts/verify_v21.py
           PYTHONPATH=src python scripts/verify_v22.py
+          PYTHONPATH=src python scripts/verify_v24.py
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V8"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V9"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V10"
@@ -66,6 +67,7 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V20"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V21"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V22"
+          mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V24"
           cp evidence/V8/verification.json evidence/V8/coverage.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V8/"
           cp evidence/V9/replay.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V9/"
           cp evidence/V10/verification.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V10/"
@@ -81,11 +83,12 @@ jobs:
           cp evidence/V20/verification.json evidence/V20/evidence_manifest.json evidence/V20/data_quality_signoff_packet.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V20/"
           cp evidence/V21/schema_review_validation.json evidence/V21/entity_relationship_catalog.json evidence/V21/unsigned_entity_schema_review.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V21/"
           cp evidence/V22/identity_reference_validation.json evidence/V22/uniqueness_link_matrix.json evidence/V22/unsigned_identity_review.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V22/"
-      - name: Preserve V8-V22 regression and unsigned identity/reference review evidence
+          cp evidence/V24/transactional_integrity_report.json evidence/V24/rollback_reopen_matrix.json evidence/V24/unsigned_persistence_review.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V24/"
+      - name: Preserve V8-V22 and V24 regression and transactional evidence (V23 absent)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: reliability-intelligence-v22-evidence
+          name: reliability-intelligence-v24-evidence
           path: |
             projects/reliability-intelligence/evidence/V8/
             projects/reliability-intelligence/evidence/V9/
@@ -102,5 +105,6 @@ jobs:
             projects/reliability-intelligence/evidence/V20/
             projects/reliability-intelligence/evidence/V21/
             projects/reliability-intelligence/evidence/V22/
+            projects/reliability-intelligence/evidence/V24/
           if-no-files-found: warn
           retention-days: 30
