@@ -1,0 +1,232 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V25",
+  "source": "Mavenu_AI_SaaS_Development_Architecture_V4.pdf, page 43 (V21–V40 appendix)",
+  "objective": "Add indexes and performance profiling",
+  "required_proof": "Query-plan and threshold report",
+  "status": "SYNTHETIC_INDEX_CANDIDATE_HUMAN_REVIEW_PENDING",
+  "branch_base": "feature/reliability-intelligence-v22",
+  "v24_1_migration_integrated": true,
+  "sqlite_schema_version": 2,
+  "approach": "Candidate indexes are installed in an isolated temporary SQLite V23/V24.1 schema-version-2 performance copy only; NOT an approved V23 production migration or V9 runtime change.",
+  "policy": {
+    "base_ddl": "docs/data/SCHEMA_DESIGN_V21.sql",
+    "indexed_tables": [
+      "maintenance_case",
+      "evidence_reference"
+    ],
+    "temporary_db_prefix": "mavenu-v24-",
+    "temporary_filename": "v24_synthetic.sqlite3",
+    "tenant": "SYN-TENANT-001",
+    "sites": 300,
+    "assets_per_site": 6,
+    "cases_per_site": 12,
+    "evidence_refs_per_case": 1,
+    "expected_cases": 3600,
+    "expected_assets": 1800,
+    "expected_evidence_rows": 3600,
+    "expected_total_benchmark_rows": 9301,
+    "source_fixture_set": "fully fabricated expanded benchmark, not validated V5 production data",
+    "index_count": 4,
+    "query_count": 4,
+    "schema_version_unchanged": true,
+    "fixture_sources_unmodified": true,
+    "baseline_runs": 37,
+    "indexed_runs": 37,
+    "warmups": 5,
+    "thresholds": {
+      "median_ms_max": 80,
+      "p95_ms_max": 200,
+      "index_plan_required": true,
+      "no_temp_sort_required": true,
+      "baseline_result_equal_indexed": true,
+      "index_install_rollback_required": true
+    },
+    "measurement": "Python time.perf_counter_ns, per-query individual runs, 37 measured samples plus 5 warmups; absolute thresholds are CI guardrails, NOT customer latency SLAs.",
+    "no_speedup_threshold": true,
+    "no_customer_data": true,
+    "no_real_tenant_authorization": true,
+    "no_production_index_deployment": true
+  },
+  "indexes": [
+    {
+      "name": "idx_v25_case_site_recent",
+      "table": "maintenance_case",
+      "columns": [
+        [
+          "tenant_id",
+          "ASC"
+        ],
+        [
+          "site_id",
+          "ASC"
+        ],
+        [
+          "occurred_at_utc",
+          "DESC"
+        ],
+        [
+          "case_id",
+          "ASC"
+        ]
+      ],
+      "use_case": "recent cases per fictional site"
+    },
+    {
+      "name": "idx_v25_case_asset_recent",
+      "table": "maintenance_case",
+      "columns": [
+        [
+          "tenant_id",
+          "ASC"
+        ],
+        [
+          "site_id",
+          "ASC"
+        ],
+        [
+          "asset_id",
+          "ASC"
+        ],
+        [
+          "occurred_at_utc",
+          "DESC"
+        ],
+        [
+          "case_id",
+          "ASC"
+        ]
+      ],
+      "use_case": "recent maintenance history for one fictional asset"
+    },
+    {
+      "name": "idx_v25_case_failure_recent",
+      "table": "maintenance_case",
+      "columns": [
+        [
+          "tenant_id",
+          "ASC"
+        ],
+        [
+          "site_id",
+          "ASC"
+        ],
+        [
+          "failure_code",
+          "ASC"
+        ],
+        [
+          "occurred_at_utc",
+          "DESC"
+        ],
+        [
+          "case_id",
+          "ASC"
+        ]
+      ],
+      "use_case": "fictional failure-code triage chronology"
+    },
+    {
+      "name": "idx_v25_evidence_reverse",
+      "table": "evidence_reference",
+      "columns": [
+        [
+          "tenant_id",
+          "ASC"
+        ],
+        [
+          "site_id",
+          "ASC"
+        ],
+        [
+          "evidence_ref",
+          "ASC"
+        ],
+        [
+          "case_id",
+          "ASC"
+        ]
+      ],
+      "use_case": "reverse lookup of fictional evidence reference"
+    }
+  ],
+  "queries": [
+    {
+      "name": "site_recent",
+      "index": "idx_v25_case_site_recent",
+      "rows_min": 1,
+      "sql": "SELECT case_id, occurred_at_utc FROM maintenance_case WHERE tenant_id=? AND site_id=? ORDER BY occurred_at_utc DESC, case_id ASC LIMIT 10",
+      "parameters": [
+        "SYN-TENANT-001",
+        "SYN-SITE-220"
+      ]
+    },
+    {
+      "name": "asset_recent",
+      "index": "idx_v25_case_asset_recent",
+      "rows_min": 1,
+      "sql": "SELECT case_id, occurred_at_utc FROM maintenance_case WHERE tenant_id=? AND site_id=? AND asset_id=? ORDER BY occurred_at_utc DESC, case_id ASC LIMIT 10",
+      "parameters": [
+        "SYN-TENANT-001",
+        "SYN-SITE-220",
+        "SYN-ASSET-001"
+      ]
+    },
+    {
+      "name": "failure_recent",
+      "index": "idx_v25_case_failure_recent",
+      "rows_min": 1,
+      "sql": "SELECT case_id, occurred_at_utc FROM maintenance_case WHERE tenant_id=? AND site_id=? AND failure_code=? ORDER BY occurred_at_utc DESC, case_id ASC LIMIT 10",
+      "parameters": [
+        "SYN-TENANT-001",
+        "SYN-SITE-220",
+        "bearing_wear"
+      ]
+    },
+    {
+      "name": "evidence_reverse",
+      "index": "idx_v25_evidence_reverse",
+      "rows_min": 1,
+      "sql": "SELECT case_id FROM evidence_reference WHERE tenant_id=? AND site_id=? AND evidence_ref=? ORDER BY case_id ASC",
+      "parameters": [
+        "SYN-TENANT-001",
+        "SYN-SITE-220",
+        "SYN-EV-101"
+      ]
+    }
+  ],
+  "negative_cases": [
+    "candidate_index_transaction_rollback_after_two_DDL",
+    "reject_reapply_duplicate_indexes",
+    "refuse_unexpected_index_name",
+    "refuse_unexpected_index_columns",
+    "reject_non_temporary_connection",
+    "reject_nonversioned_schema",
+    "reject_unknown_approval",
+    "reject_baseline_result_mismatch",
+    "retain_v23_migration_compatibility_without_claiming_index_migration"
+  ],
+  "open_decisions": [
+    "Obtain 2026–2027 representative customer query frequencies, selectivity, execution-plan baselines and actual storage engine.",
+    "Approve index migration/versioning, rollback and write-amplification budget; V23 schema version remains 2 and does not track the V25 candidate indexes.",
+    "Evaluate query data rights, tenant scoping, retention, backup and real production failover before deploying indexes.",
+    "Validate cold-cache versus warm-cache behavior, traffic concurrency, site/asset distributions, query pagination and P95 under target deployment.",
+    "Complete V10/V20 formal gates, V21–V24.1 human reviews, and V25 index/query-plan review."
+  ],
+  "approval": {
+    "v10_formal_promotion": false,
+    "v20_data_correctness_signoff": false,
+    "v21_entity_schema_review": false,
+    "v22_identity_review": false,
+    "v23_migration_review": false,
+    "v24_storage_review": false,
+    "v24_1_integration_review": false,
+    "v25_index_plan_review": false,
+    "production_index_migration_authorized": false,
+    "customer_data_authorized": false,
+    "tenant_access_control_approved": false,
+    "reviewer_id": null,
+    "review_date_utc": null,
+    "signature": null
+  }
+}
