@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V27 synthetic backup telemetry
+# Mavenu Reliability Intelligence — V28 synthetic retention, archive, deletion and hold tests
 
-**State:** V27 exercises proposed daily 02:15 UTC backup cadence and independent integrity verification against temporary 134-row synthetic SQLite copies. Two simulated successful backups and three simulated failures generate explicit telemetry; neither real scheduling nor retained recoverable backups are activated. Formal V10/V20 gates BLOCKED; V21–V27 human and customer-rights reviews pending.
+**State:** V28 validates 24 fictitious records in a disposable archive/deletion sidecar with synthetic 14/30-day archive and 90-day purge thresholds, two legal holds, transaction rollback, hash-linked audit and no duplicate replay. No approved retention/erasure, authentic legal authority, production data or customer rights. V10/V20 gate approvals remain BLOCKED, V21–V28 human signoffs PENDING.
 
-**Standard (Mavenu AI SaaS Platform Development Architecture V4 p.43):** V27 = Schedule backups and integrity checks. Proof = Backup success telemetry. V9 frozen runtime and read-only API remain unchanged. Passing synthetic telemetry is not real production backup/restore readiness.
+**Standard:** Mavenu AI SaaS Platform Development Architecture V4 p.43 — V28 Enforce retention, deletion and archives. Required proof: Retention-policy tests. Frozen V9 runtime/read-only API remain unchanged.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -32,6 +32,7 @@ PYTHONPATH=src python scripts/verify_v24_1.py
 PYTHONPATH=src python scripts/verify_v25.py
 PYTHONPATH=src python scripts/verify_v26.py
 PYTHONPATH=src python scripts/verify_v27.py
+PYTHONPATH=src python scripts/verify_v28.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -259,3 +260,10 @@ V27 adds docs/data/BACKUP_SCHEDULE_V27.json, scripts/backup_v27.py, scripts/veri
 The verifier runs **two simulated successful backups** and **three deliberately failed copies** (before copy, tampered copy and corrupt source), validates the V24 134-row transaction and hash chain before/after sqlite3.Connection.backup, reopens the copy, and checks file SHA-256 and actual deletion. Six schedule-state examples verify NOT_STARTED, CURRENT, DUE and MISSED. It adds **81 tests**, expected full suite **1,469** (1,388 inherited) pending hosted CI.
 
 Reports: evidence/V27/backup_success_telemetry.json, failure_and_schedule_matrix.json and unsigned_backup_operations_review.json. Both copied and source databases are automatically deleted; no recoverable copy remains, no customer record is used, no production backup is scheduled or certified, and no human signoff is claimed. For review, see docs/BACKUP_INTEGRITY_V27.md and docs/DEMO_V27.md.
+
+
+## V28 — synthetic retention-policy enforcement and audit
+
+docs/data/RETENTION_POLICY_V28.json and scripts/retention_v28.py implement an **isolated, disposable SQLite lifecycle sidecar**, NOT a production migration. They exercise 24 fabricated case/evidence records derived from the V26 temporary 38-row fixture. Case summaries archive at age 30 days and evidence references at 14 days; both purge after 90 days — these are UNAPPROVED demonstration policy values. Two test-only legal holds prevent purging until explicit (but unauthenticated) simulated release. Expected after first policy: **10 active, 8 archived, 6 purged, 2 holds, 16 hash-linked audit events**. After simulated release and rerun: **8/8/8, 0 holds, 20 audit events**. Two injected failures roll back whole batches; repeat policy execution is idempotent. Ordinary UPDATE/DELETE on audit_event are blocked.
+
+scripts/verify_v28.py writes evidence/V28/retention_policy_test_report.json, archive_delete_hold_matrix.json and unsigned_retention_review.json. tests/test_retention_v28.py adds **102 tests**, expected total **1,571** (1,469 inherited), subject to hosted CI. V10 18-file frozen source and all prior source/backup schemas remain intact. SQLite DELETE is not certified secure erasure, no V27 backup copy is purged, and no real customer rights or production policy are granted. See docs/RETENTION_LIFECYCLE_V28.md and docs/DEMO_V28.md.
