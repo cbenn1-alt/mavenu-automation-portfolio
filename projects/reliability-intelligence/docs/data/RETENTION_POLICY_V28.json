@@ -1,0 +1,128 @@
+{
+  "schema_version": "1.0.0",
+  "increment": "V28",
+  "architecture": "Mavenu AI SaaS Platform Development Architecture V4 page 43",
+  "objective": "Enforce retention, deletion and archives",
+  "required_proof": "Retention-policy tests",
+  "state": "SYNTHETIC_LIFECYCLE_PROTOTYPE_HUMAN_REVIEW_PENDING",
+  "branch_base": "feature/reliability-intelligence-v22",
+  "storage_design": {
+    "source": "V26 38-row invented tenant/site relational fixture in temporary V23/V24.1 schema version 2",
+    "lifecycle": "isolated disposable SQLite file mavenu-v28-*/v28_lifecycle.sqlite3, NOT a V23 schema upgrade or production archive",
+    "reference_timestamp_utc": "2026-11-10T12:00:00Z",
+    "retention_clock": "synthetic lifecycle age assigned by case suffix; source occurred_at_utc is NOT treated as observed real-world history",
+    "categories": [
+      {
+        "data_class": "case_summary",
+        "archive_after_days": 30,
+        "purge_after_days": 90
+      },
+      {
+        "data_class": "evidence_reference",
+        "archive_after_days": 14,
+        "purge_after_days": 90
+      }
+    ],
+    "age_cohorts": [
+      {
+        "case_suffix": "001",
+        "age_days": 5
+      },
+      {
+        "case_suffix": "002",
+        "age_days": 40
+      },
+      {
+        "case_suffix": "003",
+        "age_days": 120
+      }
+    ],
+    "fake_tenants": 2,
+    "sites_per_tenant": 2,
+    "cases_per_scope": 3,
+    "classes_per_case": 2,
+    "synthetic_records": 24,
+    "expected_after_enforcement": {
+      "active": 10,
+      "archived": 8,
+      "purged": 6,
+      "active_held": 2,
+      "holds": 2,
+      "events": 16
+    },
+    "expected_after_authorized_simulated_hold_release": {
+      "active": 8,
+      "archived": 8,
+      "purged": 8,
+      "holds": 0,
+      "events": 20
+    },
+    "immutable_audit_chain": true,
+    "delete_tombstones_sha256_only": true,
+    "hold_behavior": "no move or purge while held; explicit simulated release needed; never automatically expires",
+    "hold_reviewer": "SYN-REVIEWER-LEGAL-001 (NOT AUTHENTICATED)",
+    "hold_targets": [
+      {
+        "tenant_id": "SYN-TENANT-001",
+        "site_id": "SYN-SITE-001",
+        "case_id": "SYN-CASE-003",
+        "data_class": "case_summary"
+      },
+      {
+        "tenant_id": "SYN-TENANT-002",
+        "site_id": "SYN-SITE-002",
+        "case_id": "SYN-CASE-003",
+        "data_class": "evidence_reference"
+      }
+    ],
+    "failure_injections": [
+      "after_first_transition",
+      "after_first_purge"
+    ],
+    "no_real_backup_deletion": true,
+    "no_customer_records": true,
+    "no_source_db_mutation": true,
+    "no_real_schedule": true,
+    "host_migration_version_unchanged": true,
+    "audit_is_not_externally_signed": true,
+    "secure_erase_of_old_db_pages_unverified": true
+  },
+  "decision": {
+    "proposed_only": true,
+    "customer_data_owner_approved": false,
+    "retention_period_approved": false,
+    "legal_hold_authority_approved": false,
+    "deletion_or_export_rights_approved": false,
+    "backup_retention_approved": false,
+    "production_data_lifecycle_authorized": false,
+    "authenticated_reviewer_implemented": false,
+    "customer_access_authorized": false,
+    "independent_v28_review_approved": false,
+    "v10_formal_promotion": false,
+    "v20_data_quality_signoff": false,
+    "v21_v27_human_reviews_complete": false,
+    "owner": null,
+    "security_reviewer": null,
+    "legal_reviewer": null,
+    "approved_at_utc": null,
+    "signature": null
+  },
+  "risks": [
+    "Policy durations (14/30/90 days) are demonstrative assumptions and are not supplied as approved legal or Minn-Dak contractual periods.",
+    "Prototype's legal hold is a simulated flag and untrusted reviewer string; no authentic legal authority or approved hold-release workflow exists.",
+    "SQLite DELETE is a logical physical-row deletion within a temporary store, not proof of secure erasure of filesystem pages, journals, backups or external replicas.",
+    "Source V26 database, V24/V27 backups, frozen fixtures and immutable historical evidence are deliberately untouched; a production deletion plan must address every derived copy.",
+    "Hash-only tombstone and event chain are deterministic integrity diagnostics, not independently signed tamper-evident custody or compliant personal-data deletion.",
+    "No unattended lifecycle scheduler, live retention policy, production tenant authentication/RLS or actual customer data permission.",
+    "V10 and V20 formal phase signoffs and all V21–V28 owner/security/legal approvals remain outstanding."
+  ],
+  "human_readiness_gates": [
+    "Identify customer data controller and lawful purpose/retention requirement by data class",
+    "Approve sensitive-record, legal hold and litigation preservation requirements",
+    "Define and test retention across active stores, archives, backups, exports, caches and disaster-recovery replicas",
+    "Approve secure deletion, cryptographic erasure or provider-specific purge standards and immutable audit evidence",
+    "Implement authenticated reviewer identity and dual-control legal-hold release with audit chain external trust",
+    "Approve tenant access/RLS, lifecycle scheduler, retention monitoring, legal DPA and operational responsibilities",
+    "Complete V10/V20 and V21–V28 independent release signoffs"
+  ]
+}
