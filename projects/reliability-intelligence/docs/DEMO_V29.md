@@ -9,7 +9,7 @@ On the exact V29 commit, Python 3.11+, working directory projects/reliability-in
     PYTHONPATH=src python scripts/verify_v8.py
     PYTHONPATH=src python scripts/replay_v9.py
     for v in 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24; do
-      PYTHONPATH=src python "scripts/verify_v$v".py"
+      PYTHONPATH=src python "scripts/verify_v${v}.py"
     done
     PYTHONPATH=src python scripts/verify_v24_1.py
     PYTHONPATH=src python scripts/verify_v25.py
