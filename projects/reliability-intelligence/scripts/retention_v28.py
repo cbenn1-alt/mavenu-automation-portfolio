@@ -575,6 +575,7 @@ def run_scenarios()->dict[str,Any]:
                     pass_two=enforce(db)
                     expected_two=policy()["storage_design"][
                         "expected_after_authorized_simulated_hold_release"]
+                    print("V28_TEMP_DEBUG",json.dumps({"actual":pass_two,"expected":expected_two},sort_keys=True),flush=True)
                     require(pass_two["after"]==expected_two and
                             pass_two["operations"]["purged"]==2 and
                             pass_two["operations"]["archived"]==0,
