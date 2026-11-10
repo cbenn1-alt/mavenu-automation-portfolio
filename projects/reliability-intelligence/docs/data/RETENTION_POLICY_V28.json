@@ -55,7 +55,8 @@
       "archived": 8,
       "purged": 8,
       "holds": 0,
-      "events": 20
+      "events": 20,
+      "active_held": 0
     },
     "immutable_audit_chain": true,
     "delete_tombstones_sha256_only": true,

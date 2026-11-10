@@ -152,7 +152,7 @@ def validate_policy(p: dict[str, Any]) -> None:
         "active":10,"archived":8,"purged":6,
         "active_held":2,"holds":2,"events":16
     } and d.get("expected_after_authorized_simulated_hold_release")=={
-        "active":8,"archived":8,"purged":8,"holds":0,"events":20
+        "active":8,"archived":8,"purged":8,"holds":0,"active_held":0,"events":20
     },"v28_expected_counts_drift")
     gov=p.get("decision")
     require(type(gov) is dict and
@@ -575,7 +575,6 @@ def run_scenarios()->dict[str,Any]:
                     pass_two=enforce(db)
                     expected_two=policy()["storage_design"][
                         "expected_after_authorized_simulated_hold_release"]
-                    print("V28_TEMP_DEBUG",json.dumps({"actual":pass_two,"expected":expected_two},sort_keys=True),flush=True)
                     require(pass_two["after"]==expected_two and
                             pass_two["operations"]["purged"]==2 and
                             pass_two["operations"]["archived"]==0,
