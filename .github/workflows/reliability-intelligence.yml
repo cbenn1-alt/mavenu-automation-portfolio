@@ -25,7 +25,7 @@ jobs:
       - name: Install pinned test-only coverage tool
         working-directory: projects/reliability-intelligence
         run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
-      - name: Run V26 synthetic tenant isolation and V8–V25 regressions
+      - name: Run V27 synthetic backup integrity and V8–V26 regression
         shell: bash
         env:
           PYTHONDONTWRITEBYTECODE: '1'
@@ -56,6 +56,7 @@ jobs:
           PYTHONPATH=src python scripts/verify_v24_1.py
           PYTHONPATH=src python scripts/verify_v25.py
           PYTHONPATH=src python scripts/verify_v26.py
+          PYTHONPATH=src python scripts/verify_v27.py
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V8"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V9"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V10"
@@ -76,6 +77,7 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V24_1"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V25"
           mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V26"
+          mkdir -p "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V27"
           cp evidence/V8/verification.json evidence/V8/coverage.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V8/"
           cp evidence/V9/replay.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V9/"
           cp evidence/V10/verification.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V10/"
@@ -96,11 +98,12 @@ jobs:
           cp evidence/V24_1/migration_persistence_integration.json evidence/V24_1/bootstrap_and_recovery_matrix.json evidence/V24_1/unsigned_v24_1_review.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V24_1/"
           cp evidence/V25/query_plan_threshold_report.json evidence/V25/indexed_vs_baseline_profile.json evidence/V25/unsigned_index_review.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V25/"
           cp evidence/V26/isolation_design_decision.json evidence/V26/synthetic_access_probe_matrix.json evidence/V26/unsigned_data_rights_review.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V26/"
-      - name: Preserve V8–V26 synthetic tenant isolation and regression evidence
+          cp evidence/V27/backup_success_telemetry.json evidence/V27/failure_and_schedule_matrix.json evidence/V27/unsigned_backup_operations_review.json "$GITHUB_WORKSPACE/projects/reliability-intelligence/evidence/V27/"
+      - name: Preserve V8–V27 synthetic backup and regression evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: reliability-intelligence-v26-evidence
+          name: reliability-intelligence-v27-evidence
           path: |
             projects/reliability-intelligence/evidence/V8/
             projects/reliability-intelligence/evidence/V9/
@@ -122,5 +125,6 @@ jobs:
             projects/reliability-intelligence/evidence/V24_1/
             projects/reliability-intelligence/evidence/V25/
             projects/reliability-intelligence/evidence/V26/
+            projects/reliability-intelligence/evidence/V27/
           if-no-files-found: warn
           retention-days: 30
