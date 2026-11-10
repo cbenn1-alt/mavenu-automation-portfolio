@@ -1,8 +1,8 @@
-# Mavenu Reliability Intelligence — V26 tenant boundary and data rights candidate
+# Mavenu Reliability Intelligence — V27 synthetic backup telemetry
 
-**State:** V26 documents a provisional synthetic tenant/site scoping model, 3 production isolation design alternatives, four data classes and unresolved data ownership/rights, plus a 48-combination fabricated actor/scope/operation test. No real authentication, database RLS, signed customer rights or production security is implied. V10/V20 formal signoffs remain blocked and V21–V26 human approvals pending.
+**State:** V27 exercises proposed daily 02:15 UTC backup cadence and independent integrity verification against temporary 134-row synthetic SQLite copies. Two simulated successful backups and three simulated failures generate explicit telemetry; neither real scheduling nor retained recoverable backups are activated. Formal V10/V20 gates BLOCKED; V21–V27 human and customer-rights reviews pending.
 
-**Standard (Mavenu AI SaaS Development Architecture V4, page 43):** V26 = Document tenant boundaries and data rights. Proof = Isolation design decision. This design is PROPOSED_NOT_RATIFIED; frozen V9 runtime and read-only API unchanged.
+**Standard (Mavenu AI SaaS Platform Development Architecture V4 p.43):** V27 = Schedule backups and integrity checks. Proof = Backup success telemetry. V9 frozen runtime and read-only API remain unchanged. Passing synthetic telemetry is not real production backup/restore readiness.
 
 ## Clean checkout verification (Python 3.11+)
 
@@ -31,6 +31,7 @@ PYTHONPATH=src python scripts/verify_v24.py
 PYTHONPATH=src python scripts/verify_v24_1.py
 PYTHONPATH=src python scripts/verify_v25.py
 PYTHONPATH=src python scripts/verify_v26.py
+PYTHONPATH=src python scripts/verify_v27.py
 ~~~~
 
 The runner checks test inventory, executes the full unit/smoke suite with branch-aware coverage.py, writes evidence/V8/coverage.json and evidence/V8/verification.json, and enforces the checked-in 84.5% combined coverage floor and 140-test minimum. GitHub Actions uploads these files as an artifact retained for 30 days.
@@ -249,3 +250,12 @@ docs/data/ISOLATION_DECISION_V26.json defines a **proposed, unratified** logical
 scripts/isolation_v26.py builds an automatically deleted SQLite version-2 fixture: **2 fictional tenants, 4 overlapping sites, 8 assets, 12 cases and 12 fake evidence references (38 fabricated records)**. The same case ID repeats across all four scopes. Six fictional actors carry fixed in-code test grants for two read-only tenant/site-scoped query shapes. A 48-case matrix expects 8 permitted and 40 denied operations; ten additional malformed probes are uniformly denied. **Direct unrestricted SQL still bypasses the guard**, explicitly confirming it is not database-level security.
 
 scripts/verify_v26.py writes evidence/V26/isolation_design_decision.json, synthetic_access_probe_matrix.json and unsigned_data_rights_review.json. tests/test_isolation_v26.py adds **118 new tests**, expected full suite **1,388** (1,270 inherited), subject to actual GitHub CI. V10 frozen 18-file source and earlier technical regressions remain. Formal V10/V20 gates and all data-owner/legal/security reviews remain missing. See docs/ISOLATION_AND_RIGHTS_V26.md and docs/DEMO_V26.md.
+
+
+## V27 — UTC backup schedule policy and test-only SQLite online copy
+
+V27 adds docs/data/BACKUP_SCHEDULE_V27.json, scripts/backup_v27.py, scripts/verify_v27.py and tests/test_backup_v27.py. The proposed schedule is **02:15 UTC daily**, with a 30-minute grace period. The schedule is evaluated only against synthetic instants; **no cron, cloud job, automation or unattended recurring task is created.**
+
+The verifier runs **two simulated successful backups** and **three deliberately failed copies** (before copy, tampered copy and corrupt source), validates the V24 134-row transaction and hash chain before/after sqlite3.Connection.backup, reopens the copy, and checks file SHA-256 and actual deletion. Six schedule-state examples verify NOT_STARTED, CURRENT, DUE and MISSED. It adds **81 tests**, expected full suite **1,469** (1,388 inherited) pending hosted CI.
+
+Reports: evidence/V27/backup_success_telemetry.json, failure_and_schedule_matrix.json and unsigned_backup_operations_review.json. Both copied and source databases are automatically deleted; no recoverable copy remains, no customer record is used, no production backup is scheduled or certified, and no human signoff is claimed. For review, see docs/BACKUP_INTEGRITY_V27.md and docs/DEMO_V27.md.
